@@ -1,5 +1,4 @@
-/* Global styles and CSS variables */
-    :root {
+:root {
       --primary-color: #2563eb;
       --secondary-color: #ffffff;
       --text-color: #1e293b;
@@ -41,3 +40,5 @@
     input {
       font-family: inherit;
     }
+
+    /* Add any additional global styles here */
