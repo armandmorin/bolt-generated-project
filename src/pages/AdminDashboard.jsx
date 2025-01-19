@@ -1,8 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
     import ClientManagement from './ClientManagement';
     import WidgetCustomization from './WidgetCustomization';
     import ProfileSettings from './ProfileSettings';
     import TeamMembers from './TeamMembers';
+    import ImageUpload from '../components/ImageUpload';
     import styles from '../styles/admin.module.css';
 
     const AdminDashboard = () => {
@@ -58,15 +59,16 @@ import React, { useState, useEffect } from 'react';
             {activeTab === 'branding' && (
               <div className={styles.formContainer}>
                 <form onSubmit={handleBrandUpdate}>
-                  <div className={styles.formGroup}>
-                    <label>Logo URL</label>
-                    <input
-                      type="url"
-                      value={brandSettings.logo}
-                      onChange={(e) => setBrandSettings({ ...brandSettings, logo: e.target.value })}
-                      placeholder="Enter logo URL"
-                    />
-                  </div>
+                  <ImageUpload
+                    currentImage={brandSettings.logo}
+                    onImageUpload={(imageData) => {
+                      setBrandSettings(prev => ({
+                        ...prev,
+                        logo: imageData
+                      }));
+                    }}
+                    label="Company Logo"
+                  />
 
                   <div className={styles.colorGroup}>
                     <div className={styles.formGroup}>

@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
     import { useNavigate, Link } from 'react-router-dom';
-    import styles from '../styles/login.module.css';
+    import styles from '../styles/modules/login.module.css';
 
     const SuperAdminLogin = () => {
       const [email, setEmail] = useState('');
       const [password, setPassword] = useState('');
       const navigate = useNavigate();
+      const brandSettings = JSON.parse(localStorage.getItem('brandSettings') || '{}');
 
       const handleLogin = async (e) => {
         e.preventDefault();
@@ -21,7 +22,14 @@ import React, { useState } from 'react';
       return (
         <div className={styles.loginPage}>
           <div className={styles.loginContainer}>
-            <h1>Super Admin Login</h1>
+            {brandSettings.logo ? (
+              <div className={styles.logoContainer}>
+                <img src={brandSettings.logo} alt="Company Logo" className={styles.logo} />
+              </div>
+            ) : (
+              <h1>Super Admin Login</h1>
+            )}
+
             <form onSubmit={handleLogin}>
               <div className={styles.formGroup}>
                 <label>Email</label>
@@ -48,8 +56,10 @@ import React, { useState } from 'react';
               </button>
             </form>
 
-            <div className={styles.superAdminLink}>
-              <Link to="/">Back to Admin Login</Link>
+            <div className={styles.links}>
+              <Link to="/" className={styles.backLink}>
+                Back to Admin Login
+              </Link>
             </div>
           </div>
         </div>

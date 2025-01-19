@@ -1,0 +1,11 @@
+/* Add to existing styles */
+    .logoContainer {
+      text-align: center;
+      margin-bottom: 2rem;
+    }
+
+    .logo {
+      max-width: 200px;
+      height: auto;
+      margin: 0 auto;
+    }

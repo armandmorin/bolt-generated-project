@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-    import styles from '../styles/superAdmin.module.css';
+    import ImageUpload from '../components/ImageUpload';
+    import styles from '../styles/admin.module.css';
 
     const SuperAdminDashboard = () => {
       const [activeTab, setActiveTab] = useState('branding');
@@ -106,50 +107,20 @@ import React, { useState, useEffect } from 'react';
           </div>
 
           <div className={styles.content}>
-            {activeTab === 'domain' && (
-              <div className={styles.formContainer}>
-                <h2>Widget Domain Configuration</h2>
-                <p className={styles.description}>
-                  Set the domain where the accessibility widget will be hosted. 
-                  This domain will be used in the installation code provided to clients.
-                </p>
-                <form onSubmit={handleDomainSave}>
-                  <div className={styles.formGroup}>
-                    <label>Widget Domain</label>
-                    <input
-                      type="url"
-                      value={domain}
-                      onChange={(e) => setDomain(e.target.value)}
-                      placeholder="https://widget.yourdomain.com"
-                      required
-                    />
-                    <span className={styles.hint}>
-                      Example: https://widget.yourdomain.com or https://yourdomain.com/widget
-                    </span>
-                  </div>
-                  <div className={styles.formActions}>
-                    <button type="submit" className={styles.saveButton}>
-                      Save Domain
-                    </button>
-                  </div>
-                </form>
-              </div>
-            )}
-
             {activeTab === 'branding' && (
               <div className={styles.formContainer}>
                 <h2>Global Branding Settings</h2>
                 <div className={styles.brandingForm}>
-                  <div className={styles.formGroup}>
-                    <label>Default Logo URL</label>
-                    <input
-                      type="url"
-                      name="logo"
-                      value={globalBranding.logo}
-                      onChange={handleBrandingChange}
-                      placeholder="Enter logo URL"
-                    />
-                  </div>
+                  <ImageUpload
+                    currentImage={globalBranding.logo}
+                    onImageUpload={(imageData) => {
+                      setGlobalBranding(prev => ({
+                        ...prev,
+                        logo: imageData
+                      }));
+                    }}
+                    label="Default Logo"
+                  />
 
                   <div className={styles.colorGroup}>
                     <div className={styles.formGroup}>
@@ -183,6 +154,36 @@ import React, { useState, useEffect } from 'react';
                     </button>
                   </div>
                 </div>
+              </div>
+            )}
+
+            {activeTab === 'domain' && (
+              <div className={styles.formContainer}>
+                <h2>Widget Domain Configuration</h2>
+                <p className={styles.description}>
+                  Set the domain where the accessibility widget will be hosted. 
+                  This domain will be used in the installation code provided to clients.
+                </p>
+                <form onSubmit={handleDomainSave}>
+                  <div className={styles.formGroup}>
+                    <label>Widget Domain</label>
+                    <input
+                      type="url"
+                      value={domain}
+                      onChange={(e) => setDomain(e.target.value)}
+                      placeholder="https://widget.yourdomain.com"
+                      required
+                    />
+                    <span className={styles.hint}>
+                      Example: https://widget.yourdomain.com or https://yourdomain.com/widget
+                    </span>
+                  </div>
+                  <div className={styles.formActions}>
+                    <button type="submit" className={styles.saveButton}>
+                      Save Domain
+                    </button>
+                  </div>
+                </form>
               </div>
             )}
 

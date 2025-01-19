@@ -3,7 +3,6 @@
       max-width: 1200px;
       margin: 0 auto;
       padding: 2rem;
-      width: 100%;
     }
 
     /* Tabs */
@@ -13,6 +12,7 @@
       margin-bottom: 2rem;
       border-bottom: 1px solid var(--border-color);
       padding-bottom: 0.5rem;
+      overflow-x: auto;
     }
 
     .tabButton {
@@ -24,6 +24,7 @@
       cursor: pointer;
       position: relative;
       transition: all 0.2s ease;
+      white-space: nowrap;
     }
 
     .tabButton::after {
@@ -50,7 +51,7 @@
       background-color: var(--primary-color);
     }
 
-    /* Content Container */
+    /* Content Area */
     .content {
       background: var(--secondary-color);
       border-radius: 12px;
@@ -61,6 +62,12 @@
     /* Form Container */
     .formContainer {
       padding: 2rem;
+    }
+
+    .formContainer h2 {
+      margin: 0 0 1.5rem 0;
+      color: var(--text-color);
+      font-size: 1.5rem;
     }
 
     .formGroup {
@@ -107,7 +114,8 @@
       margin-top: 2rem;
     }
 
-    .primaryButton {
+    .primaryButton,
+    .saveButton {
       padding: 0.75rem 1.5rem;
       background-color: var(--primary-color);
       color: white;
@@ -119,11 +127,126 @@
       transition: all 0.2s ease;
     }
 
-    .primaryButton:hover {
+    .primaryButton:hover,
+    .saveButton:hover {
       background-color: #1d4ed8;
       transform: translateY(-1px);
     }
 
+    /* Table Styles */
+    .table {
+      width: 100%;
+      border-collapse: separate;
+      border-spacing: 0;
+      margin-top: 1rem;
+    }
+
+    .table th,
+    .table td {
+      padding: 1rem;
+      text-align: left;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .table th {
+      background-color: var(--primary-color);
+      color: white;
+      font-weight: 500;
+    }
+
+    .table tr:hover {
+      background-color: rgba(0, 0, 0, 0.02);
+    }
+
+    /* Status Indicators */
+    .status {
+      padding: 0.25rem 0.5rem;
+      border-radius: 4px;
+      font-size: 0.875rem;
+      display: inline-block;
+    }
+
+    .statusActive {
+      background-color: #dcfce7;
+      color: #16a34a;
+    }
+
+    .statusInactive {
+      background-color: #fee2e2;
+      color: #dc2626;
+    }
+
+    /* Action Buttons */
+    .actionButtons {
+      display: flex;
+      gap: 0.5rem;
+    }
+
+    .actionButton {
+      padding: 0.5rem 1rem;
+      border: none;
+      border-radius: 4px;
+      font-size: 0.875rem;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .actionButton.primary {
+      background-color: var(--primary-color);
+      color: white;
+    }
+
+    .actionButton.danger {
+      background-color: #ef4444;
+      color: white;
+    }
+
+    .actionButton:hover {
+      transform: translateY(-1px);
+    }
+
+    /* Search and Filter */
+    .searchContainer {
+      margin-bottom: 1.5rem;
+    }
+
+    .searchInput {
+      width: 100%;
+      max-width: 300px;
+      padding: 0.75rem;
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+      font-size: 1rem;
+    }
+
+    .searchInput:focus {
+      border-color: var(--primary-color);
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+      outline: none;
+    }
+
+    /* Section Headers */
+    .sectionHeader {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1.5rem;
+    }
+
+    .sectionTitle {
+      margin: 0;
+      font-size: 1.5rem;
+      color: var(--text-color);
+    }
+
+    /* Empty States */
+    .emptyState {
+      text-align: center;
+      padding: 3rem;
+      color: #64748b;
+    }
+
+    /* Responsive Design */
     @media (max-width: 768px) {
       .adminDashboard {
         padding: 1rem;
@@ -131,5 +254,19 @@
 
       .colorGroup {
         grid-template-columns: 1fr;
+      }
+
+      .formActions {
+        flex-direction: column;
+        gap: 1rem;
+      }
+
+      .actionButtons {
+        flex-direction: column;
+      }
+
+      .table {
+        display: block;
+        overflow-x: auto;
       }
     }

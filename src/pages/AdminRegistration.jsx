@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-    import { useNavigate, Link } from 'react-router-dom';
-    import styles from '../styles/registration.module.css';
+    import { Link } from 'react-router-dom';
+    import styles from '../styles/modules/registration.module.css';
 
     const AdminRegistration = () => {
       const [formData, setFormData] = useState({
@@ -12,9 +12,9 @@ import React, { useState } from 'react';
         phone: '',
         website: ''
       });
+      const brandSettings = JSON.parse(localStorage.getItem('brandSettings') || '{}');
 
       const [errors, setErrors] = useState({});
-      const navigate = useNavigate();
 
       const handleChange = (e) => {
         const { name, value } = e.target;
@@ -22,7 +22,6 @@ import React, { useState } from 'react';
           ...prev,
           [name]: value
         }));
-        // Clear error when user starts typing
         if (errors[name]) {
           setErrors(prev => ({
             ...prev,
@@ -31,72 +30,21 @@ import React, { useState } from 'react';
         }
       };
 
-      const validateForm = () => {
-        const newErrors = {};
-        
-        if (!formData.name.trim()) {
-          newErrors.name = 'Name is required';
-        }
-
-        if (!formData.email.trim()) {
-          newErrors.email = 'Email is required';
-        } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
-          newErrors.email = 'Email is invalid';
-        }
-
-        if (!formData.password) {
-          newErrors.password = 'Password is required';
-        } else if (formData.password.length < 8) {
-          newErrors.password = 'Password must be at least 8 characters';
-        }
-
-        if (formData.password !== formData.confirmPassword) {
-          newErrors.confirmPassword = 'Passwords do not match';
-        }
-
-        if (!formData.company.trim()) {
-          newErrors.company = 'Company name is required';
-        }
-
-        return newErrors;
-      };
-
       const handleSubmit = async (e) => {
         e.preventDefault();
-        const newErrors = validateForm();
-
-        if (Object.keys(newErrors).length > 0) {
-          setErrors(newErrors);
-          return;
-        }
-
-        try {
-          // Here you would typically make an API call to register the admin
-          // For now, we'll just store in localStorage
-          const admins = JSON.parse(localStorage.getItem('admins') || '[]');
-          const newAdmin = {
-            ...formData,
-            id: Date.now(),
-            dateCreated: new Date().toISOString(),
-            clients: [],
-            status: 'pending' // Requires super admin approval
-          };
-          
-          admins.push(newAdmin);
-          localStorage.setItem('admins', JSON.stringify(admins));
-          
-          // Redirect to success page or login
-          navigate('/registration-success');
-        } catch (error) {
-          setErrors({ submit: 'Registration failed. Please try again.' });
-        }
+        // Add registration logic here
       };
 
       return (
         <div className={styles.registrationPage}>
           <div className={styles.registrationContainer}>
-            <h1>Admin Registration</h1>
-            <p className={styles.subtitle}>Create your admin account to get started</p>
+            {brandSettings.logo ? (
+              <div className={styles.logoContainer}>
+                <img src={brandSettings.logo} alt="Company Logo" className={styles.logo} />
+              </div>
+            ) : (
+              <h1>Admin Registration</h1>
+            )}
 
             <form onSubmit={handleSubmit} className={styles.registrationForm}>
               <div className={styles.formGrid}>
@@ -108,6 +56,7 @@ import React, { useState } from 'react';
                     value={formData.name}
                     onChange={handleChange}
                     placeholder="Enter your full name"
+                    required
                   />
                   {errors.name && <span className={styles.error}>{errors.name}</span>}
                 </div>
@@ -120,6 +69,7 @@ import React, { useState } from 'react';
                     value={formData.email}
                     onChange={handleChange}
                     placeholder="Enter your email"
+                    required
                   />
                   {errors.email && <span className={styles.error}>{errors.email}</span>}
                 </div>
@@ -132,6 +82,7 @@ import React, { useState } from 'react';
                     value={formData.password}
                     onChange={handleChange}
                     placeholder="Create a password"
+                    required
                   />
                   {errors.password && <span className={styles.error}>{errors.password}</span>}
                 </div>
@@ -144,6 +95,7 @@ import React, { useState } from 'react';
                     value={formData.confirmPassword}
                     onChange={handleChange}
                     placeholder="Confirm your password"
+                    required
                   />
                   {errors.confirmPassword && <span className={styles.error}>{errors.confirmPassword}</span>}
                 </div>
@@ -156,6 +108,7 @@ import React, { useState } from 'react';
                     value={formData.company}
                     onChange={handleChange}
                     placeholder="Enter your company name"
+                    required
                   />
                   {errors.company && <span className={styles.error}>{errors.company}</span>}
                 </div>
@@ -182,8 +135,6 @@ import React, { useState } from 'react';
                   />
                 </div>
               </div>
-
-              {errors.submit && <div className={styles.submitError}>{errors.submit}</div>}
 
               <button type="submit" className={styles.submitButton}>
                 Register Account

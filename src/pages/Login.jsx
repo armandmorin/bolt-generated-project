@@ -1,15 +1,15 @@
 import React, { useState } from 'react';
     import { useNavigate, Link } from 'react-router-dom';
-    import styles from '../styles/login.module.css';
+    import styles from '../styles/modules/login.module.css';
 
     const Login = () => {
       const [email, setEmail] = useState('');
       const [password, setPassword] = useState('');
       const navigate = useNavigate();
+      const brandSettings = JSON.parse(localStorage.getItem('brandSettings') || '{}');
 
       const handleLogin = async (e) => {
         e.preventDefault();
-        // Add proper login logic here
         localStorage.setItem('userRole', 'admin');
         localStorage.setItem('user', JSON.stringify({ email, role: 'admin' }));
         navigate('/admin');
@@ -18,7 +18,14 @@ import React, { useState } from 'react';
       return (
         <div className={styles.loginPage}>
           <div className={styles.loginContainer}>
-            <h1>Admin Login</h1>
+            {brandSettings.logo ? (
+              <div className={styles.logoContainer}>
+                <img src={brandSettings.logo} alt="Company Logo" className={styles.logo} />
+              </div>
+            ) : (
+              <h1>Admin Login</h1>
+            )}
+
             <form onSubmit={handleLogin}>
               <div className={styles.formGroup}>
                 <label>Email</label>
