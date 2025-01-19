@@ -1,21 +1,26 @@
 import React, { useState } from 'react';
     import styles from '../styles/widget.module.css';
 
-    function AccessibilityWidget({ settings, isPreview = false }) {
+    const AccessibilityWidget = ({ settings, isPreview = false }) => {
       const [isOpen, setIsOpen] = useState(isPreview);
       const [features, setFeatures] = useState({
+        // Content Adjustments
         readableFont: false,
         readAllText: false,
         clickToSpeech: false,
         fontScaling: false,
         highlightLinks: false,
         highlightTitles: false,
+
+        // Color Adjustments
         highContrast: false,
         lightContrast: false,
         darkContrast: false,
         monochrome: false,
         highSaturation: false,
         lowSaturation: false,
+
+        // Orientation Adjustments
         muteSounds: false,
         hideImages: false,
         stopAnimations: false,
@@ -30,6 +35,11 @@ import React, { useState } from 'react';
         }));
       };
 
+      const applyFeatures = () => {
+        // Apply the features here
+        // This is where you would implement the actual accessibility changes
+      };
+
       return (
         <div className={styles.widgetContainer}>
           <button 
@@ -42,13 +52,9 @@ import React, { useState } from 'react';
               width="24" 
               height="24" 
               viewBox="0 0 24 24" 
-              fill="none" 
-              xmlns="http://www.w3.org/2000/svg"
+              fill="currentColor"
             >
-              <path
-                d="M12 2C13.1 2 14 2.9 14 4C14 5.1 13.1 6 12 6C10.9 6 10 5.1 10 4C10 2.9 10.9 2 12 2ZM21 9H15V22H13V16H11V22H9V9H3V7H21V9Z"
-                fill="currentColor"
-              />
+              <path d="M12 2C13.1 2 14 2.9 14 4C14 5.1 13.1 6 12 6C10.9 6 10 5.1 10 4C10 2.9 10.9 2 12 2ZM21 9H15V22H13V16H11V22H9V9H3V7H21V9Z"/>
             </svg>
           </button>
 
@@ -69,6 +75,7 @@ import React, { useState } from 'react';
               </div>
 
               <div className={styles.widgetBody}>
+                {/* Content Adjustments */}
                 <div className={styles.widgetSection}>
                   <h4>Content Adjustments</h4>
                   <div className={styles.featureGrid}>
@@ -91,13 +98,13 @@ import React, { useState } from 'react';
                       onClick={() => toggleFeature('clickToSpeech')}
                     >
                       <span className={styles.featureIcon}>🎧</span>
-                      <span>Click to Speech</span>
+                      <span>Turn on Click to Speech</span>
                     </button>
                     <button
                       className={`${styles.featureButton} ${features.fontScaling ? styles.active : ''}`}
                       onClick={() => toggleFeature('fontScaling')}
                     >
-                      <span className={styles.featureIcon}>T</span>
+                      <span className={styles.featureIcon}>T↕</span>
                       <span>Font Scaling</span>
                     </button>
                     <button
@@ -117,6 +124,7 @@ import React, { useState } from 'react';
                   </div>
                 </div>
 
+                {/* Color Adjustments */}
                 <div className={styles.widgetSection}>
                   <h4>Color Adjustments</h4>
                   <div className={styles.featureGrid}>
@@ -165,6 +173,7 @@ import React, { useState } from 'react';
                   </div>
                 </div>
 
+                {/* Orientation Adjustments */}
                 <div className={styles.widgetSection}>
                   <h4>Orientation Adjustments</h4>
                   <div className={styles.featureGrid}>
@@ -186,7 +195,7 @@ import React, { useState } from 'react';
                       className={`${styles.featureButton} ${features.stopAnimations ? styles.active : ''}`}
                       onClick={() => toggleFeature('stopAnimations')}
                     >
-                      <span className={styles.featureIcon}>⏹</span>
+                      <span className={styles.featureIcon}>⛔</span>
                       <span>Stop Animations</span>
                     </button>
                     <button
@@ -217,6 +226,6 @@ import React, { useState } from 'react';
           )}
         </div>
       );
-    }
+    };
 
     export default AccessibilityWidget;
