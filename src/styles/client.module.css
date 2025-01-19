@@ -5,6 +5,7 @@
       box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     }
 
+    /* Search Section */
     .searchContainer {
       margin-bottom: 2rem;
     }
@@ -25,6 +26,7 @@
       outline: none;
     }
 
+    /* Add Client Form */
     .addClientForm {
       margin-bottom: 2rem;
       padding-bottom: 2rem;
@@ -32,9 +34,9 @@
     }
 
     .addClientForm h3 {
-      margin-top: 0;
-      margin-bottom: 1.5rem;
+      margin: 0 0 1.5rem 0;
       color: var(--text-color);
+      font-size: 1.25rem;
     }
 
     .formGroup {
@@ -63,10 +65,10 @@
       outline: none;
     }
 
-    .primaryButton {
-      background-color: var(--primary-color);
-      color: var(--secondary-color);
+    .addButton {
       padding: 0.75rem 1.5rem;
+      background-color: var(--primary-color);
+      color: white;
       border: none;
       border-radius: 6px;
       font-size: 1rem;
@@ -75,46 +77,47 @@
       transition: all 0.2s ease;
     }
 
-    .primaryButton:hover {
+    .addButton:hover {
       background-color: #1d4ed8;
       transform: translateY(-1px);
+    }
+
+    /* Client List */
+    .clientsList {
+      margin-top: 2rem;
+    }
+
+    .clientsList h3 {
+      margin: 0 0 1.5rem 0;
+      color: var(--text-color);
+      font-size: 1.25rem;
     }
 
     .clientTable {
       width: 100%;
       border-collapse: separate;
       border-spacing: 0;
-      margin-top: 1.5rem;
-      background: var(--secondary-color);
-      border-radius: 8px;
-      overflow: hidden;
-      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      margin-top: 1rem;
     }
 
-    .tableHeader {
-      background-color: var(--primary-color);
-      color: var(--secondary-color);
-      font-weight: 500;
-    }
-
-    .tableHeader th {
+    .clientTable th,
+    .clientTable td {
       padding: 1rem;
       text-align: left;
-    }
-
-    .tableRow {
-      transition: background-color 0.2s ease;
-    }
-
-    .tableRow:hover {
-      background-color: rgba(0, 0, 0, 0.02);
-    }
-
-    .tableCell {
-      padding: 1rem;
       border-bottom: 1px solid var(--border-color);
     }
 
+    .clientTable th {
+      background-color: var(--primary-color);
+      color: white;
+      font-weight: 500;
+    }
+
+    .clientTable tr:hover {
+      background-color: rgba(0, 0, 0, 0.02);
+    }
+
+    /* Status Styles */
     .status {
       padding: 0.25rem 0.5rem;
       border-radius: 4px;
@@ -131,27 +134,36 @@
       color: #dc2626;
     }
 
-    .scriptKey {
+    /* Action Buttons */
+    .actionButtons {
       display: flex;
-      align-items: center;
       gap: 0.5rem;
+      justify-content: flex-end;
     }
 
-    .copyButton {
-      background: var(--border-color);
+    .codeButton {
+      padding: 0.5rem 1rem;
+      background-color: var(--primary-color);
+      color: white;
       border: none;
-      padding: 0.25rem 0.5rem;
       border-radius: 4px;
       cursor: pointer;
       font-size: 0.875rem;
+      transition: all 0.2s ease;
+    }
+
+    .codeButton:hover {
+      background-color: #1d4ed8;
+      transform: translateY(-1px);
     }
 
     .statusButton {
-      padding: 0.25rem 0.75rem;
+      padding: 0.5rem 1rem;
       border: none;
       border-radius: 4px;
       cursor: pointer;
       font-size: 0.875rem;
+      transition: all 0.2s ease;
     }
 
     .statusButtonActive {
@@ -162,4 +174,96 @@
     .statusButtonInactive {
       background-color: #dcfce7;
       color: #16a34a;
+    }
+
+    /* Modal Styles */
+    .modal {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: rgba(0, 0, 0, 0.5);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+    }
+
+    .modalContent {
+      background: white;
+      padding: 2rem;
+      border-radius: 12px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      max-width: 600px;
+      width: 90%;
+    }
+
+    .modalContent h3 {
+      margin: 0 0 1rem 0;
+      color: var(--text-color);
+    }
+
+    .codeBlock {
+      background: #1e293b;
+      color: #e2e8f0;
+      padding: 1.5rem;
+      border-radius: 8px;
+      font-family: monospace;
+      font-size: 0.9rem;
+      line-height: 1.5;
+      overflow-x: auto;
+      margin: 1rem 0;
+      white-space: pre-wrap;
+    }
+
+    .modalButtons {
+      display: flex;
+      gap: 1rem;
+      justify-content: flex-end;
+      margin-top: 1.5rem;
+    }
+
+    .copyButton,
+    .closeButton {
+      padding: 0.5rem 1rem;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 0.875rem;
+      transition: all 0.2s ease;
+    }
+
+    .copyButton {
+      background-color: var(--primary-color);
+      color: white;
+      border: none;
+    }
+
+    .copyButton:hover {
+      background-color: #1d4ed8;
+      transform: translateY(-1px);
+    }
+
+    .closeButton {
+      background-color: #e2e8f0;
+      color: var(--text-color);
+      border: none;
+    }
+
+    .closeButton:hover {
+      background-color: #cbd5e1;
+      transform: translateY(-1px);
+    }
+
+    /* Responsive Design */
+    @media (max-width: 768px) {
+      .actionButtons {
+        flex-direction: column;
+        gap: 0.5rem;
+      }
+
+      .clientTable th,
+      .clientTable td {
+        padding: 0.75rem;
+      }
     }

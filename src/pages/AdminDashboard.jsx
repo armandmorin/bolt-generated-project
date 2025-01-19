@@ -1,23 +1,15 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
     import ClientManagement from './ClientManagement';
     import WidgetCustomization from './WidgetCustomization';
     import styles from '../styles/admin.module.css';
 
     const AdminDashboard = () => {
+      const [activeTab, setActiveTab] = useState('branding');
       const [brandSettings, setBrandSettings] = useState({
         logo: '',
         primaryColor: '#2563eb',
         secondaryColor: '#ffffff'
       });
-
-      const [activeTab, setActiveTab] = useState('branding');
-
-      useEffect(() => {
-        const savedSettings = localStorage.getItem('brandSettings');
-        if (savedSettings) {
-          setBrandSettings(JSON.parse(savedSettings));
-        }
-      }, []);
 
       const handleBrandUpdate = (e) => {
         e.preventDefault();
@@ -26,7 +18,7 @@ import React, { useState, useEffect } from 'react';
       };
 
       return (
-        <div className={styles.adminContainer}>
+        <div className={styles.adminDashboard}>
           <div className={styles.tabs}>
             <button
               className={`${styles.tabButton} ${activeTab === 'branding' ? styles.active : ''}`}
@@ -38,7 +30,7 @@ import React, { useState, useEffect } from 'react';
               className={`${styles.tabButton} ${activeTab === 'widget' ? styles.active : ''}`}
               onClick={() => setActiveTab('widget')}
             >
-              Widget Customization
+              Widget Preview
             </button>
             <button
               className={`${styles.tabButton} ${activeTab === 'clients' ? styles.active : ''}`}

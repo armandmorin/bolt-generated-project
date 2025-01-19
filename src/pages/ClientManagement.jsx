@@ -9,8 +9,9 @@ import React, { useState, useEffect } from 'react';
         contactEmail: ''
       });
       const [searchQuery, setSearchQuery] = useState('');
+      const [showCodeModal, setShowCodeModal] = useState(false);
+      const [selectedClientCode, setSelectedClientCode] = useState('');
 
-      // Load clients from localStorage
       useEffect(() => {
         const savedClients = localStorage.getItem('clients');
         if (savedClients) {
@@ -19,10 +20,11 @@ import React, { useState, useEffect } from 'react';
       }, []);
 
       const handleInputChange = (e) => {
-        setNewClient({
-          ...newClient,
-          [e.target.name]: e.target.value
-        });
+        const { name, value } = e.target;
+        setNewClient(prev => ({
+          ...prev,
+          [name]: value
+        }));
       };
 
       const addClient = (e) => {
@@ -50,6 +52,22 @@ import React, { useState, useEffect } from 'react';
         return 'sk_' + Math.random().toString(36).substr(2, 16);
       };
 
+      const showClientCode = (client) => {
+        const code = `<!-- Accessibility Widget -->
+<script 
+  src="https://your-domain.com/widget/${client.scriptKey}"
+  async
+  defer
+></script>`;
+        setSelectedClientCode(code);
+        setShowCodeModal(true);
+      };
+
+      const copyCode = () => {
+        navigator.clipboard.writeText(selectedClientCode);
+        alert('Code copied to clipboard!');
+      };
+
       const filteredClients = clients.filter(client =>
         client.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
         client.website.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -58,8 +76,6 @@ import React, { useState, useEffect } from 'react';
 
       return (
         <div className={styles.clientManagement}>
-          <h2>Client Management</h2>
-
           <div className={styles.searchContainer}>
             <input
               type="text"
@@ -106,7 +122,7 @@ import React, { useState, useEffect } from 'react';
                 />
               </div>
 
-              <button type="submit" className={styles.primaryButton}>
+              <button type="submit" className={styles.addButton}>
                 Add Client
               </button>
             </form>
@@ -115,53 +131,71 @@ import React, { useState, useEffect } from 'react';
           <div className={styles.clientsList}>
             <h3>Client List</h3>
             <table className={styles.clientTable}>
-              <thead className={styles.tableHeader}>
+              <thead>
                 <tr>
                   <th>Name</th>
                   <th>Website</th>
+                  <th>Email</th>
                   <th>Status</th>
-                  <th>Script Key</th>
                   <th>Actions</th>
                 </tr>
               </thead>
               <tbody>
                 {filteredClients.map(client => (
-                  <tr key={client.id} className={styles.tableRow}>
-                    <td className={styles.tableCell}>{client.name}</td>
-                    <td className={styles.tableCell}>
+                  <tr key={client.id}>
+                    <td>{client.name}</td>
+                    <td>
                       <a href={client.website} target="_blank" rel="noopener noreferrer">
                         {client.website}
                       </a>
                     </td>
-                    <td className={styles.tableCell}>
+                    <td>{client.contactEmail}</td>
+                    <td>
                       <span className={`${styles.status} ${client.status === 'active' ? styles.statusActive : styles.statusInactive}`}>
                         {client.status}
                       </span>
                     </td>
-                    <td className={styles.tableCell}>
-                      <div className={styles.scriptKey}>
-                        {client.scriptKey}
+                    <td>
+                      <div className={styles.actionButtons}>
                         <button
-                          className={styles.copyButton}
-                          onClick={() => navigator.clipboard.writeText(client.scriptKey)}
+                          className={styles.codeButton}
+                          onClick={() => showClientCode(client)}
                         >
-                          Copy
+                          Get Code
+                        </button>
+                        <button
+                          className={`${styles.statusButton} ${client.status === 'active' ? styles.statusButtonActive : styles.statusButtonInactive}`}
+                          onClick={() => toggleClientStatus(client.id)}
+                        >
+                          {client.status === 'active' ? 'Deactivate' : 'Activate'}
                         </button>
                       </div>
-                    </td>
-                    <td className={styles.tableCell}>
-                      <button
-                        className={`${styles.statusButton} ${client.status === 'active' ? styles.statusButtonActive : styles.statusButtonInactive}`}
-                        onClick={() => toggleClientStatus(client.id)}
-                      >
-                        {client.status === 'active' ? 'Deactivate' : 'Activate'}
-                      </button>
                     </td>
                   </tr>
                 ))}
               </tbody>
             </table>
           </div>
+
+          {showCodeModal && (
+            <div className={styles.modal}>
+              <div className={styles.modalContent}>
+                <h3>Installation Code</h3>
+                <p>Add this code to your website just before the closing &lt;/body&gt; tag:</p>
+                <pre className={styles.codeBlock}>
+                  <code>{selectedClientCode}</code>
+                </pre>
+                <div className={styles.modalButtons}>
+                  <button onClick={copyCode} className={styles.copyButton}>
+                    Copy Code
+                  </button>
+                  <button onClick={() => setShowCodeModal(false)} className={styles.closeButton}>
+                    Close
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       );
     };
