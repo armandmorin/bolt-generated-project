@@ -1,6 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
     import ClientManagement from './ClientManagement';
     import WidgetCustomization from './WidgetCustomization';
+    import ProfileSettings from './ProfileSettings';
+    import TeamMembers from './TeamMembers';
     import styles from '../styles/admin.module.css';
 
     const AdminDashboard = () => {
@@ -37,6 +39,18 @@ import React, { useState } from 'react';
               onClick={() => setActiveTab('clients')}
             >
               Client Management
+            </button>
+            <button
+              className={`${styles.tabButton} ${activeTab === 'team' ? styles.active : ''}`}
+              onClick={() => setActiveTab('team')}
+            >
+              Team Members
+            </button>
+            <button
+              className={`${styles.tabButton} ${activeTab === 'profile' ? styles.active : ''}`}
+              onClick={() => setActiveTab('profile')}
+            >
+              Profile
             </button>
           </div>
 
@@ -85,6 +99,8 @@ import React, { useState } from 'react';
 
             {activeTab === 'widget' && <WidgetCustomization />}
             {activeTab === 'clients' && <ClientManagement />}
+            {activeTab === 'team' && <TeamMembers />}
+            {activeTab === 'profile' && <ProfileSettings />}
           </div>
         </div>
       );
