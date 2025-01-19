@@ -1,11 +1,9 @@
-/* Main Layout */
-    .superAdminDashboard {
+.superAdminDashboard {
       max-width: 1200px;
       margin: 0 auto;
       padding: 2rem;
     }
 
-    /* Tabs */
     .tabs {
       display: flex;
       gap: 1rem;
@@ -49,7 +47,6 @@
       background-color: var(--primary-color);
     }
 
-    /* Content Area */
     .content {
       background: var(--secondary-color);
       border-radius: 12px;
@@ -57,7 +54,6 @@
       overflow: hidden;
     }
 
-    /* Form Container */
     .formContainer {
       padding: 2rem;
     }
@@ -80,7 +76,6 @@
       margin-top: 0.5rem;
     }
 
-    /* Form Elements */
     .formGroup {
       margin-bottom: 1.5rem;
     }
@@ -119,7 +114,6 @@
       gap: 1rem;
     }
 
-    /* Buttons */
     .formActions {
       display: flex;
       justify-content: flex-end;
@@ -145,7 +139,6 @@
       transform: translateY(-1px);
     }
 
-    /* Admin Section */
     .adminSection {
       padding: 2rem;
     }
@@ -166,7 +159,6 @@
       grid-column: span 2;
     }
 
-    /* Admin List */
     .adminListSection {
       margin-top: 2rem;
     }
@@ -195,7 +187,6 @@
       background-color: rgba(0, 0, 0, 0.02);
     }
 
-    /* Remove Button */
     .removeButton {
       padding: 0.5rem 1rem;
       background-color: #ef4444;
@@ -212,7 +203,6 @@
       transform: translateY(-1px);
     }
 
-    /* Responsive Design */
     @media (max-width: 768px) {
       .superAdminDashboard {
         padding: 1rem;

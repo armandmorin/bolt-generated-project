@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
     import styles from '../styles/client.module.css';
 
-    function ClientManagement() {
+    const ClientManagement = () => {
       const [clients, setClients] = useState([]);
       const [newClient, setNewClient] = useState({
         name: '',
@@ -56,7 +56,7 @@ import React, { useState, useEffect } from 'react';
         const domain = localStorage.getItem('widgetDomain') || 'https://your-domain.com';
         const code = `<!-- Accessibility Widget -->
 <script 
-  src="${domain}/widget/${client.scriptKey}"
+  src="${domain}/widget/accessibility-widget.js?key=${client.scriptKey}"
   async
   defer
 ></script>`;
@@ -199,6 +199,6 @@ import React, { useState, useEffect } from 'react';
           )}
         </div>
       );
-    }
+    };
 
     export default ClientManagement;
