@@ -1,0 +1,33 @@
+/* Add to existing login.module.css */
+    .links {
+      margin-top: 1.5rem;
+      padding-top: 1.5rem;
+      border-top: 1px solid var(--border-color);
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+      text-align: center;
+    }
+
+    .registerLink,
+    .superAdminLink {
+      color: var(--primary-color);
+      text-decoration: none;
+      font-size: 0.875rem;
+      font-weight: 500;
+      transition: color 0.2s ease;
+    }
+
+    .registerLink:hover,
+    .superAdminLink:hover {
+      color: #1d4ed8;
+      text-decoration: underline;
+    }
+
+    .registerLink {
+      font-size: 1rem;
+      padding: 0.5rem 1rem;
+      background-color: rgba(37, 99, 235, 0.1);
+      border-radius: 4px;
+      display: inline-block;
+    }

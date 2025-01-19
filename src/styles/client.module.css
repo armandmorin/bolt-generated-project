@@ -1,0 +1,165 @@
+.clientManagement {
+      background: var(--secondary-color);
+      padding: 2rem;
+      border-radius: 12px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+
+    .searchContainer {
+      margin-bottom: 2rem;
+    }
+
+    .searchInput {
+      width: 100%;
+      max-width: 400px;
+      padding: 0.75rem;
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+      font-size: 1rem;
+      transition: all 0.2s ease;
+    }
+
+    .searchInput:focus {
+      border-color: var(--primary-color);
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+      outline: none;
+    }
+
+    .addClientForm {
+      margin-bottom: 2rem;
+      padding-bottom: 2rem;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .addClientForm h3 {
+      margin-top: 0;
+      margin-bottom: 1.5rem;
+      color: var(--text-color);
+    }
+
+    .formGroup {
+      margin-bottom: 1.5rem;
+    }
+
+    .formGroup label {
+      display: block;
+      margin-bottom: 0.5rem;
+      font-weight: 500;
+      color: var(--text-color);
+    }
+
+    .formGroup input {
+      width: 100%;
+      padding: 0.75rem;
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+      font-size: 1rem;
+      transition: all 0.2s ease;
+    }
+
+    .formGroup input:focus {
+      border-color: var(--primary-color);
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+      outline: none;
+    }
+
+    .primaryButton {
+      background-color: var(--primary-color);
+      color: var(--secondary-color);
+      padding: 0.75rem 1.5rem;
+      border: none;
+      border-radius: 6px;
+      font-size: 1rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .primaryButton:hover {
+      background-color: #1d4ed8;
+      transform: translateY(-1px);
+    }
+
+    .clientTable {
+      width: 100%;
+      border-collapse: separate;
+      border-spacing: 0;
+      margin-top: 1.5rem;
+      background: var(--secondary-color);
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    .tableHeader {
+      background-color: var(--primary-color);
+      color: var(--secondary-color);
+      font-weight: 500;
+    }
+
+    .tableHeader th {
+      padding: 1rem;
+      text-align: left;
+    }
+
+    .tableRow {
+      transition: background-color 0.2s ease;
+    }
+
+    .tableRow:hover {
+      background-color: rgba(0, 0, 0, 0.02);
+    }
+
+    .tableCell {
+      padding: 1rem;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .status {
+      padding: 0.25rem 0.5rem;
+      border-radius: 4px;
+      font-size: 0.875rem;
+    }
+
+    .statusActive {
+      background-color: #dcfce7;
+      color: #16a34a;
+    }
+
+    .statusInactive {
+      background-color: #fee2e2;
+      color: #dc2626;
+    }
+
+    .scriptKey {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .copyButton {
+      background: var(--border-color);
+      border: none;
+      padding: 0.25rem 0.5rem;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 0.875rem;
+    }
+
+    .statusButton {
+      padding: 0.25rem 0.75rem;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 0.875rem;
+    }
+
+    .statusButtonActive {
+      background-color: #fee2e2;
+      color: #dc2626;
+    }
+
+    .statusButtonInactive {
+      background-color: #dcfce7;
+      color: #16a34a;
+    }

@@ -1,0 +1,191 @@
+/* Widget Container */
+    .widgetContainer {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      z-index: 1000;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+    }
+
+    /* Toggle Button */
+    .widgetToggle {
+      width: 48px;
+      height: 48px;
+      padding: 0;
+      border: none;
+      border-radius: 50%;
+      background-color: var(--primary-color);
+      color: white;
+      cursor: pointer;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+      transition: all 0.3s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .widgetToggle:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    }
+
+    .widgetToggle svg {
+      width: 24px;
+      height: 24px;
+    }
+
+    /* Widget Panel */
+    .widgetPanel {
+      position: absolute;
+      bottom: 60px;
+      right: 0;
+      width: 320px;
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+      overflow: hidden;
+    }
+
+    /* Widget Header */
+    .widgetHeader {
+      padding: 16px;
+      background-color: var(--primary-color);
+      color: white;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .widgetHeader h3 {
+      margin: 0;
+      font-size: 18px;
+      font-weight: 500;
+    }
+
+    .widgetLogo {
+      width: 24px;
+      height: 24px;
+      object-fit: contain;
+    }
+
+    /* Widget Body */
+    .widgetBody {
+      padding: 16px;
+      max-height: 70vh;
+      overflow-y: auto;
+    }
+
+    /* Widget Sections */
+    .widgetSection {
+      margin-bottom: 24px;
+    }
+
+    .widgetSection:last-child {
+      margin-bottom: 0;
+    }
+
+    .widgetSection h4 {
+      margin: 0 0 16px 0;
+      font-size: 16px;
+      font-weight: 500;
+      color: #1e293b;
+    }
+
+    /* Feature Grid */
+    .featureGrid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+    }
+
+    /* Feature Buttons */
+    .featureButton {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 12px 8px;
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      min-height: 80px;
+      width: 100%;
+    }
+
+    .featureButton:hover {
+      background-color: #f1f5f9;
+    }
+
+    .featureButton.active {
+      background-color: #e0e7ff;
+      border-color: #818cf8;
+      color: #4f46e5;
+    }
+
+    /* Feature Icons */
+    .featureIcon {
+      font-size: 24px;
+      width: 32px;
+      height: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: white;
+      border-radius: 6px;
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+    }
+
+    .featureButton.active .featureIcon {
+      background: #4f46e5;
+      color: white;
+    }
+
+    /* Feature Text */
+    .featureButton span:last-child {
+      font-size: 12px;
+      text-align: center;
+      line-height: 1.2;
+      font-weight: 500;
+    }
+
+    /* Progress Bar */
+    .progressBar {
+      width: 100%;
+      height: 4px;
+      background: #e2e8f0;
+      border-radius: 2px;
+      margin-top: 4px;
+    }
+
+    .progressBar::after {
+      content: '';
+      display: block;
+      height: 100%;
+      width: 100%;
+      background: var(--primary-color);
+      border-radius: 2px;
+    }
+
+    /* Footer */
+    .widgetFooter {
+      padding: 12px;
+      text-align: center;
+      font-size: 12px;
+      border-top: 1px solid #e2e8f0;
+      background: white;
+    }
+
+    /* Responsive Design */
+    @media (max-width: 480px) {
+      .widgetPanel {
+        width: calc(100vw - 40px);
+        right: -20px;
+      }
+
+      .featureGrid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }

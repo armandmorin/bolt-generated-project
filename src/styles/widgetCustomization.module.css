@@ -1,0 +1,117 @@
+/* Widget Customization Layout */
+    .widgetCustomization {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 2rem;
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 2rem;
+    }
+
+    /* Settings Panel */
+    .settingsPanel {
+      background: var(--secondary-color);
+      padding: 2rem;
+      border-radius: 12px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      height: fit-content;
+    }
+
+    .settingsPanel h2 {
+      margin: 0 0 2rem 0;
+      font-size: 1.5rem;
+      color: var(--text-color);
+    }
+
+    .formGroup {
+      margin-bottom: 1.5rem;
+    }
+
+    .formGroup label {
+      display: block;
+      margin-bottom: 0.5rem;
+      font-weight: 500;
+      color: var(--text-color);
+    }
+
+    .formGroup input {
+      width: 100%;
+      padding: 0.75rem;
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+      font-size: 1rem;
+      transition: all 0.2s ease;
+    }
+
+    .formGroup input:focus {
+      border-color: var(--primary-color);
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+      outline: none;
+    }
+
+    .formGroup input[type="color"] {
+      height: 50px;
+      padding: 0.25rem;
+      cursor: pointer;
+    }
+
+    /* Preview Panel */
+    .previewPanel {
+      background: var(--secondary-color);
+      padding: 2rem;
+      border-radius: 12px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+
+    .previewPanel h2 {
+      margin: 0 0 2rem 0;
+      font-size: 1.5rem;
+      color: var(--text-color);
+    }
+
+    .widgetPreview {
+      position: relative;
+      height: 600px;
+      background: #f8fafc;
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 2rem;
+      overflow: hidden;
+    }
+
+    .exampleContent {
+      max-width: 600px;
+      margin: 0 auto 2rem;
+    }
+
+    .exampleContent h3 {
+      margin: 0 0 1rem 0;
+      color: var(--text-color);
+      font-size: 1.5rem;
+    }
+
+    .exampleContent p {
+      margin-bottom: 1rem;
+      color: var(--text-color);
+      line-height: 1.6;
+    }
+
+    .exampleContent a {
+      color: var(--primary-color);
+      text-decoration: none;
+    }
+
+    .exampleContent a:hover {
+      text-decoration: underline;
+    }
+
+    /* Responsive Design */
+    @media (max-width: 1024px) {
+      .widgetCustomization {
+        grid-template-columns: 1fr;
+      }
+
+      .widgetPreview {
+        height: 500px;
+      }
+    }

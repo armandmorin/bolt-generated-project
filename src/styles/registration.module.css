@@ -1,0 +1,123 @@
+.registrationPage {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background-color: var(--background-color);
+      padding: 2rem;
+    }
+
+    .registrationContainer {
+      background: white;
+      padding: 2.5rem;
+      border-radius: 12px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      width: 100%;
+      max-width: 800px;
+    }
+
+    .registrationContainer h1 {
+      margin: 0;
+      color: var(--text-color);
+      font-size: 1.75rem;
+      text-align: center;
+      font-weight: 600;
+    }
+
+    .subtitle {
+      text-align: center;
+      color: #64748b;
+      margin: 0.5rem 0 2rem 0;
+    }
+
+    .registrationForm {
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+    }
+
+    .formGrid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 1.5rem;
+    }
+
+    .formGroup {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+
+    .formGroup label {
+      font-weight: 500;
+      color: var(--text-color);
+    }
+
+    .formGroup input {
+      width: 100%;
+      padding: 0.75rem;
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+      font-size: 1rem;
+      transition: all 0.2s ease;
+    }
+
+    .formGroup input:focus {
+      border-color: var(--primary-color);
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+      outline: none;
+    }
+
+    .error {
+      color: #dc2626;
+      font-size: 0.875rem;
+    }
+
+    .submitError {
+      color: #dc2626;
+      text-align: center;
+      margin-bottom: 1rem;
+    }
+
+    .submitButton {
+      width: 100%;
+      padding: 0.75rem;
+      background-color: var(--primary-color);
+      color: white;
+      border: none;
+      border-radius: 6px;
+      font-size: 1rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .submitButton:hover {
+      background-color: #1d4ed8;
+      transform: translateY(-1px);
+    }
+
+    .loginLink {
+      text-align: center;
+      color: #64748b;
+    }
+
+    .loginLink a {
+      color: var(--primary-color);
+      text-decoration: none;
+      font-weight: 500;
+    }
+
+    .loginLink a:hover {
+      text-decoration: underline;
+    }
+
+    @media (max-width: 768px) {
+      .formGrid {
+        grid-template-columns: 1fr;
+      }
+
+      .registrationContainer {
+        padding: 1.5rem;
+      }
+    }
