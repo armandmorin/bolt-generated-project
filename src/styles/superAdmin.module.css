@@ -1,19 +1,8 @@
-/* Super Admin Dashboard Layout */
+/* Main Layout */
     .superAdminDashboard {
       max-width: 1200px;
       margin: 0 auto;
       padding: 2rem;
-    }
-
-    /* Header */
-    .header {
-      margin-bottom: 2rem;
-    }
-
-    .header h1 {
-      color: var(--text-color);
-      font-size: 2rem;
-      margin: 0;
     }
 
     /* Tabs */
@@ -60,54 +49,40 @@
       background-color: var(--primary-color);
     }
 
-    /* Content Sections */
+    /* Content Area */
     .content {
-      display: grid;
-      gap: 2rem;
-    }
-
-    /* Branding Section */
-    .brandingSection {
       background: var(--secondary-color);
-      padding: 2rem;
       border-radius: 12px;
       box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      overflow: hidden;
     }
 
-    .brandingSection h2 {
+    /* Form Container */
+    .formContainer {
+      padding: 2rem;
+    }
+
+    .formContainer h2 {
       margin: 0 0 1.5rem 0;
       color: var(--text-color);
       font-size: 1.5rem;
     }
 
-    .brandingForm {
-      display: grid;
-      gap: 1.5rem;
+    .description {
+      color: #64748b;
+      margin-bottom: 1.5rem;
     }
 
-    /* Admin Section */
-    .addAdminSection {
-      background: var(--secondary-color);
-      padding: 2rem;
-      border-radius: 12px;
-      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    }
-
-    .addAdminSection h2 {
-      margin: 0 0 1.5rem 0;
-      color: var(--text-color);
-      font-size: 1.5rem;
-    }
-
-    .addAdminForm {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 1.5rem;
+    .hint {
+      display: block;
+      font-size: 0.875rem;
+      color: #64748b;
+      margin-top: 0.5rem;
     }
 
     /* Form Elements */
     .formGroup {
-      margin-bottom: 1rem;
+      margin-bottom: 1.5rem;
     }
 
     .formGroup label {
@@ -145,8 +120,14 @@
     }
 
     /* Buttons */
-    .addButton,
-    .saveButton {
+    .formActions {
+      display: flex;
+      justify-content: flex-end;
+      margin-top: 2rem;
+    }
+
+    .saveButton,
+    .addButton {
       padding: 0.75rem 1.5rem;
       background-color: var(--primary-color);
       color: white;
@@ -158,36 +139,38 @@
       transition: all 0.2s ease;
     }
 
-    .addButton:hover,
-    .saveButton:hover {
+    .saveButton:hover,
+    .addButton:hover {
       background-color: #1d4ed8;
       transform: translateY(-1px);
+    }
+
+    /* Admin Section */
+    .adminSection {
+      padding: 2rem;
+    }
+
+    .addAdminSection {
+      margin-bottom: 2rem;
+      padding-bottom: 2rem;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .addAdminForm {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 1.5rem;
     }
 
     .addButton {
       grid-column: span 2;
     }
 
-    .saveButton {
-      width: fit-content;
-      justify-self: end;
-    }
-
-    /* Admin List Section */
+    /* Admin List */
     .adminListSection {
-      background: var(--secondary-color);
-      padding: 2rem;
-      border-radius: 12px;
-      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      margin-top: 2rem;
     }
 
-    .adminListSection h2 {
-      margin: 0 0 1.5rem 0;
-      color: var(--text-color);
-      font-size: 1.5rem;
-    }
-
-    /* Table Styles */
     .adminTable {
       width: 100%;
       border-collapse: separate;
@@ -212,10 +195,6 @@
       background-color: rgba(0, 0, 0, 0.02);
     }
 
-    .adminTable td:last-child {
-      text-align: right;
-    }
-
     /* Remove Button */
     .removeButton {
       padding: 0.5rem 1rem;
@@ -235,6 +214,10 @@
 
     /* Responsive Design */
     @media (max-width: 768px) {
+      .superAdminDashboard {
+        padding: 1rem;
+      }
+
       .addAdminForm {
         grid-template-columns: 1fr;
       }

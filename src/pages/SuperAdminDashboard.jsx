@@ -15,6 +15,9 @@ import React, { useState, useEffect } from 'react';
         headerColor: '#2563eb',
         buttonColor: '#2563eb'
       });
+      const [domain, setDomain] = useState(() => {
+        return localStorage.getItem('widgetDomain') || '';
+      });
 
       useEffect(() => {
         const savedAdmins = localStorage.getItem('admins');
@@ -28,12 +31,10 @@ import React, { useState, useEffect } from 'react';
         }
       }, []);
 
-      const handleInputChange = (e) => {
-        const { name, value } = e.target;
-        setNewAdmin(prev => ({
-          ...prev,
-          [name]: value
-        }));
+      const handleDomainSave = (e) => {
+        e.preventDefault();
+        localStorage.setItem('widgetDomain', domain);
+        alert('Domain settings updated successfully!');
       };
 
       const handleBrandingChange = (e) => {
@@ -52,6 +53,14 @@ import React, { useState, useEffect } from 'react';
           buttonColor: globalBranding.buttonColor
         }));
         alert('Global branding settings updated successfully!');
+      };
+
+      const handleInputChange = (e) => {
+        const { name, value } = e.target;
+        setNewAdmin(prev => ({
+          ...prev,
+          [name]: value
+        }));
       };
 
       const addAdmin = (e) => {
@@ -75,16 +84,18 @@ import React, { useState, useEffect } from 'react';
 
       return (
         <div className={styles.superAdminDashboard}>
-          <div className={styles.header}>
-            <h1>Super Admin Dashboard</h1>
-          </div>
-
           <div className={styles.tabs}>
             <button
               className={`${styles.tabButton} ${activeTab === 'branding' ? styles.active : ''}`}
               onClick={() => setActiveTab('branding')}
             >
               Global Branding
+            </button>
+            <button
+              className={`${styles.tabButton} ${activeTab === 'domain' ? styles.active : ''}`}
+              onClick={() => setActiveTab('domain')}
+            >
+              Domain Settings
             </button>
             <button
               className={`${styles.tabButton} ${activeTab === 'admins' ? styles.active : ''}`}
@@ -95,8 +106,38 @@ import React, { useState, useEffect } from 'react';
           </div>
 
           <div className={styles.content}>
+            {activeTab === 'domain' && (
+              <div className={styles.formContainer}>
+                <h2>Widget Domain Configuration</h2>
+                <p className={styles.description}>
+                  Set the domain where the accessibility widget will be hosted. 
+                  This domain will be used in the installation code provided to clients.
+                </p>
+                <form onSubmit={handleDomainSave}>
+                  <div className={styles.formGroup}>
+                    <label>Widget Domain</label>
+                    <input
+                      type="url"
+                      value={domain}
+                      onChange={(e) => setDomain(e.target.value)}
+                      placeholder="https://widget.yourdomain.com"
+                      required
+                    />
+                    <span className={styles.hint}>
+                      Example: https://widget.yourdomain.com or https://yourdomain.com/widget
+                    </span>
+                  </div>
+                  <div className={styles.formActions}>
+                    <button type="submit" className={styles.saveButton}>
+                      Save Domain
+                    </button>
+                  </div>
+                </form>
+              </div>
+            )}
+
             {activeTab === 'branding' && (
-              <div className={styles.brandingSection}>
+              <div className={styles.formContainer}>
                 <h2>Global Branding Settings</h2>
                 <div className={styles.brandingForm}>
                   <div className={styles.formGroup}>
@@ -132,19 +173,21 @@ import React, { useState, useEffect } from 'react';
                     </div>
                   </div>
 
-                  <button 
-                    type="button" 
-                    className={styles.saveButton}
-                    onClick={saveBrandingSettings}
-                  >
-                    Save Branding Settings
-                  </button>
+                  <div className={styles.formActions}>
+                    <button 
+                      type="button" 
+                      className={styles.saveButton}
+                      onClick={saveBrandingSettings}
+                    >
+                      Save Branding Settings
+                    </button>
+                  </div>
                 </div>
               </div>
             )}
 
             {activeTab === 'admins' && (
-              <>
+              <div className={styles.adminSection}>
                 <div className={styles.addAdminSection}>
                   <h2>Add New Admin</h2>
                   <form onSubmit={addAdmin} className={styles.addAdminForm}>
@@ -200,41 +243,39 @@ import React, { useState, useEffect } from 'react';
 
                 <div className={styles.adminListSection}>
                   <h2>Admin List</h2>
-                  <div className={styles.adminList}>
-                    <table className={styles.adminTable}>
-                      <thead>
-                        <tr>
-                          <th>Name</th>
-                          <th>Email</th>
-                          <th>Company</th>
-                          <th>Clients</th>
-                          <th>Date Created</th>
-                          <th>Actions</th>
+                  <table className={styles.adminTable}>
+                    <thead>
+                      <tr>
+                        <th>Name</th>
+                        <th>Email</th>
+                        <th>Company</th>
+                        <th>Clients</th>
+                        <th>Date Created</th>
+                        <th>Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {admins.map(admin => (
+                        <tr key={admin.id}>
+                          <td>{admin.name}</td>
+                          <td>{admin.email}</td>
+                          <td>{admin.company}</td>
+                          <td>{admin.clients.length}</td>
+                          <td>{new Date(admin.dateCreated).toLocaleDateString()}</td>
+                          <td>
+                            <button
+                              className={styles.removeButton}
+                              onClick={() => removeAdmin(admin.id)}
+                            >
+                              Remove
+                            </button>
+                          </td>
                         </tr>
-                      </thead>
-                      <tbody>
-                        {admins.map(admin => (
-                          <tr key={admin.id}>
-                            <td>{admin.name}</td>
-                            <td>{admin.email}</td>
-                            <td>{admin.company}</td>
-                            <td>{admin.clients.length}</td>
-                            <td>{new Date(admin.dateCreated).toLocaleDateString()}</td>
-                            <td>
-                              <button
-                                className={styles.removeButton}
-                                onClick={() => removeAdmin(admin.id)}
-                              >
-                                Remove
-                              </button>
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
+                      ))}
+                    </tbody>
+                  </table>
                 </div>
-              </>
+              </div>
             )}
           </div>
         </div>

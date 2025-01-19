@@ -40,50 +40,52 @@ import React, { useState } from 'react';
             </button>
           </div>
 
-          {activeTab === 'branding' && (
-            <div className={styles.formContainer}>
-              <form onSubmit={handleBrandUpdate}>
-                <div className={styles.formGroup}>
-                  <label>Logo URL</label>
-                  <input
-                    type="url"
-                    value={brandSettings.logo}
-                    onChange={(e) => setBrandSettings({ ...brandSettings, logo: e.target.value })}
-                    placeholder="Enter logo URL"
-                  />
-                </div>
-
-                <div className={styles.colorGroup}>
+          <div className={styles.content}>
+            {activeTab === 'branding' && (
+              <div className={styles.formContainer}>
+                <form onSubmit={handleBrandUpdate}>
                   <div className={styles.formGroup}>
-                    <label>Primary Color</label>
+                    <label>Logo URL</label>
                     <input
-                      type="color"
-                      value={brandSettings.primaryColor}
-                      onChange={(e) => setBrandSettings({ ...brandSettings, primaryColor: e.target.value })}
+                      type="url"
+                      value={brandSettings.logo}
+                      onChange={(e) => setBrandSettings({ ...brandSettings, logo: e.target.value })}
+                      placeholder="Enter logo URL"
                     />
                   </div>
 
-                  <div className={styles.formGroup}>
-                    <label>Secondary Color</label>
-                    <input
-                      type="color"
-                      value={brandSettings.secondaryColor}
-                      onChange={(e) => setBrandSettings({ ...brandSettings, secondaryColor: e.target.value })}
-                    />
+                  <div className={styles.colorGroup}>
+                    <div className={styles.formGroup}>
+                      <label>Primary Color</label>
+                      <input
+                        type="color"
+                        value={brandSettings.primaryColor}
+                        onChange={(e) => setBrandSettings({ ...brandSettings, primaryColor: e.target.value })}
+                      />
+                    </div>
+
+                    <div className={styles.formGroup}>
+                      <label>Secondary Color</label>
+                      <input
+                        type="color"
+                        value={brandSettings.secondaryColor}
+                        onChange={(e) => setBrandSettings({ ...brandSettings, secondaryColor: e.target.value })}
+                      />
+                    </div>
                   </div>
-                </div>
 
-                <div className={styles.formActions}>
-                  <button type="submit" className={styles.primaryButton}>
-                    Save Changes
-                  </button>
-                </div>
-              </form>
-            </div>
-          )}
+                  <div className={styles.formActions}>
+                    <button type="submit" className={styles.primaryButton}>
+                      Save Changes
+                    </button>
+                  </div>
+                </form>
+              </div>
+            )}
 
-          {activeTab === 'widget' && <WidgetCustomization />}
-          {activeTab === 'clients' && <ClientManagement />}
+            {activeTab === 'widget' && <WidgetCustomization />}
+            {activeTab === 'clients' && <ClientManagement />}
+          </div>
         </div>
       );
     };
