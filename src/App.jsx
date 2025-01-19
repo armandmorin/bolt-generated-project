@@ -1,5 +1,5 @@
 import React from 'react';
-    import { Routes, Route, useLocation } from 'react-router-dom';
+    import { Routes, Route, useLocation, Navigate } from 'react-router-dom';
     import Header from './components/Header';
     import Login from './pages/Login';
     import AdminRegistration from './pages/AdminRegistration';
@@ -34,6 +34,8 @@ import React from 'react';
               <Route path="/super-admin" element={<SuperAdminDashboard />} />
               <Route path="/admin" element={<AdminDashboard />} />
               <Route path="/client" element={<ClientDashboard />} />
+              {/* Add a catch-all route */}
+              <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
           </main>
         </div>
