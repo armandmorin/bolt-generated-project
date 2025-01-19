@@ -4,13 +4,10 @@ import { defineConfig } from 'vite';
     export default defineConfig({
       plugins: [react()],
       server: {
-        port: 5173
+        port: 5173,
+        // Add history API fallback for development
+        historyApiFallback: true
       },
-      build: {
-        outDir: 'dist'
-      },
-      base: '/',
-      // Add this configuration to handle client-side routing
       preview: {
         port: 5173
       }

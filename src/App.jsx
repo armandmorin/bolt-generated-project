@@ -16,25 +16,38 @@ import React from 'react';
         primaryColor: '#2563eb'
       };
 
-      // Hide header on login and registration pages
-      const hideHeader = [
-        '/', 
+      // List of public routes (no header)
+      const publicRoutes = ['/', '/super-admin-login', '/register'];
+      const hideHeader = publicRoutes.includes(location.pathname);
+
+      // List of all valid routes
+      const validRoutes = [
+        '/',
+        '/register',
         '/super-admin-login',
-        '/register'
-      ].includes(location.pathname);
+        '/super-admin',
+        '/admin',
+        '/client',
+        '/widget-customization',
+        '/clients'
+      ];
 
       return (
         <div className="app-container">
           {!hideHeader && <Header logo={brandSettings.logo} primaryColor={brandSettings.primaryColor} />}
           <main className="main-content">
             <Routes>
+              {/* Public Routes */}
               <Route path="/" element={<Login />} />
               <Route path="/register" element={<AdminRegistration />} />
               <Route path="/super-admin-login" element={<SuperAdminLogin />} />
+              
+              {/* Protected Routes */}
               <Route path="/super-admin" element={<SuperAdminDashboard />} />
               <Route path="/admin" element={<AdminDashboard />} />
               <Route path="/client" element={<ClientDashboard />} />
-              {/* Add a catch-all route */}
+
+              {/* Catch invalid routes and redirect to home */}
               <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
           </main>
