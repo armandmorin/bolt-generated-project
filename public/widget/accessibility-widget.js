@@ -55,12 +55,9 @@
       padding: 16px;
       background-color: #2563eb;
       color: white;
-      display: flex;
-      align-items: center;
-      gap: 8px;
     }
 
-    .widget-header h2 {
+    .widget-header h3 {
       margin: 0;
       font-size: 16px;
       font-weight: 500;
@@ -76,20 +73,24 @@
       margin-bottom: 24px;
     }
 
-    .widget-section h3 {
+    .widget-section:last-child {
+      margin-bottom: 0;
+    }
+
+    .widget-section h4 {
       margin: 0 0 12px 0;
       font-size: 14px;
       font-weight: 600;
       color: #1e293b;
     }
 
-    .widget-buttons {
+    .feature-grid {
       display: grid;
       grid-template-columns: repeat(2, 1fr);
       gap: 8px;
     }
 
-    .widget-button {
+    .feature-button {
       display: flex;
       flex-direction: column;
       align-items: center;
@@ -103,35 +104,56 @@
       transition: all 0.2s ease;
     }
 
-    .widget-button:hover {
+    .feature-button:hover {
       background: #f1f5f9;
     }
 
-    .widget-button.active {
+    .feature-button.active {
       background: #e0e7ff;
       border-color: #818cf8;
       color: #4f46e5;
+    }
+
+    .feature-icon {
+      font-size: 24px;
+      line-height: 1;
+    }
+
+    .feature-button span:last-child {
+      font-size: 12px;
+      text-align: center;
+      line-height: 1.2;
     }
 
     .widget-footer {
       padding: 12px;
       text-align: center;
       font-size: 12px;
-      color: #64748b;
       border-top: 1px solid #e2e8f0;
+      color: #64748b;
     }
   `;
   document.head.appendChild(styles);
 
   // Widget state
   let isOpen = false;
-  const settings = {
-    fontSize: 'medium',
-    contrast: 'normal',
-    highlightLinks: false,
-    textToSpeech: false,
+  const features = {
     readableFont: false,
+    readAllText: false,
+    clickToSpeech: false,
+    fontScaling: false,
+    highlightLinks: false,
+    highlightTitles: false,
+    highContrast: false,
+    lightContrast: false,
+    darkContrast: false,
+    monochrome: false,
+    highSaturation: false,
+    lowSaturation: false,
+    muteSounds: false,
+    hideImages: false,
     stopAnimations: false,
+    highlightHover: false,
     bigCursor: false
   };
 
@@ -144,36 +166,90 @@
     </button>
     <div class="widget-panel">
       <div class="widget-header">
-        <h2>Accessibility Settings</h2>
+        <h3>Accessibility Settings</h3>
       </div>
       <div class="widget-body">
         <div class="widget-section">
-          <h3>Content Adjustments</h3>
-          <div class="widget-buttons">
-            <button class="widget-button" data-action="readableFont">
+          <h4>Content Adjustments</h4>
+          <div class="feature-grid">
+            <button class="feature-button" data-feature="readableFont">
+              <span class="feature-icon">Aa</span>
               <span>Readable Font</span>
             </button>
-            <button class="widget-button" data-action="highlightLinks">
+            <button class="feature-button" data-feature="readAllText">
+              <span class="feature-icon">▶</span>
+              <span>Read All Text</span>
+            </button>
+            <button class="feature-button" data-feature="clickToSpeech">
+              <span class="feature-icon">🎧</span>
+              <span>Click to Speech</span>
+            </button>
+            <button class="feature-button" data-feature="fontScaling">
+              <span class="feature-icon">T↕</span>
+              <span>Font Scaling</span>
+            </button>
+            <button class="feature-button" data-feature="highlightLinks">
+              <span class="feature-icon">🔗</span>
               <span>Highlight Links</span>
             </button>
-            <button class="widget-button" data-action="textToSpeech">
-              <span>Text-to-Speech</span>
-            </button>
-            <button class="widget-button" data-action="stopAnimations">
-              <span>Stop Animations</span>
+            <button class="feature-button" data-feature="highlightTitles">
+              <span class="feature-icon">H</span>
+              <span>Highlight Titles</span>
             </button>
           </div>
         </div>
+
         <div class="widget-section">
-          <h3>Visual Adjustments</h3>
-          <div class="widget-buttons">
-            <button class="widget-button" data-action="fontSize" data-value="large">
-              <span>Large Text</span>
-            </button>
-            <button class="widget-button" data-action="contrast" data-value="high">
+          <h4>Color Adjustments</h4>
+          <div class="feature-grid">
+            <button class="feature-button" data-feature="highContrast">
+              <span class="feature-icon">◐</span>
               <span>High Contrast</span>
             </button>
-            <button class="widget-button" data-action="bigCursor">
+            <button class="feature-button" data-feature="lightContrast">
+              <span class="feature-icon">☀</span>
+              <span>Light Contrast</span>
+            </button>
+            <button class="feature-button" data-feature="darkContrast">
+              <span class="feature-icon">🌙</span>
+              <span>Dark Contrast</span>
+            </button>
+            <button class="feature-button" data-feature="monochrome">
+              <span class="feature-icon">◑</span>
+              <span>Monochrome</span>
+            </button>
+            <button class="feature-button" data-feature="highSaturation">
+              <span class="feature-icon">⚛</span>
+              <span>High Saturation</span>
+            </button>
+            <button class="feature-button" data-feature="lowSaturation">
+              <span class="feature-icon">💧</span>
+              <span>Low Saturation</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="widget-section">
+          <h4>Orientation Adjustments</h4>
+          <div class="feature-grid">
+            <button class="feature-button" data-feature="muteSounds">
+              <span class="feature-icon">🔇</span>
+              <span>Mute Sounds</span>
+            </button>
+            <button class="feature-button" data-feature="hideImages">
+              <span class="feature-icon">🖼</span>
+              <span>Hide Images</span>
+            </button>
+            <button class="feature-button" data-feature="stopAnimations">
+              <span class="feature-icon">⛔</span>
+              <span>Stop Animations</span>
+            </button>
+            <button class="feature-button" data-feature="highlightHover">
+              <span class="feature-icon">🖱</span>
+              <span>Highlight Hover</span>
+            </button>
+            <button class="feature-button" data-feature="bigCursor">
+              <span class="feature-icon">➜</span>
               <span>Big Cursor</span>
             </button>
           </div>
@@ -188,7 +264,7 @@
   // Get elements
   const toggle = widgetContainer.querySelector('.widget-toggle');
   const panel = widgetContainer.querySelector('.widget-panel');
-  const buttons = widgetContainer.querySelectorAll('.widget-button');
+  const featureButtons = widgetContainer.querySelectorAll('.feature-button');
 
   // Toggle widget
   toggle.addEventListener('click', () => {
@@ -196,74 +272,113 @@
     panel.classList.toggle('open', isOpen);
   });
 
-  // Apply settings
-  function applySettings() {
-    // Font size
-    document.body.style.fontSize = settings.fontSize === 'large' ? '1.25rem' : '1rem';
-
-    // Contrast
-    if (settings.contrast === 'high') {
-      document.body.style.filter = 'contrast(150%)';
-    } else {
-      document.body.style.filter = '';
-    }
-
-    // Readable font
-    if (settings.readableFont) {
+  // Apply features
+  function applyFeatures() {
+    // Readable Font
+    if (features.readableFont) {
       document.body.style.fontFamily = 'Arial, sans-serif';
       document.body.style.lineHeight = '1.6';
-    } else {
-      document.body.style.fontFamily = '';
-      document.body.style.lineHeight = '';
     }
 
-    // Highlight links
-    document.querySelectorAll('a').forEach(link => {
-      link.style.backgroundColor = settings.highlightLinks ? '#ffff00' : '';
-      link.style.padding = settings.highlightLinks ? '2px' : '';
-    });
+    // Font Scaling
+    if (features.fontScaling) {
+      document.body.style.fontSize = '120%';
+    }
 
-    // Stop animations
-    if (settings.stopAnimations) {
+    // Highlight Links
+    if (features.highlightLinks) {
+      document.querySelectorAll('a').forEach(link => {
+        link.style.backgroundColor = '#ffff00';
+        link.style.color = '#000000';
+      });
+    }
+
+    // Highlight Titles
+    if (features.highlightTitles) {
+      document.querySelectorAll('h1, h2, h3, h4, h5, h6').forEach(title => {
+        title.style.backgroundColor = '#e0e7ff';
+      });
+    }
+
+    // High Contrast
+    if (features.highContrast) {
+      document.body.style.filter = 'contrast(150%)';
+    }
+
+    // Dark Contrast
+    if (features.darkContrast) {
+      document.body.style.filter = 'brightness(80%)';
+    }
+
+    // Light Contrast
+    if (features.lightContrast) {
+      document.body.style.filter = 'brightness(120%)';
+    }
+
+    // Monochrome
+    if (features.monochrome) {
+      document.body.style.filter = 'grayscale(100%)';
+    }
+
+    // High Saturation
+    if (features.highSaturation) {
+      document.body.style.filter = 'saturate(150%)';
+    }
+
+    // Low Saturation
+    if (features.lowSaturation) {
+      document.body.style.filter = 'saturate(50%)';
+    }
+
+    // Hide Images
+    if (features.hideImages) {
+      document.querySelectorAll('img').forEach(img => {
+        img.style.display = 'none';
+      });
+    }
+
+    // Stop Animations
+    if (features.stopAnimations) {
       document.body.style.animationPlayState = 'paused';
       document.body.style.transition = 'none';
-    } else {
-      document.body.style.animationPlayState = '';
-      document.body.style.transition = '';
     }
 
-    // Big cursor
-    document.body.style.cursor = settings.bigCursor ? 'url(data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDgiIGhlaWdodD0iNDgiIHZpZXdCb3g9IjAgMCA0OCA0OCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cGF0aCBkPSJNMTIgMjRMMjQgMzZMMzYgMjRMMjQgMTJMMTIgMjRaIiBmaWxsPSJibGFjayIvPjwvc3ZnPg==) 24 24, auto' : '';
+    // Highlight Hover
+    if (features.highlightHover) {
+      document.querySelectorAll('a, button').forEach(element => {
+        element.style.transition = 'all 0.2s ease';
+        element.addEventListener('mouseenter', () => {
+          element.style.backgroundColor = '#e0e7ff';
+        });
+        element.addEventListener('mouseleave', () => {
+          element.style.backgroundColor = '';
+        });
+      });
+    }
 
-    // Text-to-speech
-    if (settings.textToSpeech) {
-      if (!window.speechSynthesis.speaking) {
-        const utterance = new SpeechSynthesisUtterance(document.body.innerText);
-        window.speechSynthesis.speak(utterance);
-      }
-    } else {
-      window.speechSynthesis.cancel();
+    // Big Cursor
+    if (features.bigCursor) {
+      document.body.style.cursor = 'url(data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDgiIGhlaWdodD0iNDgiIHZpZXdCb3g9IjAgMCA0OCA0OCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cGF0aCBkPSJNMTIgMjRMMjQgMzZMMzYgMjRMMjQgMTJMMTIgMjRaIiBmaWxsPSJibGFjayIvPjwvc3ZnPg==) 24 24, auto';
     }
   }
 
-  // Handle button clicks
-  buttons.forEach(button => {
+  // Reset features
+  function resetFeatures() {
+    document.body.style = '';
+    document.querySelectorAll('a, button, h1, h2, h3, h4, h5, h6, img').forEach(element => {
+      element.style = '';
+    });
+  }
+
+  // Handle feature button clicks
+  featureButtons.forEach(button => {
     button.addEventListener('click', () => {
-      const action = button.dataset.action;
-      const value = button.dataset.value;
+      const feature = button.dataset.feature;
+      features[feature] = !features[feature];
+      button.classList.toggle('active', features[feature]);
 
-      // Update settings
-      if (value) {
-        settings[action] = value;
-      } else {
-        settings[action] = !settings[action];
-      }
-
-      // Update button state
-      button.classList.toggle('active', settings[action]);
-
-      // Apply settings
-      applySettings();
+      resetFeatures();
+      applyFeatures();
     });
   });
 
