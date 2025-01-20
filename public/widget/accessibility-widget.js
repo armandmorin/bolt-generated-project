@@ -1,20 +1,32 @@
 (function() {
-  // Get settings from script attributes
-  const script = document.currentScript;
-  const settings = {
-    headerColor: script.getAttribute('data-header-color') || '#60a5fa',
-    headerTextColor: script.getAttribute('data-header-text-color') || '#1e293b',
-    buttonColor: script.getAttribute('data-button-color') || '#2563eb',
-    poweredByText: script.getAttribute('data-powered-by-text') || 'Powered by Accessibility Widget',
-    poweredByColor: script.getAttribute('data-powered-by-color') || '#64748b'
-  };
+  // Get settings from localStorage
+  function getSettings() {
+    try {
+      const savedSettings = localStorage.getItem('widgetSettings');
+      if (savedSettings) {
+        return JSON.parse(savedSettings);
+      }
+    } catch (e) {
+      console.error('Error reading widget settings:', e);
+    }
+    return {
+      headerColor: '#60a5fa',
+      headerTextColor: '#1e293b',
+      buttonColor: '#2563eb',
+      poweredByText: 'Powered by Accessibility Widget',
+      poweredByColor: '#64748b'
+    };
+  }
+
+  // Initialize settings
+  let settings = getSettings();
 
   // Create and append widget container
   const container = document.createElement('div');
   container.id = 'accessibility-widget-container';
   document.body.appendChild(container);
 
-  // Updated accessibility icon and widget HTML
+  // Widget HTML with accessibility icon
   container.innerHTML = `
     <button class="accessibility-widget-button" aria-label="Accessibility Options">
       <svg width="32" height="32" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
@@ -126,6 +138,24 @@
       footer.textContent = settings.poweredByText;
       footer.style.color = settings.poweredByColor;
     }
+
+    // Update button color
+    const button = container.querySelector('.accessibility-widget-button');
+    if (button) {
+      button.style.backgroundColor = settings.buttonColor;
+    }
+
+    // Update header
+    const header = container.querySelector('.accessibility-widget-header');
+    if (header) {
+      header.style.backgroundColor = settings.headerColor;
+    }
+
+    // Update header text color
+    const headerText = container.querySelector('.accessibility-widget-header h3');
+    if (headerText) {
+      headerText.style.color = settings.headerTextColor;
+    }
   }
 
   // Initial styles
@@ -146,20 +176,12 @@
     }
   });
 
-  // Check for updates every 2 seconds
+  // Check for updates every second
   setInterval(() => {
-    const newSettings = {
-      headerColor: script.getAttribute('data-header-color'),
-      headerTextColor: script.getAttribute('data-header-text-color'),
-      buttonColor: script.getAttribute('data-button-color'),
-      poweredByText: script.getAttribute('data-powered-by-text'),
-      poweredByColor: script.getAttribute('data-powered-by-color')
-    };
-
-    // Update if settings have changed
+    const newSettings = getSettings();
     if (JSON.stringify(newSettings) !== JSON.stringify(settings)) {
-      Object.assign(settings, newSettings);
+      settings = newSettings;
       updateStyles();
     }
-  }, 2000);
+  }, 1000);
 })();
