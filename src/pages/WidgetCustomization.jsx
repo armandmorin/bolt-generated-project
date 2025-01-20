@@ -6,12 +6,12 @@ const WidgetCustomization = () => {
   const [widgetSettings, setWidgetSettings] = useState(() => {
     const savedSettings = localStorage.getItem('widgetSettings');
     return savedSettings ? JSON.parse(savedSettings) : {
-      headerColor: '#2563eb',
+      headerColor: '#60a5fa',
+      headerTextColor: '#1e293b', // Added header text color
       headerLogo: '',
       buttonColor: '#2563eb',
       poweredByText: 'Powered by Our Company',
-      poweredByColor: '#666666',
-      version: 1
+      poweredByColor: '#666666'
     };
   });
 
@@ -24,12 +24,7 @@ const WidgetCustomization = () => {
   };
 
   const handleSave = () => {
-    const updatedSettings = {
-      ...widgetSettings,
-      version: (widgetSettings.version || 0) + 1
-    };
-    localStorage.setItem('widgetSettings', JSON.stringify(updatedSettings));
-    setWidgetSettings(updatedSettings);
+    localStorage.setItem('widgetSettings', JSON.stringify(widgetSettings));
     alert('Widget settings saved successfully!');
   };
 
@@ -44,6 +39,16 @@ const WidgetCustomization = () => {
             type="color"
             name="headerColor"
             value={widgetSettings.headerColor}
+            onChange={handleChange}
+          />
+        </div>
+
+        <div className={styles.formGroup}>
+          <label>Header Text Color</label>
+          <input
+            type="color"
+            name="headerTextColor"
+            value={widgetSettings.headerTextColor}
             onChange={handleChange}
           />
         </div>
