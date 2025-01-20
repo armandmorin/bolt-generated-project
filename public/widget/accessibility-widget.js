@@ -1,17 +1,4 @@
 (function() {
-  // Get domain from localStorage (set by super admin)
-  const WIDGET_URL = localStorage.getItem('widgetDomain') || window.location.origin;
-  const CLIENT_KEY = document.currentScript.getAttribute('data-client-key');
-  
-  // Initialize settings with defaults
-  let widgetSettings = {
-    headerColor: '#2563eb',
-    buttonColor: '#2563eb',
-    poweredByText: 'Powered by Accessibility Widget',
-    poweredByColor: '#666666',
-    version: 1
-  };
-
   // Create widget container
   const widgetContainer = document.createElement('div');
   widgetContainer.id = 'accessibility-widget-container';
@@ -34,7 +21,7 @@
       padding: 0;
       border: none;
       border-radius: 50%;
-      background-color: ${widgetSettings.buttonColor};
+      background-color: #2563eb;
       color: white;
       cursor: pointer;
       box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
@@ -44,14 +31,13 @@
       justify-content: center;
     }
 
-    .widget-toggle svg {
-      width: 32px;
-      height: 32px;
-      fill: white;
-    }
-
     .widget-toggle:hover {
       transform: scale(1.1);
+    }
+
+    .widget-toggle-icon {
+      width: 32px;
+      height: 32px;
     }
 
     .widget-panel {
@@ -72,7 +58,7 @@
 
     .widget-header {
       padding: 20px;
-      background-color: ${widgetSettings.headerColor};
+      background-color: #60a5fa;
       color: #1e293b;
     }
 
@@ -121,6 +107,7 @@
       cursor: pointer;
       transition: all 0.2s ease;
       min-height: 100px;
+      text-align: center;
     }
 
     .feature-button:hover {
@@ -138,9 +125,8 @@
       margin-bottom: 8px;
     }
 
-    .feature-button span:last-child {
+    .feature-text {
       font-size: 14px;
-      text-align: center;
       line-height: 1.4;
       color: #1e293b;
     }
@@ -158,11 +144,8 @@
   // Create widget HTML
   widgetContainer.innerHTML = `
     <button class="widget-toggle" aria-label="Accessibility Options">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z"/>
-        <path d="M12 8a2 2 0 100-4 2 2 0 000 4z"/>
-        <path d="M12 8v8"/>
-        <path d="M8 14h8"/>
+      <svg class="widget-toggle-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path fill="currentColor" d="M12 2a2 2 0 1 0 0 4 2 2 0 0 0 0-4zM3 7v2h18V7H3zm3 4v8h2v-6h4v6h2V11H6zm14 0h-6v2h6v-2zm0 4h-6v2h6v-2z"/>
       </svg>
     </button>
     <div class="widget-panel">
@@ -175,27 +158,27 @@
           <div class="feature-grid">
             <button class="feature-button" data-feature="readableFont">
               <span class="feature-icon">Aa</span>
-              <span>Readable Font</span>
+              <span class="feature-text">Readable Font</span>
             </button>
             <button class="feature-button" data-feature="readAllText">
               <span class="feature-icon">▶</span>
-              <span>Read All Text</span>
+              <span class="feature-text">Read All Text</span>
             </button>
             <button class="feature-button" data-feature="clickToSpeech">
               <span class="feature-icon">🎧</span>
-              <span>Turn on Click to Speech</span>
+              <span class="feature-text">Turn on Click to Speech</span>
             </button>
             <button class="feature-button" data-feature="fontScaling">
               <span class="feature-icon">T↕</span>
-              <span>Font Scaling</span>
+              <span class="feature-text">Font Scaling</span>
             </button>
             <button class="feature-button" data-feature="highlightLinks">
               <span class="feature-icon">🔗</span>
-              <span>Highlight Links</span>
+              <span class="feature-text">Highlight Links</span>
             </button>
             <button class="feature-button" data-feature="highlightTitles">
               <span class="feature-icon">H</span>
-              <span>Highlight Titles</span>
+              <span class="feature-text">Highlight Titles</span>
             </button>
           </div>
         </div>
@@ -205,27 +188,27 @@
           <div class="feature-grid">
             <button class="feature-button" data-feature="highContrast">
               <span class="feature-icon">◐</span>
-              <span>High Contrast</span>
+              <span class="feature-text">High Contrast</span>
             </button>
             <button class="feature-button" data-feature="lightContrast">
               <span class="feature-icon">☀</span>
-              <span>Light Contrast</span>
+              <span class="feature-text">Light Contrast</span>
             </button>
             <button class="feature-button" data-feature="darkContrast">
               <span class="feature-icon">🌙</span>
-              <span>Dark Contrast</span>
+              <span class="feature-text">Dark Contrast</span>
             </button>
             <button class="feature-button" data-feature="monochrome">
               <span class="feature-icon">◑</span>
-              <span>Monochrome</span>
+              <span class="feature-text">Monochrome</span>
             </button>
             <button class="feature-button" data-feature="highSaturation">
               <span class="feature-icon">⚛</span>
-              <span>High Saturation</span>
+              <span class="feature-text">High Saturation</span>
             </button>
             <button class="feature-button" data-feature="lowSaturation">
               <span class="feature-icon">💧</span>
-              <span>Low Saturation</span>
+              <span class="feature-text">Low Saturation</span>
             </button>
           </div>
         </div>
@@ -235,22 +218,98 @@
           <div class="feature-grid">
             <button class="feature-button" data-feature="muteSounds">
               <span class="feature-icon">🔇</span>
-              <span>Mute Sounds</span>
+              <span class="feature-text">Mute Sounds</span>
             </button>
             <button class="feature-button" data-feature="hideImages">
               <span class="feature-icon">🖼</span>
-              <span>Hide Images</span>
+              <span class="feature-text">Hide Images</span>
             </button>
           </div>
         </div>
       </div>
       <div class="widget-footer">
-        ${widgetSettings.poweredByText}
+        Powered by Accessibility Widget
       </div>
     </div>
   `;
 
-  // Rest of the JavaScript functionality remains the same...
-  // (Event handlers, feature application, etc.)
+  // Initialize state
+  let isOpen = false;
+  const features = {};
 
+  // Get elements
+  const toggle = widgetContainer.querySelector('.widget-toggle');
+  const panel = widgetContainer.querySelector('.widget-panel');
+  const buttons = widgetContainer.querySelectorAll('.feature-button');
+
+  // Toggle widget
+  toggle.addEventListener('click', () => {
+    isOpen = !isOpen;
+    panel.classList.toggle('open', isOpen);
+  });
+
+  // Handle feature buttons
+  buttons.forEach(button => {
+    button.addEventListener('click', () => {
+      const feature = button.dataset.feature;
+      features[feature] = !features[feature];
+      button.classList.toggle('active', features[feature]);
+      applyFeature(feature, features[feature]);
+    });
+  });
+
+  // Apply feature function
+  function applyFeature(feature, isActive) {
+    switch (feature) {
+      case 'readableFont':
+        document.body.style.fontFamily = isActive ? 'Arial, sans-serif' : '';
+        document.body.style.lineHeight = isActive ? '1.6' : '';
+        break;
+      case 'fontScaling':
+        document.body.style.fontSize = isActive ? '120%' : '';
+        break;
+      case 'highlightLinks':
+        document.querySelectorAll('a').forEach(link => {
+          link.style.backgroundColor = isActive ? '#ffff00' : '';
+          link.style.color = isActive ? '#000000' : '';
+        });
+        break;
+      case 'highlightTitles':
+        document.querySelectorAll('h1, h2, h3, h4, h5, h6').forEach(title => {
+          title.style.backgroundColor = isActive ? '#e0e7ff' : '';
+        });
+        break;
+      case 'highContrast':
+        document.body.style.filter = isActive ? 'contrast(150%)' : '';
+        break;
+      case 'lightContrast':
+        document.body.style.filter = isActive ? 'brightness(120%)' : '';
+        break;
+      case 'darkContrast':
+        document.body.style.filter = isActive ? 'brightness(80%)' : '';
+        break;
+      case 'monochrome':
+        document.body.style.filter = isActive ? 'grayscale(100%)' : '';
+        break;
+      case 'highSaturation':
+        document.body.style.filter = isActive ? 'saturate(150%)' : '';
+        break;
+      case 'lowSaturation':
+        document.body.style.filter = isActive ? 'saturate(50%)' : '';
+        break;
+      case 'hideImages':
+        document.querySelectorAll('img').forEach(img => {
+          img.style.display = isActive ? 'none' : '';
+        });
+        break;
+    }
+  }
+
+  // Close widget when clicking outside
+  document.addEventListener('click', (e) => {
+    if (isOpen && !widgetContainer.contains(e.target)) {
+      isOpen = false;
+      panel.classList.remove('open');
+    }
+  });
 })();
