@@ -11,7 +11,7 @@ const WidgetCustomization = () => {
       buttonColor: '#2563eb',
       poweredByText: 'Powered by Our Company',
       poweredByColor: '#666666',
-      version: 1 // Add version control
+      version: 1
     };
   });
 
@@ -23,45 +23,71 @@ const WidgetCustomization = () => {
     }));
   };
 
-  const handleSave = async () => {
-    try {
-      // Increment version number
-      const updatedSettings = {
-        ...widgetSettings,
-        version: (widgetSettings.version || 0) + 1
-      };
-
-      // Save to localStorage
-      localStorage.setItem('widgetSettings', JSON.stringify(updatedSettings));
-
-      // Update settings in database (this would be your API endpoint)
-      const response = await fetch('/api/widget-settings', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(updatedSettings)
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to save settings');
-      }
-
-      setWidgetSettings(updatedSettings);
-      alert('Widget settings saved successfully! All client widgets will be updated automatically.');
-    } catch (error) {
-      console.error('Error saving widget settings:', error);
-      alert('Failed to save widget settings. Please try again.');
-    }
+  const handleSave = () => {
+    const updatedSettings = {
+      ...widgetSettings,
+      version: (widgetSettings.version || 0) + 1
+    };
+    localStorage.setItem('widgetSettings', JSON.stringify(updatedSettings));
+    setWidgetSettings(updatedSettings);
+    alert('Widget settings saved successfully!');
   };
 
   return (
     <div className={styles.widgetCustomization}>
       <div className={styles.settingsPanel}>
         <h2>Widget Customization</h2>
-        <p className={styles.versionInfo}>Current Version: {widgetSettings.version || 1}</p>
 
-        {/* ... rest of the form fields ... */}
+        <div className={styles.formGroup}>
+          <label>Header Color</label>
+          <input
+            type="color"
+            name="headerColor"
+            value={widgetSettings.headerColor}
+            onChange={handleChange}
+          />
+        </div>
+
+        <div className={styles.formGroup}>
+          <label>Header Logo URL</label>
+          <input
+            type="url"
+            name="headerLogo"
+            value={widgetSettings.headerLogo}
+            onChange={handleChange}
+            placeholder="Enter logo URL"
+          />
+        </div>
+
+        <div className={styles.formGroup}>
+          <label>Button Color</label>
+          <input
+            type="color"
+            name="buttonColor"
+            value={widgetSettings.buttonColor}
+            onChange={handleChange}
+          />
+        </div>
+
+        <div className={styles.formGroup}>
+          <label>Powered By Text</label>
+          <input
+            type="text"
+            name="poweredByText"
+            value={widgetSettings.poweredByText}
+            onChange={handleChange}
+          />
+        </div>
+
+        <div className={styles.formGroup}>
+          <label>Powered By Color</label>
+          <input
+            type="color"
+            name="poweredByColor"
+            value={widgetSettings.poweredByColor}
+            onChange={handleChange}
+          />
+        </div>
 
         <div className={styles.formActions}>
           <button 
@@ -74,7 +100,17 @@ const WidgetCustomization = () => {
         </div>
       </div>
 
-      {/* ... rest of the component ... */}
+      <div className={styles.previewPanel}>
+        <h2>Widget Preview</h2>
+        <div className={styles.widgetPreview}>
+          <div className={styles.exampleContent}>
+            <h3>Example Content</h3>
+            <p>This is example content to demonstrate the accessibility features. Try clicking the accessibility button to see the widget in action.</p>
+            <a href="#example">Example Link</a>
+          </div>
+          <AccessibilityWidget settings={widgetSettings} isPreview={true} />
+        </div>
+      </div>
     </div>
   );
 };
