@@ -1,15 +1,24 @@
-// Immediately executing function to avoid global scope pollution
 (function() {
-  // Create and append widget container immediately
+  // Get settings from script attributes
+  const script = document.currentScript;
+  const settings = {
+    headerColor: script.getAttribute('data-header-color') || '#60a5fa',
+    headerTextColor: script.getAttribute('data-header-text-color') || '#1e293b',
+    buttonColor: script.getAttribute('data-button-color') || '#2563eb',
+    poweredByText: script.getAttribute('data-powered-by-text') || 'Powered by Accessibility Widget',
+    poweredByColor: script.getAttribute('data-powered-by-color') || '#64748b'
+  };
+
+  // Create and append widget container
   const container = document.createElement('div');
   container.id = 'accessibility-widget-container';
   document.body.appendChild(container);
 
-  // Basic accessibility widget HTML
+  // Universal Accessibility Icon and widget HTML
   container.innerHTML = `
     <button class="accessibility-widget-button" aria-label="Accessibility Options">
-      <svg width="32" height="32" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <path fill="currentColor" d="M12 2.5a2.5 2.5 0 1 0 0 5 2.5 2.5 0 0 0 0-5zM12 9c-2.73 0-5.22 1-7.16 2.66l1.45 1.45C7.77 11.87 9.83 11 12 11c2.17 0 4.23.87 5.71 2.11l1.45-1.45C17.22 10 14.73 9 12 9zm0 4c-1.64 0-3.15.57-4.36 1.51l1.45 1.45c.79-.48 1.73-.76 2.91-.76 1.18 0 2.12.28 2.91.76l1.45-1.45C15.15 13.57 13.64 13 12 13zm0 4c-.55 0-1 .45-1 1s.45 1 1 1 1-.45 1-1-.45-1-1-1z"/>
+      <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path fill="currentColor" d="M16 0C7.163 0 0 7.163 0 16s7.163 16 16 16 16-7.163 16-16S24.837 0 16 0zm0 6.4a3.2 3.2 0 1 1 0 6.4 3.2 3.2 0 0 1 0-6.4zM8 25.6V24c0-2.97 5.333-4.8 8-4.8 2.667 0 8 1.83 8 4.8v1.6H8zm16-12.8h-5.333L20 25.6h-2.667L16 17.6l-1.333 8H12l1.333-12.8H8v-1.6h16v1.6z"/>
       </svg>
     </button>
     <div class="accessibility-widget-panel">
@@ -19,10 +28,13 @@
       <div class="accessibility-widget-content">
         <!-- Widget content here -->
       </div>
+      <div class="accessibility-widget-footer">
+        ${settings.poweredByText}
+      </div>
     </div>
   `;
 
-  // Add basic styles immediately
+  // Add styles with customization
   const styles = document.createElement('style');
   styles.textContent = `
     #accessibility-widget-container {
@@ -30,13 +42,14 @@
       bottom: 20px;
       right: 20px;
       z-index: 99999;
+      font-family: system-ui, -apple-system, sans-serif;
     }
 
     .accessibility-widget-button {
       width: 64px;
       height: 64px;
       border-radius: 50%;
-      background: #2563eb;
+      background: ${settings.buttonColor};
       border: none;
       cursor: pointer;
       box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
@@ -45,6 +58,7 @@
       justify-content: center;
       color: white;
       transition: transform 0.3s ease;
+      padding: 0;
     }
 
     .accessibility-widget-button:hover {
@@ -68,19 +82,26 @@
 
     .accessibility-widget-header {
       padding: 16px;
-      background: #60a5fa;
+      background: ${settings.headerColor};
       border-radius: 8px 8px 0 0;
     }
 
     .accessibility-widget-header h3 {
       margin: 0;
-      color: #1e293b;
+      color: ${settings.headerTextColor};
       font-size: 18px;
-      font-family: system-ui, -apple-system, sans-serif;
     }
 
     .accessibility-widget-content {
       padding: 16px;
+    }
+
+    .accessibility-widget-footer {
+      padding: 16px;
+      text-align: center;
+      border-top: 1px solid #e2e8f0;
+      color: ${settings.poweredByColor};
+      font-size: 14px;
     }
   `;
   document.head.appendChild(styles);
