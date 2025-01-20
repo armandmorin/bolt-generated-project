@@ -1,20 +1,22 @@
 (function() {
-  // Get settings from script data attribute
+  // Get settings from script data attributes
   const script = document.getElementById('accessibility-widget-script');
-  let settings;
-  
-  try {
-    settings = JSON.parse(script.getAttribute('data-settings'));
-  } catch (e) {
-    console.error('Error parsing widget settings:', e);
-    settings = {
-      headerColor: '#60a5fa',
-      headerTextColor: '#1e293b',
-      buttonColor: '#2563eb',
-      poweredByText: 'Powered by Accessibility Widget',
-      poweredByColor: '#64748b'
-    };
-  }
+  let settings = {
+    headerColor: script.getAttribute('data-header-color'),
+    headerTextColor: script.getAttribute('data-header-text-color'),
+    buttonColor: script.getAttribute('data-button-color'),
+    poweredByText: script.getAttribute('data-powered-by-text'),
+    poweredByColor: script.getAttribute('data-powered-by-color')
+  };
+
+  // Use default values if attributes are not set
+  settings = {
+    headerColor: settings.headerColor || '#60a5fa',
+    headerTextColor: settings.headerTextColor || '#1e293b',
+    buttonColor: settings.buttonColor || '#2563eb',
+    poweredByText: settings.poweredByText || 'Powered by Accessibility Widget',
+    poweredByColor: settings.poweredByColor || '#64748b'
+  };
 
   // Create and append widget container
   const container = document.createElement('div');
@@ -136,29 +138,32 @@
 
   // Function to update settings
   function updateWidget() {
-    try {
-      const newSettings = JSON.parse(script.getAttribute('data-settings'));
-      if (JSON.stringify(newSettings) !== JSON.stringify(settings)) {
-        settings = newSettings;
-        
-        // Update button color
-        button.style.backgroundColor = settings.buttonColor;
-        
-        // Update header color and text
-        const header = container.querySelector('.accessibility-widget-header');
-        header.style.backgroundColor = settings.headerColor;
-        
-        // Update header text color
-        const headerText = container.querySelector('.accessibility-widget-header h3');
-        headerText.style.color = settings.headerTextColor;
-        
-        // Update footer text and color
-        const footer = container.querySelector('.accessibility-widget-footer');
-        footer.textContent = settings.poweredByText;
-        footer.style.color = settings.poweredByColor;
-      }
-    } catch (e) {
-      console.error('Error updating widget settings:', e);
+    const newSettings = {
+      headerColor: script.getAttribute('data-header-color'),
+      headerTextColor: script.getAttribute('data-header-text-color'),
+      buttonColor: script.getAttribute('data-button-color'),
+      poweredByText: script.getAttribute('data-powered-by-text'),
+      poweredByColor: script.getAttribute('data-powered-by-color')
+    };
+
+    if (JSON.stringify(newSettings) !== JSON.stringify(settings)) {
+      settings = newSettings;
+      
+      // Update button color
+      button.style.backgroundColor = settings.buttonColor;
+      
+      // Update header color and text
+      const header = container.querySelector('.accessibility-widget-header');
+      header.style.backgroundColor = settings.headerColor;
+      
+      // Update header text color
+      const headerText = container.querySelector('.accessibility-widget-header h3');
+      headerText.style.color = settings.headerTextColor;
+      
+      // Update footer text and color
+      const footer = container.querySelector('.accessibility-widget-footer');
+      footer.textContent = settings.poweredByText;
+      footer.style.color = settings.poweredByColor;
     }
   }
 

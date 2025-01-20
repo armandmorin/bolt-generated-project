@@ -9,7 +9,11 @@ const WidgetCodeSnippet = () => {
 <script 
   src="/widget/accessibility-widget.js"
   id="accessibility-widget-script"
-  data-settings='${JSON.stringify(settings)}'
+  data-header-color="${settings?.headerColor}"
+  data-header-text-color="${settings?.headerTextColor}"
+  data-button-color="${settings?.buttonColor}"
+  data-powered-by-text="${settings?.poweredByText}"
+  data-powered-by-color="${settings?.poweredByColor}"
   async
   defer
 ></script>`;
