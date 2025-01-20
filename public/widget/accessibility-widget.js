@@ -14,11 +14,12 @@
   container.id = 'accessibility-widget-container';
   document.body.appendChild(container);
 
-  // Universal Accessibility Icon and widget HTML
+  // Updated Universal Accessibility Icon and widget HTML
   container.innerHTML = `
     <button class="accessibility-widget-button" aria-label="Accessibility Options">
-      <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <path fill="currentColor" d="M16 0C7.163 0 0 7.163 0 16s7.163 16 16 16 16-7.163 16-16S24.837 0 16 0zm0 6.4a3.2 3.2 0 1 1 0 6.4 3.2 3.2 0 0 1 0-6.4zM8 25.6V24c0-2.97 5.333-4.8 8-4.8 2.667 0 8 1.83 8 4.8v1.6H8zm16-12.8h-5.333L20 25.6h-2.667L16 17.6l-1.333 8H12l1.333-12.8H8v-1.6h16v1.6z"/>
+      <svg width="32" height="32" viewBox="0 0 100 100" fill="currentColor">
+        <circle cx="50" cy="50" r="45" fill="none" stroke="currentColor" stroke-width="10"/>
+        <path d="M50 18 C 50 18, 32 35, 32 50 C 32 65, 50 82, 50 82 C 50 82, 68 65, 68 50 C 68 35, 50 18, 50 18" fill="currentColor"/>
       </svg>
     </button>
     <div class="accessibility-widget-panel">
@@ -59,6 +60,11 @@
       color: white;
       transition: transform 0.3s ease;
       padding: 0;
+    }
+
+    .accessibility-widget-button svg {
+      width: 40px;
+      height: 40px;
     }
 
     .accessibility-widget-button:hover {
@@ -120,4 +126,27 @@
       panel.classList.remove('open');
     }
   });
+
+  // Check for updates every 5 seconds
+  setInterval(() => {
+    const newSettings = {
+      headerColor: script.getAttribute('data-header-color'),
+      headerTextColor: script.getAttribute('data-header-text-color'),
+      buttonColor: script.getAttribute('data-button-color'),
+      poweredByText: script.getAttribute('data-powered-by-text'),
+      poweredByColor: script.getAttribute('data-powered-by-color')
+    };
+
+    // Update if settings have changed
+    if (JSON.stringify(newSettings) !== JSON.stringify(settings)) {
+      Object.assign(settings, newSettings);
+      // Update styles
+      styles.textContent = styles.textContent.replace(/background: [^;]+;/, `background: ${settings.buttonColor};`)
+        .replace(/background: [^;]+;/, `background: ${settings.headerColor};`)
+        .replace(/color: [^;]+;/, `color: ${settings.headerTextColor};`);
+      // Update footer text
+      container.querySelector('.accessibility-widget-footer').textContent = settings.poweredByText;
+      container.querySelector('.accessibility-widget-footer').style.color = settings.poweredByColor;
+    }
+  }, 5000);
 })();
