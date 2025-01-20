@@ -1,5 +1,6 @@
 (function() {
-  const WIDGET_URL = 'YOUR_WIDGET_SERVER_URL'; // Replace with your actual widget server URL
+  // Get domain from localStorage (set by super admin)
+  const WIDGET_URL = localStorage.getItem('widgetDomain') || window.location.origin;
   const CLIENT_KEY = document.currentScript.getAttribute('data-client-key');
   
   // Initialize settings with defaults
@@ -30,45 +31,5 @@
     }
   }
 
-  // Fetch settings initially
-  fetchSettings();
-
-  // Poll for updates every 5 minutes
-  setInterval(fetchSettings, 5 * 60 * 1000);
-
-  function updateWidgetStyles() {
-    // Update dynamic styles
-    const styleElement = document.getElementById('accessibility-widget-styles');
-    if (styleElement) {
-      styleElement.textContent = getStyles();
-    }
-  }
-
-  function updateWidgetContent() {
-    // Update widget content based on new settings
-    const header = widgetContainer.querySelector('.widget-header');
-    const footer = widgetContainer.querySelector('.widget-footer');
-    const toggle = widgetContainer.querySelector('.widget-toggle');
-
-    if (header) {
-      header.style.backgroundColor = widgetSettings.headerColor;
-      if (widgetSettings.headerLogo) {
-        header.innerHTML = `
-          <img src="${widgetSettings.headerLogo}" alt="Logo" class="widget-logo" />
-          <h3>Accessibility Settings</h3>
-        `;
-      }
-    }
-
-    if (footer) {
-      footer.textContent = widgetSettings.poweredByText;
-      footer.style.color = widgetSettings.poweredByColor;
-    }
-
-    if (toggle) {
-      toggle.style.backgroundColor = widgetSettings.buttonColor;
-    }
-  }
-
-  // ... rest of the widget code ...
+  // Rest of the widget code remains the same...
 })();

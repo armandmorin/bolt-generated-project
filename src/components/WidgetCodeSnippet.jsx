@@ -3,7 +3,7 @@ import styles from '../styles/widgetCode.module.css';
 
 const WidgetCodeSnippet = ({ scriptKey }) => {
   const [copied, setCopied] = useState(false);
-  const WIDGET_URL = 'YOUR_WIDGET_SERVER_URL'; // Replace with your actual widget server URL
+  const WIDGET_URL = localStorage.getItem('widgetDomain') || window.location.origin;
 
   const scriptCode = `<!-- Accessibility Widget -->
 <script 
