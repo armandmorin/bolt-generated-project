@@ -1,5 +1,6 @@
 /* Main Layout */
-    .adminDashboard {
+    .adminDashboard,
+    .superAdminDashboard {
       max-width: 1200px;
       margin: 0 auto;
       padding: 2rem;
@@ -12,7 +13,6 @@
       margin-bottom: 2rem;
       border-bottom: 1px solid var(--border-color);
       padding-bottom: 0.5rem;
-      overflow-x: auto;
     }
 
     .tabButton {
@@ -24,7 +24,6 @@
       cursor: pointer;
       position: relative;
       transition: all 0.2s ease;
-      white-space: nowrap;
     }
 
     .tabButton::after {
@@ -70,6 +69,19 @@
       font-size: 1.5rem;
     }
 
+    .description {
+      color: #64748b;
+      margin-bottom: 1.5rem;
+    }
+
+    .hint {
+      display: block;
+      font-size: 0.875rem;
+      color: #64748b;
+      margin-top: 0.5rem;
+    }
+
+    /* Form Elements */
     .formGroup {
       margin-bottom: 1.5rem;
     }
@@ -81,7 +93,9 @@
       color: var(--text-color);
     }
 
-    .formGroup input {
+    .formGroup input,
+    .formGroup select,
+    .formGroup textarea {
       width: 100%;
       padding: 0.75rem;
       border: 1px solid var(--border-color);
@@ -90,7 +104,9 @@
       transition: all 0.2s ease;
     }
 
-    .formGroup input:focus {
+    .formGroup input:focus,
+    .formGroup select:focus,
+    .formGroup textarea:focus {
       border-color: var(--primary-color);
       box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
       outline: none;
@@ -108,14 +124,16 @@
       gap: 1rem;
     }
 
+    /* Buttons */
     .formActions {
       display: flex;
       justify-content: flex-end;
       margin-top: 2rem;
     }
 
+    .saveButton,
     .primaryButton,
-    .saveButton {
+    .addButton {
       padding: 0.75rem 1.5rem;
       background-color: var(--primary-color);
       color: white;
@@ -127,34 +145,56 @@
       transition: all 0.2s ease;
     }
 
+    .saveButton:hover,
     .primaryButton:hover,
-    .saveButton:hover {
+    .addButton:hover {
       background-color: #1d4ed8;
       transform: translateY(-1px);
     }
 
-    /* Table Styles */
-    .table {
+    /* Admin Management */
+    .adminSection {
+      padding: 2rem;
+    }
+
+    .addAdminSection {
+      margin-bottom: 2rem;
+      padding-bottom: 2rem;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .addAdminForm {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 1.5rem;
+    }
+
+    .addButton {
+      grid-column: span 2;
+    }
+
+    /* Tables */
+    .adminTable {
       width: 100%;
       border-collapse: separate;
       border-spacing: 0;
       margin-top: 1rem;
     }
 
-    .table th,
-    .table td {
+    .adminTable th,
+    .adminTable td {
       padding: 1rem;
       text-align: left;
       border-bottom: 1px solid var(--border-color);
     }
 
-    .table th {
+    .adminTable th {
       background-color: var(--primary-color);
       color: white;
       font-weight: 500;
     }
 
-    .table tr:hover {
+    .adminTable tr:hover {
       background-color: rgba(0, 0, 0, 0.02);
     }
 
@@ -163,7 +203,6 @@
       padding: 0.25rem 0.5rem;
       border-radius: 4px;
       font-size: 0.875rem;
-      display: inline-block;
     }
 
     .statusActive {
@@ -177,96 +216,54 @@
     }
 
     /* Action Buttons */
-    .actionButtons {
-      display: flex;
-      gap: 0.5rem;
-    }
-
-    .actionButton {
+    .removeButton {
       padding: 0.5rem 1rem;
+      background-color: #ef4444;
+      color: white;
       border: none;
       border-radius: 4px;
-      font-size: 0.875rem;
       cursor: pointer;
+      font-size: 0.875rem;
       transition: all 0.2s ease;
     }
 
-    .actionButton.primary {
-      background-color: var(--primary-color);
-      color: white;
-    }
-
-    .actionButton.danger {
-      background-color: #ef4444;
-      color: white;
-    }
-
-    .actionButton:hover {
+    .removeButton:hover {
+      background-color: #dc2626;
       transform: translateY(-1px);
     }
 
-    /* Search and Filter */
-    .searchContainer {
-      margin-bottom: 1.5rem;
-    }
-
-    .searchInput {
-      width: 100%;
-      max-width: 300px;
-      padding: 0.75rem;
-      border: 1px solid var(--border-color);
-      border-radius: 6px;
-      font-size: 1rem;
-    }
-
-    .searchInput:focus {
-      border-color: var(--primary-color);
-      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
-      outline: none;
-    }
-
-    /* Section Headers */
-    .sectionHeader {
+    .actionButtons {
       display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 1.5rem;
-    }
-
-    .sectionTitle {
-      margin: 0;
-      font-size: 1.5rem;
-      color: var(--text-color);
-    }
-
-    /* Empty States */
-    .emptyState {
-      text-align: center;
-      padding: 3rem;
-      color: #64748b;
+      gap: 0.5rem;
+      justify-content: flex-end;
     }
 
     /* Responsive Design */
     @media (max-width: 768px) {
-      .adminDashboard {
+      .adminDashboard,
+      .superAdminDashboard {
         padding: 1rem;
+      }
+
+      .addAdminForm {
+        grid-template-columns: 1fr;
+      }
+
+      .addButton {
+        grid-column: 1;
       }
 
       .colorGroup {
         grid-template-columns: 1fr;
       }
 
-      .formActions {
-        flex-direction: column;
-        gap: 1rem;
+      .tabs {
+        flex-wrap: wrap;
       }
 
-      .actionButtons {
-        flex-direction: column;
-      }
-
-      .table {
-        display: block;
-        overflow-x: auto;
+      .tabButton {
+        flex: 1 1 auto;
+        text-align: center;
+        padding: 0.5rem;
       }
     }
