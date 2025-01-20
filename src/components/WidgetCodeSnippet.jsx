@@ -1,15 +1,18 @@
 import React, { useState } from 'react';
 import styles from '../styles/widgetCode.module.css';
 
-const WidgetCodeSnippet = ({ scriptKey }) => {
+const WidgetCodeSnippet = ({ clientKey }) => {
   const [copied, setCopied] = useState(false);
-  const apiUrl = window.location.origin;
+  const settings = JSON.parse(localStorage.getItem('widgetSettings'));
 
   const scriptCode = `<!-- Accessibility Widget -->
 <script 
-  src="${apiUrl}/widget/accessibility-widget.js"
-  data-client-key="${scriptKey}"
-  data-api-url="${apiUrl}"
+  src="/widget/accessibility-widget.js"
+  data-header-color="${settings?.headerColor || '#60a5fa'}"
+  data-header-text-color="${settings?.headerTextColor || '#1e293b'}"
+  data-button-color="${settings?.buttonColor || '#2563eb'}"
+  data-powered-by-text="${settings?.poweredByText || 'Powered by Accessibility Widget'}"
+  data-powered-by-color="${settings?.poweredByColor || '#64748b'}"
   async
   defer
 ></script>`;
@@ -37,15 +40,6 @@ const WidgetCodeSnippet = ({ scriptKey }) => {
         >
           {copied ? 'Copied!' : 'Copy Code'}
         </button>
-      </div>
-
-      <div className={styles.notes}>
-        <h4>Important Notes:</h4>
-        <ul>
-          <li>The widget will automatically update when you publish new changes</li>
-          <li>Your unique client key ensures proper tracking and customization</li>
-          <li>The widget appears in the bottom right corner of your website</li>
-        </ul>
       </div>
     </div>
   );
