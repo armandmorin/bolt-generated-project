@@ -1,15 +1,13 @@
 (function() {
-  // Get settings from localStorage
-  function getSettings() {
-    try {
-      const savedSettings = localStorage.getItem('widgetSettings');
-      if (savedSettings) {
-        return JSON.parse(savedSettings);
-      }
-    } catch (e) {
-      console.error('Error reading widget settings:', e);
-    }
-    return {
+  // Get settings from script data attribute
+  const script = document.getElementById('accessibility-widget-script');
+  let settings;
+  
+  try {
+    settings = JSON.parse(script.getAttribute('data-settings'));
+  } catch (e) {
+    console.error('Error parsing widget settings:', e);
+    settings = {
       headerColor: '#60a5fa',
       headerTextColor: '#1e293b',
       buttonColor: '#2563eb',
@@ -17,9 +15,6 @@
       poweredByColor: '#64748b'
     };
   }
-
-  // Initialize settings
-  let settings = getSettings();
 
   // Create and append widget container
   const container = document.createElement('div');
@@ -47,119 +42,82 @@
     </div>
   `;
 
-  function updateStyles() {
-    const styles = document.createElement('style');
-    styles.textContent = `
-      #accessibility-widget-container {
-        position: fixed;
-        bottom: 20px;
-        right: 20px;
-        z-index: 99999;
-        font-family: system-ui, -apple-system, sans-serif;
-      }
-
-      .accessibility-widget-button {
-        width: 64px;
-        height: 64px;
-        border-radius: 50%;
-        background: ${settings.buttonColor};
-        border: none;
-        cursor: pointer;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        color: white;
-        transition: transform 0.3s ease;
-        padding: 0;
-      }
-
-      .accessibility-widget-button svg {
-        width: 40px;
-        height: 40px;
-      }
-
-      .accessibility-widget-button:hover {
-        transform: scale(1.1);
-      }
-
-      .accessibility-widget-panel {
-        position: absolute;
-        bottom: 80px;
-        right: 0;
-        width: 320px;
-        background: white;
-        border-radius: 8px;
-        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
-        display: none;
-      }
-
-      .accessibility-widget-panel.open {
-        display: block;
-      }
-
-      .accessibility-widget-header {
-        padding: 16px;
-        background: ${settings.headerColor};
-        border-radius: 8px 8px 0 0;
-      }
-
-      .accessibility-widget-header h3 {
-        margin: 0;
-        color: ${settings.headerTextColor};
-        font-size: 18px;
-      }
-
-      .accessibility-widget-content {
-        padding: 16px;
-      }
-
-      .accessibility-widget-footer {
-        padding: 16px;
-        text-align: center;
-        border-top: 1px solid #e2e8f0;
-        color: ${settings.poweredByColor};
-        font-size: 14px;
-      }
-    `;
-    
-    // Remove old styles if they exist
-    const oldStyles = document.getElementById('accessibility-widget-styles');
-    if (oldStyles) {
-      oldStyles.remove();
-    }
-    
-    styles.id = 'accessibility-widget-styles';
-    document.head.appendChild(styles);
-    
-    // Update footer text and color
-    const footer = container.querySelector('.accessibility-widget-footer');
-    if (footer) {
-      footer.textContent = settings.poweredByText;
-      footer.style.color = settings.poweredByColor;
+  // Add styles
+  const styles = document.createElement('style');
+  styles.textContent = `
+    #accessibility-widget-container {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      z-index: 99999;
+      font-family: system-ui, -apple-system, sans-serif;
     }
 
-    // Update button color
-    const button = container.querySelector('.accessibility-widget-button');
-    if (button) {
-      button.style.backgroundColor = settings.buttonColor;
+    .accessibility-widget-button {
+      width: 64px;
+      height: 64px;
+      border-radius: 50%;
+      background: ${settings.buttonColor};
+      border: none;
+      cursor: pointer;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      transition: transform 0.3s ease;
+      padding: 0;
     }
 
-    // Update header
-    const header = container.querySelector('.accessibility-widget-header');
-    if (header) {
-      header.style.backgroundColor = settings.headerColor;
+    .accessibility-widget-button svg {
+      width: 40px;
+      height: 40px;
     }
 
-    // Update header text color
-    const headerText = container.querySelector('.accessibility-widget-header h3');
-    if (headerText) {
-      headerText.style.color = settings.headerTextColor;
+    .accessibility-widget-button:hover {
+      transform: scale(1.1);
     }
-  }
 
-  // Initial styles
-  updateStyles();
+    .accessibility-widget-panel {
+      position: absolute;
+      bottom: 80px;
+      right: 0;
+      width: 320px;
+      background: white;
+      border-radius: 8px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+      display: none;
+    }
+
+    .accessibility-widget-panel.open {
+      display: block;
+    }
+
+    .accessibility-widget-header {
+      padding: 16px;
+      background: ${settings.headerColor};
+      border-radius: 8px 8px 0 0;
+    }
+
+    .accessibility-widget-header h3 {
+      margin: 0;
+      color: ${settings.headerTextColor};
+      font-size: 18px;
+    }
+
+    .accessibility-widget-content {
+      padding: 16px;
+    }
+
+    .accessibility-widget-footer {
+      padding: 16px;
+      text-align: center;
+      border-top: 1px solid #e2e8f0;
+      color: ${settings.poweredByColor};
+      font-size: 14px;
+    }
+  `;
+  document.head.appendChild(styles);
 
   // Basic functionality
   const button = container.querySelector('.accessibility-widget-button');
@@ -176,12 +134,34 @@
     }
   });
 
-  // Check for updates every second
-  setInterval(() => {
-    const newSettings = getSettings();
-    if (JSON.stringify(newSettings) !== JSON.stringify(settings)) {
-      settings = newSettings;
-      updateStyles();
+  // Function to update settings
+  function updateWidget() {
+    try {
+      const newSettings = JSON.parse(script.getAttribute('data-settings'));
+      if (JSON.stringify(newSettings) !== JSON.stringify(settings)) {
+        settings = newSettings;
+        
+        // Update button color
+        button.style.backgroundColor = settings.buttonColor;
+        
+        // Update header color and text
+        const header = container.querySelector('.accessibility-widget-header');
+        header.style.backgroundColor = settings.headerColor;
+        
+        // Update header text color
+        const headerText = container.querySelector('.accessibility-widget-header h3');
+        headerText.style.color = settings.headerTextColor;
+        
+        // Update footer text and color
+        const footer = container.querySelector('.accessibility-widget-footer');
+        footer.textContent = settings.poweredByText;
+        footer.style.color = settings.poweredByColor;
+      }
+    } catch (e) {
+      console.error('Error updating widget settings:', e);
     }
-  }, 1000);
+  }
+
+  // Check for updates every second
+  setInterval(updateWidget, 1000);
 })();
