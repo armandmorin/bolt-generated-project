@@ -66,12 +66,6 @@
       font-weight: 500;
     }
 
-    .widget-logo {
-      width: 24px;
-      height: 24px;
-      object-fit: contain;
-    }
-
     .widget-body {
       padding: 16px;
       max-height: 70vh;
@@ -123,6 +117,7 @@
       padding: 12px;
       text-align: center;
       font-size: 12px;
+      color: #64748b;
       border-top: 1px solid #e2e8f0;
     }
   `;
@@ -131,7 +126,7 @@
   // Widget state
   let isOpen = false;
   const settings = {
-    fontSize: 'normal',
+    fontSize: 'medium',
     contrast: 'normal',
     highlightLinks: false,
     textToSpeech: false,
@@ -239,6 +234,16 @@
 
     // Big cursor
     document.body.style.cursor = settings.bigCursor ? 'url(data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDgiIGhlaWdodD0iNDgiIHZpZXdCb3g9IjAgMCA0OCA0OCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cGF0aCBkPSJNMTIgMjRMMjQgMzZMMzYgMjRMMjQgMTJMMTIgMjRaIiBmaWxsPSJibGFjayIvPjwvc3ZnPg==) 24 24, auto' : '';
+
+    // Text-to-speech
+    if (settings.textToSpeech) {
+      if (!window.speechSynthesis.speaking) {
+        const utterance = new SpeechSynthesisUtterance(document.body.innerText);
+        window.speechSynthesis.speak(utterance);
+      }
+    } else {
+      window.speechSynthesis.cancel();
+    }
   }
 
   // Handle button clicks
