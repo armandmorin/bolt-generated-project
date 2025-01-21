@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import AccessibilityWidget from '../components/AccessibilityWidget';
 import styles from '../styles/widgetCustomization.module.css';
 
@@ -7,13 +7,17 @@ const WidgetCustomization = () => {
     const savedSettings = localStorage.getItem('widgetSettings');
     return savedSettings ? JSON.parse(savedSettings) : {
       headerColor: '#60a5fa',
-      headerTextColor: '#1e293b', // Added header text color
-      headerLogo: '',
+      headerTextColor: '#1e293b',
       buttonColor: '#2563eb',
       poweredByText: 'Powered by Our Company',
-      poweredByColor: '#666666'
+      poweredByColor: '#64748b'
     };
   });
+
+  useEffect(() => {
+    // Save settings whenever they change
+    localStorage.setItem('widgetSettings', JSON.stringify(widgetSettings));
+  }, [widgetSettings]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -50,17 +54,6 @@ const WidgetCustomization = () => {
             name="headerTextColor"
             value={widgetSettings.headerTextColor}
             onChange={handleChange}
-          />
-        </div>
-
-        <div className={styles.formGroup}>
-          <label>Header Logo URL</label>
-          <input
-            type="url"
-            name="headerLogo"
-            value={widgetSettings.headerLogo}
-            onChange={handleChange}
-            placeholder="Enter logo URL"
           />
         </div>
 

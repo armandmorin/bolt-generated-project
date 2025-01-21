@@ -1,32 +1,45 @@
-// Add this route before app.listen()
-    app.get('/api/client/script/:key', async (req, res) => {
-      try {
-        const { key } = req.params;
-        const script = `
-          (function() {
-            const scriptKey = '${key}';
-            const scriptUrl = '${process.env.BASE_URL}/api/client/script';
-            
-            // Create container
-            const container = document.createElement('div');
-            container.id = 'accessibility-container';
-            document.body.appendChild(container);
+import express from 'express';
+import cors from 'cors';
+import dotenv from 'dotenv';
 
-            // Load styles
-            const style = document.createElement('link');
-            style.rel = 'stylesheet';
-            style.href = '${process.env.BASE_URL}/accessibility.css';
-            document.head.appendChild(style);
+dotenv.config();
 
-            // Load React components
-            const scriptTag = document.createElement('script');
-            scriptTag.src = '${process.env.BASE_URL}/accessibility.js';
-            scriptTag.defer = true;
-            document.head.appendChild(scriptTag);
-          })();
-        `;
-        res.type('application/javascript').send(script);
-      } catch (error) {
-        res.status(500).send('Error generating script');
-      }
+const app = express();
+
+app.use(cors());
+app.use(express.json());
+app.use(express.static('public'));
+
+// Widget settings endpoint
+app.get('/api/widget-settings/:clientKey', async (req, res) => {
+  try {
+    const { clientKey } = req.params;
+    
+    // Get the client from storage
+    const clients = JSON.parse(localStorage.getItem('clients') || '[]');
+    const client = clients.find(c => c.scriptKey === clientKey);
+    
+    if (!client || client.status !== 'active') {
+      return res.status(404).json({ error: 'Invalid or inactive client key' });
+    }
+
+    // Get widget settings
+    const widgetSettings = JSON.parse(localStorage.getItem('widgetSettings') || '{}');
+    
+    res.json({
+      headerColor: widgetSettings.headerColor || '#60a5fa',
+      headerTextColor: widgetSettings.headerTextColor || '#1e293b',
+      buttonColor: widgetSettings.buttonColor || '#2563eb',
+      poweredByText: widgetSettings.poweredByText || 'Powered by Accessibility Widget',
+      poweredByColor: widgetSettings.poweredByColor || '#64748b'
     });
+  } catch (error) {
+    console.error('Error fetching widget settings:', error);
+    res.status(500).json({ error: 'Failed to load widget settings' });
+  }
+});
+
+const PORT = process.env.PORT || 5000;
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
+});
