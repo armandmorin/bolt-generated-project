@@ -3,13 +3,22 @@ import styles from '../styles/widgetCode.module.css';
 
 const WidgetCodeSnippet = ({ clientKey }) => {
   const [copied, setCopied] = useState(false);
+  
+  // Get the actual settings from localStorage
+  const settings = JSON.parse(localStorage.getItem('widgetSettings') || '{}');
 
-  // Create a self-contained widget script that includes all necessary code
+  // Create the complete widget code with embedded settings
   const scriptCode = `<!-- Accessibility Widget -->
 <script>
 (function() {
-  // Widget settings
-  const settings = ${JSON.stringify(JSON.parse(localStorage.getItem('widgetSettings') || '{}'))};
+  // Widget settings from admin panel
+  const settings = {
+    headerColor: '${settings.headerColor || '#60a5fa'}',
+    headerTextColor: '${settings.headerTextColor || '#1e293b'}',
+    buttonColor: '${settings.buttonColor || '#2563eb'}',
+    poweredByText: '${settings.poweredByText || 'Powered by Accessibility Widget'}',
+    poweredByColor: '${settings.poweredByColor || '#64748b'}'
+  };
 
   // Create and append widget container
   const container = document.createElement('div');
@@ -31,7 +40,7 @@ const WidgetCodeSnippet = ({ clientKey }) => {
       width: 64px;
       height: 64px;
       border-radius: 50%;
-      background: \${settings.buttonColor || '#2563eb'};
+      background: \${settings.buttonColor};
       border: none;
       cursor: pointer;
       box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
@@ -66,7 +75,7 @@ const WidgetCodeSnippet = ({ clientKey }) => {
 
     .accessibility-widget-header {
       padding: 16px;
-      background: \${settings.headerColor || '#60a5fa'};
+      background: \${settings.headerColor};
       border-radius: 8px 8px 0 0;
       position: sticky;
       top: 0;
@@ -75,7 +84,7 @@ const WidgetCodeSnippet = ({ clientKey }) => {
 
     .accessibility-widget-header h3 {
       margin: 0;
-      color: \${settings.headerTextColor || '#1e293b'};
+      color: \${settings.headerTextColor};
       font-size: 18px;
     }
 
@@ -137,7 +146,7 @@ const WidgetCodeSnippet = ({ clientKey }) => {
       padding: 16px;
       text-align: center;
       border-top: 1px solid #e2e8f0;
-      color: \${settings.poweredByColor || '#64748b'};
+      color: \${settings.poweredByColor};
       font-size: 14px;
       position: sticky;
       bottom: 0;
@@ -218,7 +227,7 @@ const WidgetCodeSnippet = ({ clientKey }) => {
         </div>
       </div>
       <div class="accessibility-widget-footer">
-        \${settings.poweredByText || 'Powered by Accessibility Widget'}
+        \${settings.poweredByText}
       </div>
     </div>
   \`;
@@ -311,7 +320,8 @@ const WidgetCodeSnippet = ({ clientKey }) => {
 
   // Handle feature buttons
   featureButtons.forEach(button => {
-    button.addEventListener('click', () => {
+    button.addEventListener('click', (e) => {
+      e.stopPropagation();
       const feature = button.dataset.feature;
       const isActive = button.classList.toggle('active');
       
@@ -329,37 +339,8 @@ const WidgetCodeSnippet = ({ clientKey }) => {
       if (features[feature]) {
         features[feature].apply(isActive);
       }
-
-      // Save preferences
-      savePreferences();
     });
   });
-
-  // Save preferences to localStorage
-  function savePreferences() {
-    const activeFeatures = Array.from(featureButtons)
-      .filter(button => button.classList.contains('active'))
-      .map(button => button.dataset.feature);
-    localStorage.setItem('accessibility-preferences', JSON.stringify(activeFeatures));
-  }
-
-  // Load preferences from localStorage
-  function loadPreferences() {
-    const savedPreferences = localStorage.getItem('accessibility-preferences');
-    if (savedPreferences) {
-      const activeFeatures = JSON.parse(savedPreferences);
-      activeFeatures.forEach(feature => {
-        const button = container.querySelector(\`[data-feature="\${feature}"]\`);
-        if (button) {
-          button.classList.add('active');
-          features[feature].apply(true);
-        }
-      });
-    }
-  }
-
-  // Load preferences when widget is initialized
-  loadPreferences();
 })();
 </script>`;
 
