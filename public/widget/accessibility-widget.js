@@ -1,12 +1,12 @@
 (function() {
-  // Get settings from script data attributes
-  const script = document.getElementById('accessibility-widget-script');
+  // Get settings from current script tag
+  const currentScript = document.currentScript;
   let settings = {
-    headerColor: script.getAttribute('data-header-color'),
-    headerTextColor: script.getAttribute('data-header-text-color'),
-    buttonColor: script.getAttribute('data-button-color'),
-    poweredByText: script.getAttribute('data-powered-by-text'),
-    poweredByColor: script.getAttribute('data-powered-by-color')
+    headerColor: currentScript?.getAttribute('data-header-color'),
+    headerTextColor: currentScript?.getAttribute('data-header-text-color'),
+    buttonColor: currentScript?.getAttribute('data-button-color'),
+    poweredByText: currentScript?.getAttribute('data-powered-by-text'),
+    poweredByColor: currentScript?.getAttribute('data-powered-by-color')
   };
 
   // Use default values if attributes are not set
@@ -36,7 +36,79 @@
         <h3>Accessibility Settings</h3>
       </div>
       <div class="accessibility-widget-content">
-        <!-- Widget content here -->
+        <div class="widget-section">
+          <h4>Content Adjustments</h4>
+          <div class="feature-grid">
+            <button class="feature-button" data-feature="readableFont">
+              <span class="feature-icon">Aa</span>
+              <span class="feature-text">Readable Font</span>
+            </button>
+            <button class="feature-button" data-feature="readAllText">
+              <span class="feature-icon">▶</span>
+              <span class="feature-text">Read All Text</span>
+            </button>
+            <button class="feature-button" data-feature="clickToSpeech">
+              <span class="feature-icon">🎧</span>
+              <span class="feature-text">Turn on Click to Speech</span>
+            </button>
+            <button class="feature-button" data-feature="fontScaling">
+              <span class="feature-icon">T↕</span>
+              <span class="feature-text">Font Scaling</span>
+            </button>
+            <button class="feature-button" data-feature="highlightLinks">
+              <span class="feature-icon">🔗</span>
+              <span class="feature-text">Highlight Links</span>
+            </button>
+            <button class="feature-button" data-feature="highlightTitles">
+              <span class="feature-icon">H</span>
+              <span class="feature-text">Highlight Titles</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="widget-section">
+          <h4>Color Adjustments</h4>
+          <div class="feature-grid">
+            <button class="feature-button" data-feature="highContrast">
+              <span class="feature-icon">◐</span>
+              <span class="feature-text">High Contrast</span>
+            </button>
+            <button class="feature-button" data-feature="lightContrast">
+              <span class="feature-icon">☀</span>
+              <span class="feature-text">Light Contrast</span>
+            </button>
+            <button class="feature-button" data-feature="darkContrast">
+              <span class="feature-icon">🌙</span>
+              <span class="feature-text">Dark Contrast</span>
+            </button>
+            <button class="feature-button" data-feature="monochrome">
+              <span class="feature-icon">◑</span>
+              <span class="feature-text">Monochrome</span>
+            </button>
+            <button class="feature-button" data-feature="highSaturation">
+              <span class="feature-icon">⚛</span>
+              <span class="feature-text">High Saturation</span>
+            </button>
+            <button class="feature-button" data-feature="lowSaturation">
+              <span class="feature-icon">💧</span>
+              <span class="feature-text">Low Saturation</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="widget-section">
+          <h4>Orientation Adjustments</h4>
+          <div class="feature-grid">
+            <button class="feature-button" data-feature="muteSounds">
+              <span class="feature-icon">🔇</span>
+              <span class="feature-text">Mute Sounds</span>
+            </button>
+            <button class="feature-button" data-feature="hideImages">
+              <span class="feature-icon">🖼</span>
+              <span class="feature-text">Hide Images</span>
+            </button>
+          </div>
+        </div>
       </div>
       <div class="accessibility-widget-footer">
         ${settings.poweredByText}
@@ -85,10 +157,12 @@
       bottom: 80px;
       right: 0;
       width: 320px;
+      height: 600px;
       background: white;
       border-radius: 8px;
       box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
       display: none;
+      overflow-y: auto;
     }
 
     .accessibility-widget-panel.open {
@@ -99,6 +173,9 @@
       padding: 16px;
       background: ${settings.headerColor};
       border-radius: 8px 8px 0 0;
+      position: sticky;
+      top: 0;
+      z-index: 1;
     }
 
     .accessibility-widget-header h3 {
@@ -111,12 +188,66 @@
       padding: 16px;
     }
 
+    .widget-section {
+      margin-bottom: 24px;
+    }
+
+    .widget-section h4 {
+      margin: 0 0 16px 0;
+      font-size: 16px;
+      color: #1e293b;
+    }
+
+    .feature-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 8px;
+    }
+
+    .feature-button {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 12px;
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      min-height: 80px;
+    }
+
+    .feature-button:hover {
+      background: #f1f5f9;
+    }
+
+    .feature-button.active {
+      background: #e0e7ff;
+      border-color: #818cf8;
+    }
+
+    .feature-icon {
+      font-size: 24px;
+      margin-bottom: 4px;
+    }
+
+    .feature-text {
+      font-size: 12px;
+      text-align: center;
+      color: #1e293b;
+    }
+
     .accessibility-widget-footer {
       padding: 16px;
       text-align: center;
       border-top: 1px solid #e2e8f0;
       color: ${settings.poweredByColor};
       font-size: 14px;
+      position: sticky;
+      bottom: 0;
+      background: white;
+      z-index: 1;
     }
   `;
   document.head.appendChild(styles);
@@ -124,6 +255,7 @@
   // Basic functionality
   const button = container.querySelector('.accessibility-widget-button');
   const panel = container.querySelector('.accessibility-widget-panel');
+  const featureButtons = container.querySelectorAll('.feature-button');
 
   button.addEventListener('click', () => {
     panel.classList.toggle('open');
@@ -136,37 +268,59 @@
     }
   });
 
-  // Function to update settings
-  function updateWidget() {
-    const newSettings = {
-      headerColor: script.getAttribute('data-header-color'),
-      headerTextColor: script.getAttribute('data-header-text-color'),
-      buttonColor: script.getAttribute('data-button-color'),
-      poweredByText: script.getAttribute('data-powered-by-text'),
-      poweredByColor: script.getAttribute('data-powered-by-color')
-    };
+  // Handle feature buttons
+  featureButtons.forEach(button => {
+    button.addEventListener('click', () => {
+      button.classList.toggle('active');
+      const feature = button.dataset.feature;
+      applyFeature(feature, button.classList.contains('active'));
+    });
+  });
 
-    if (JSON.stringify(newSettings) !== JSON.stringify(settings)) {
-      settings = newSettings;
-      
-      // Update button color
-      button.style.backgroundColor = settings.buttonColor;
-      
-      // Update header color and text
-      const header = container.querySelector('.accessibility-widget-header');
-      header.style.backgroundColor = settings.headerColor;
-      
-      // Update header text color
-      const headerText = container.querySelector('.accessibility-widget-header h3');
-      headerText.style.color = settings.headerTextColor;
-      
-      // Update footer text and color
-      const footer = container.querySelector('.accessibility-widget-footer');
-      footer.textContent = settings.poweredByText;
-      footer.style.color = settings.poweredByColor;
+  // Apply feature function
+  function applyFeature(feature, isActive) {
+    switch (feature) {
+      case 'readableFont':
+        document.body.style.fontFamily = isActive ? 'Arial, sans-serif' : '';
+        document.body.style.lineHeight = isActive ? '1.6' : '';
+        break;
+      case 'fontScaling':
+        document.body.style.fontSize = isActive ? '120%' : '';
+        break;
+      case 'highlightLinks':
+        document.querySelectorAll('a').forEach(link => {
+          link.style.backgroundColor = isActive ? '#ffff00' : '';
+          link.style.color = isActive ? '#000000' : '';
+        });
+        break;
+      case 'highlightTitles':
+        document.querySelectorAll('h1, h2, h3, h4, h5, h6').forEach(title => {
+          title.style.backgroundColor = isActive ? '#e0e7ff' : '';
+        });
+        break;
+      case 'highContrast':
+        document.body.style.filter = isActive ? 'contrast(150%)' : '';
+        break;
+      case 'lightContrast':
+        document.body.style.filter = isActive ? 'brightness(120%)' : '';
+        break;
+      case 'darkContrast':
+        document.body.style.filter = isActive ? 'brightness(80%)' : '';
+        break;
+      case 'monochrome':
+        document.body.style.filter = isActive ? 'grayscale(100%)' : '';
+        break;
+      case 'highSaturation':
+        document.body.style.filter = isActive ? 'saturate(150%)' : '';
+        break;
+      case 'lowSaturation':
+        document.body.style.filter = isActive ? 'saturate(50%)' : '';
+        break;
+      case 'hideImages':
+        document.querySelectorAll('img').forEach(img => {
+          img.style.display = isActive ? 'none' : '';
+        });
+        break;
     }
   }
-
-  // Check for updates every second
-  setInterval(updateWidget, 1000);
 })();
