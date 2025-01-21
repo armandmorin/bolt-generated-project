@@ -3,22 +3,10 @@ import styles from '../styles/widgetCode.module.css';
 
 const WidgetCodeSnippet = ({ clientKey }) => {
   const [copied, setCopied] = useState(false);
-  
-  // Get the actual settings from localStorage
-  const settings = JSON.parse(localStorage.getItem('widgetSettings') || '{}');
 
-  // Create a simplified installation code that only includes the necessary script tag
-  const scriptCode = `<script>
-  // Accessibility Widget Settings
-  window.accessibilitySettings = {
-    headerColor: "${settings.headerColor || '#60a5fa'}",
-    headerTextColor: "${settings.headerTextColor || '#1e293b'}",
-    buttonColor: "${settings.buttonColor || '#2563eb'}",
-    poweredByText: "${settings.poweredByText || 'Powered by Accessibility Widget'}",
-    poweredByColor: "${settings.poweredByColor || '#64748b'}"
-  };
-</script>
-<script src="${window.location.origin}/widget/accessibility-widget.js" async></script>`;
+  // Create a simplified installation code that only includes the script tag
+  const scriptCode = `<!-- Accessibility Widget -->
+<script src="${window.location.origin}/widget/accessibility-widget.js" data-client-key="${clientKey}" async></script>`;
 
   const handleCopy = () => {
     navigator.clipboard.writeText(scriptCode);
