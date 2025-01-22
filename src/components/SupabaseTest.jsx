@@ -72,7 +72,10 @@ const SupabaseTest = () => {
 
       // Refresh the clients list
       testConnection();
-      alert(`Test client created with key: ${clientKey}`);
+
+      // Show test instructions
+      const testUrl = `${window.location.origin}/test.html?key=${clientKey}`;
+      alert(`Test client created!\n\nClient Key: ${clientKey}\n\nTest the widget at:\n${testUrl}`);
     } catch (error) {
       console.error('Error creating test client:', error);
       setStatus(`Error creating test client: ${error.message}`);
@@ -80,53 +83,143 @@ const SupabaseTest = () => {
   };
 
   return (
-    <div style={{ padding: '20px' }}>
+    <div style={{ padding: '20px', maxWidth: '1200px', margin: '0 auto' }}>
       <h2>Supabase Connection Test</h2>
       <p><strong>Status:</strong> {status}</p>
       
-      <button 
-        onClick={createTestClient}
-        style={{
-          padding: '8px 16px',
-          background: '#2563eb',
-          color: 'white',
-          border: 'none',
-          borderRadius: '4px',
-          cursor: 'pointer',
-          marginBottom: '20px'
-        }}
-      >
-        Create Test Client
-      </button>
+      <div style={{ marginBottom: '20px' }}>
+        <button 
+          onClick={createTestClient}
+          style={{
+            padding: '12px 24px',
+            background: '#2563eb',
+            color: 'white',
+            border: 'none',
+            borderRadius: '6px',
+            cursor: 'pointer',
+            fontSize: '16px'
+          }}
+        >
+          Create Test Client
+        </button>
+      </div>
 
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
         <div>
           <h3>Existing Clients:</h3>
-          <ul style={{ listStyle: 'none', padding: 0 }}>
-            {clients.map(client => (
-              <li key={client.id} style={{ marginBottom: '10px', padding: '10px', border: '1px solid #e2e8f0', borderRadius: '4px' }}>
-                <strong>Client Key:</strong> {client.client_key}<br />
-                <strong>Name:</strong> {client.name}<br />
-                <strong>Status:</strong> {client.status}
-              </li>
-            ))}
-          </ul>
+          {clients.length === 0 ? (
+            <p>No clients found. Create a test client to get started.</p>
+          ) : (
+            <ul style={{ listStyle: 'none', padding: 0 }}>
+              {clients.map(client => (
+                <li key={client.id} style={{ 
+                  marginBottom: '10px', 
+                  padding: '15px', 
+                  border: '1px solid #e2e8f0', 
+                  borderRadius: '8px',
+                  background: '#f8fafc'
+                }}>
+                  <div><strong>Client Key:</strong> {client.client_key}</div>
+                  <div><strong>Name:</strong> {client.name}</div>
+                  <div><strong>Email:</strong> {client.email}</div>
+                  <div>
+                    <strong>Status:</strong> 
+                    <span style={{
+                      display: 'inline-block',
+                      padding: '2px 8px',
+                      borderRadius: '4px',
+                      background: client.status === 'active' ? '#dcfce7' : '#fee2e2',
+                      color: client.status === 'active' ? '#166534' : '#991b1b',
+                      marginLeft: '5px'
+                    }}>
+                      {client.status}
+                    </span>
+                  </div>
+                  <div style={{ marginTop: '10px' }}>
+                    <a 
+                      href={`/test.html?key=${client.client_key}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      style={{
+                        color: '#2563eb',
+                        textDecoration: 'none'
+                      }}
+                    >
+                      Test Widget →
+                    </a>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          )}
         </div>
 
         <div>
           <h3>Widget Settings:</h3>
-          <ul style={{ listStyle: 'none', padding: 0 }}>
-            {settings.map(setting => (
-              <li key={setting.id} style={{ marginBottom: '10px', padding: '10px', border: '1px solid #e2e8f0', borderRadius: '4px' }}>
-                <strong>Client Key:</strong> {setting.client_key}<br />
-                <strong>Header Color:</strong> {setting.header_color}<br />
-                <strong>Header Text Color:</strong> {setting.header_text_color}<br />
-                <strong>Button Color:</strong> {setting.button_color}<br />
-                <strong>Powered By Text:</strong> {setting.powered_by_text}<br />
-                <strong>Powered By Color:</strong> {setting.powered_by_color}
-              </li>
-            ))}
-          </ul>
+          {settings.length === 0 ? (
+            <p>No settings found. Create a test client to generate settings.</p>
+          ) : (
+            <ul style={{ listStyle: 'none', padding: 0 }}>
+              {settings.map(setting => (
+                <li key={setting.id} style={{ 
+                  marginBottom: '10px', 
+                  padding: '15px', 
+                  border: '1px solid #e2e8f0', 
+                  borderRadius: '8px',
+                  background: '#f8fafc'
+                }}>
+                  <div><strong>Client Key:</strong> {setting.client_key}</div>
+                  <div style={{ marginTop: '10px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '5px' }}>
+                      <strong>Header Color:</strong>
+                      <div style={{ 
+                        width: '20px', 
+                        height: '20px', 
+                        background: setting.header_color,
+                        border: '1px solid #e2e8f0',
+                        borderRadius: '4px'
+                      }}></div>
+                      {setting.header_color}
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '5px' }}>
+                      <strong>Header Text:</strong>
+                      <div style={{ 
+                        width: '20px', 
+                        height: '20px', 
+                        background: setting.header_text_color,
+                        border: '1px solid #e2e8f0',
+                        borderRadius: '4px'
+                      }}></div>
+                      {setting.header_text_color}
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '5px' }}>
+                      <strong>Button Color:</strong>
+                      <div style={{ 
+                        width: '20px', 
+                        height: '20px', 
+                        background: setting.button_color,
+                        border: '1px solid #e2e8f0',
+                        borderRadius: '4px'
+                      }}></div>
+                      {setting.button_color}
+                    </div>
+                  </div>
+                  <div><strong>Powered By Text:</strong> {setting.powered_by_text}</div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                    <strong>Powered By Color:</strong>
+                    <div style={{ 
+                      width: '20px', 
+                      height: '20px', 
+                      background: setting.powered_by_color,
+                      border: '1px solid #e2e8f0',
+                      borderRadius: '4px'
+                    }}></div>
+                    {setting.powered_by_color}
+                  </div>
+                </li>
+              ))}
+            </ul>
+          )}
         </div>
       </div>
     </div>

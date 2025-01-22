@@ -7,7 +7,7 @@ import SuperAdminLogin from './pages/SuperAdminLogin';
 import SuperAdminDashboard from './pages/SuperAdminDashboard';
 import AdminDashboard from './pages/AdminDashboard';
 import ClientDashboard from './pages/ClientDashboard';
-import SupabaseTest from './components/SupabaseTest'; // Add this line
+import SupabaseTest from './components/SupabaseTest';
 import './styles/global.css';
 
 function App() {
@@ -17,7 +17,8 @@ function App() {
     primaryColor: '#2563eb'
   };
 
-  const publicRoutes = ['/', '/super-admin-login', '/register'];
+  // Add /test to public routes
+  const publicRoutes = ['/', '/super-admin-login', '/register', '/test'];
   const hideHeader = publicRoutes.includes(location.pathname);
 
   return (
@@ -25,13 +26,18 @@ function App() {
       {!hideHeader && <Header logo={brandSettings.logo} primaryColor={brandSettings.primaryColor} />}
       <main className="main-content">
         <Routes>
+          {/* Public Routes */}
           <Route path="/" element={<Login />} />
           <Route path="/register" element={<AdminRegistration />} />
           <Route path="/super-admin-login" element={<SuperAdminLogin />} />
+          <Route path="/test" element={<SupabaseTest />} />
+          
+          {/* Protected Routes */}
           <Route path="/super-admin" element={<SuperAdminDashboard />} />
           <Route path="/admin" element={<AdminDashboard />} />
           <Route path="/client" element={<ClientDashboard />} />
-          <Route path="/test" element={<SupabaseTest />} /> {/* Add this line */}
+          
+          {/* Catch invalid routes */}
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </main>
