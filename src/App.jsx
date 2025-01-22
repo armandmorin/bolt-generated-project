@@ -10,6 +10,28 @@ import ClientDashboard from './pages/ClientDashboard';
 import SupabaseTest from './components/SupabaseTest';
 import './styles/global.css';
 
+// Protected Route component
+const ProtectedRoute = ({ children }) => {
+  const userRole = localStorage.getItem('userRole');
+  const location = useLocation();
+
+  // List of public routes that don't require authentication
+  const publicRoutes = ['/', '/register', '/super-admin-login', '/test'];
+  
+  // If it's a public route, render normally
+  if (publicRoutes.includes(location.pathname)) {
+    return children;
+  }
+
+  // If not authenticated and not on a public route, redirect to login
+  if (!userRole) {
+    return <Navigate to="/" replace state={{ from: location }} />;
+  }
+
+  // If authenticated, render the protected route
+  return children;
+};
+
 function App() {
   const location = useLocation();
   const brandSettings = JSON.parse(localStorage.getItem('brandSettings')) || {
@@ -17,8 +39,7 @@ function App() {
     primaryColor: '#2563eb'
   };
 
-  // Add /test to public routes
-  const publicRoutes = ['/', '/super-admin-login', '/register', '/test'];
+  const publicRoutes = ['/', '/register', '/super-admin-login', '/test'];
   const hideHeader = publicRoutes.includes(location.pathname);
 
   return (
@@ -33,9 +54,30 @@ function App() {
           <Route path="/test" element={<SupabaseTest />} />
           
           {/* Protected Routes */}
-          <Route path="/super-admin" element={<SuperAdminDashboard />} />
-          <Route path="/admin" element={<AdminDashboard />} />
-          <Route path="/client" element={<ClientDashboard />} />
+          <Route
+            path="/super-admin"
+            element={
+              <ProtectedRoute>
+                <SuperAdminDashboard />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin"
+            element={
+              <ProtectedRoute>
+                <AdminDashboard />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/client"
+            element={
+              <ProtectedRoute>
+                <ClientDashboard />
+              </ProtectedRoute>
+            }
+          />
           
           {/* Catch invalid routes */}
           <Route path="*" element={<Navigate to="/" replace />} />
