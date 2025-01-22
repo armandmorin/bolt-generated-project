@@ -4,6 +4,7 @@ import { supabase } from '../lib/supabase';
 const SupabaseTest = () => {
   const [status, setStatus] = useState('Testing connection...');
   const [clients, setClients] = useState([]);
+  const [settings, setSettings] = useState([]);
 
   useEffect(() => {
     testConnection();
@@ -11,14 +12,21 @@ const SupabaseTest = () => {
 
   const testConnection = async () => {
     try {
-      // Test the connection by fetching clients
-      const { data, error } = await supabase
+      // Test the connection by fetching clients and their settings
+      const { data: clientsData, error: clientsError } = await supabase
         .from('clients')
         .select('*');
 
-      if (error) throw error;
+      if (clientsError) throw clientsError;
 
-      setClients(data || []);
+      const { data: settingsData, error: settingsError } = await supabase
+        .from('widget_settings')
+        .select('*');
+
+      if (settingsError) throw settingsError;
+
+      setClients(clientsData || []);
+      setSettings(settingsData || []);
       setStatus('Connected successfully to Supabase!');
     } catch (error) {
       console.error('Supabase connection error:', error);
@@ -52,11 +60,11 @@ const SupabaseTest = () => {
         .insert([
           {
             client_key: clientKey,
-            header_color: '#60a5fa',
-            header_text_color: '#1e293b',
-            button_color: '#2563eb',
-            powered_by_text: 'Powered by Test Widget',
-            powered_by_color: '#64748b'
+            header_color: '#8B5CF6',
+            header_text_color: '#FFFFFF',
+            button_color: '#EC4899',
+            powered_by_text: 'Powered by Custom Widget',
+            powered_by_color: '#374151'
           }
         ]);
 
@@ -91,14 +99,36 @@ const SupabaseTest = () => {
         Create Test Client
       </button>
 
-      <h3>Existing Clients:</h3>
-      <ul>
-        {clients.map(client => (
-          <li key={client.id}>
-            Client Key: {client.client_key} - Name: {client.name} - Status: {client.status}
-          </li>
-        ))}
-      </ul>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
+        <div>
+          <h3>Existing Clients:</h3>
+          <ul style={{ listStyle: 'none', padding: 0 }}>
+            {clients.map(client => (
+              <li key={client.id} style={{ marginBottom: '10px', padding: '10px', border: '1px solid #e2e8f0', borderRadius: '4px' }}>
+                <strong>Client Key:</strong> {client.client_key}<br />
+                <strong>Name:</strong> {client.name}<br />
+                <strong>Status:</strong> {client.status}
+              </li>
+            ))}
+          </ul>
+        </div>
+
+        <div>
+          <h3>Widget Settings:</h3>
+          <ul style={{ listStyle: 'none', padding: 0 }}>
+            {settings.map(setting => (
+              <li key={setting.id} style={{ marginBottom: '10px', padding: '10px', border: '1px solid #e2e8f0', borderRadius: '4px' }}>
+                <strong>Client Key:</strong> {setting.client_key}<br />
+                <strong>Header Color:</strong> {setting.header_color}<br />
+                <strong>Header Text Color:</strong> {setting.header_text_color}<br />
+                <strong>Button Color:</strong> {setting.button_color}<br />
+                <strong>Powered By Text:</strong> {setting.powered_by_text}<br />
+                <strong>Powered By Color:</strong> {setting.powered_by_color}
+              </li>
+            ))}
+          </ul>
+        </div>
+      </div>
     </div>
   );
 };
