@@ -7,30 +7,8 @@ import SuperAdminLogin from './pages/SuperAdminLogin';
 import SuperAdminDashboard from './pages/SuperAdminDashboard';
 import AdminDashboard from './pages/AdminDashboard';
 import ClientDashboard from './pages/ClientDashboard';
-import SupabaseTest from './components/SupabaseTest';
+import TestPage from './pages/TestPage';
 import './styles/global.css';
-
-// Protected Route component
-const ProtectedRoute = ({ children }) => {
-  const userRole = localStorage.getItem('userRole');
-  const location = useLocation();
-
-  // List of public routes that don't require authentication
-  const publicRoutes = ['/', '/register', '/super-admin-login', '/test'];
-  
-  // If it's a public route, render normally
-  if (publicRoutes.includes(location.pathname)) {
-    return children;
-  }
-
-  // If not authenticated and not on a public route, redirect to login
-  if (!userRole) {
-    return <Navigate to="/" replace state={{ from: location }} />;
-  }
-
-  // If authenticated, render the protected route
-  return children;
-};
 
 function App() {
   const location = useLocation();
@@ -39,8 +17,19 @@ function App() {
     primaryColor: '#2563eb'
   };
 
-  const publicRoutes = ['/', '/register', '/super-admin-login', '/test'];
+  // Add /test to public routes
+  const publicRoutes = ['/', '/super-admin-login', '/register', '/test'];
   const hideHeader = publicRoutes.includes(location.pathname);
+
+  // Check if the current route is public
+  const isPublicRoute = publicRoutes.includes(location.pathname);
+  
+  // Only check authentication for non-public routes
+  const isAuthenticated = localStorage.getItem('userRole') || isPublicRoute;
+
+  if (!isAuthenticated && !isPublicRoute) {
+    return <Navigate to="/" replace />;
+  }
 
   return (
     <div className="app-container">
@@ -51,33 +40,12 @@ function App() {
           <Route path="/" element={<Login />} />
           <Route path="/register" element={<AdminRegistration />} />
           <Route path="/super-admin-login" element={<SuperAdminLogin />} />
-          <Route path="/test" element={<SupabaseTest />} />
+          <Route path="/test" element={<TestPage />} />
           
           {/* Protected Routes */}
-          <Route
-            path="/super-admin"
-            element={
-              <ProtectedRoute>
-                <SuperAdminDashboard />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/admin"
-            element={
-              <ProtectedRoute>
-                <AdminDashboard />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/client"
-            element={
-              <ProtectedRoute>
-                <ClientDashboard />
-              </ProtectedRoute>
-            }
-          />
+          <Route path="/super-admin" element={<SuperAdminDashboard />} />
+          <Route path="/admin" element={<AdminDashboard />} />
+          <Route path="/client" element={<ClientDashboard />} />
           
           {/* Catch invalid routes */}
           <Route path="*" element={<Navigate to="/" replace />} />
