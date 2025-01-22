@@ -10,15 +10,6 @@ import ClientDashboard from './pages/ClientDashboard';
 import SupabaseTest from './components/SupabaseTest';
 import './styles/global.css';
 
-// Protected Route component
-const ProtectedRoute = ({ children }) => {
-  const userRole = localStorage.getItem('userRole');
-  if (!userRole) {
-    return <Navigate to="/" replace />;
-  }
-  return children;
-};
-
 function App() {
   const location = useLocation();
   const brandSettings = JSON.parse(localStorage.getItem('brandSettings')) || {
@@ -30,44 +21,29 @@ function App() {
   const publicRoutes = ['/', '/register', '/super-admin-login', '/test'];
   const hideHeader = publicRoutes.includes(location.pathname);
 
+  // Simple component to verify routing
+  const TestRoute = () => {
+    console.log('Test route rendered'); // Debug log
+    return <SupabaseTest />;
+  };
+
   return (
     <div className="app-container">
       {!hideHeader && <Header logo={brandSettings.logo} primaryColor={brandSettings.primaryColor} />}
-      <main className="main-content">
+      <main className="main-content" style={{ minHeight: '100vh' }}>
         <Routes>
           {/* Public Routes */}
           <Route path="/" element={<Login />} />
           <Route path="/register" element={<AdminRegistration />} />
           <Route path="/super-admin-login" element={<SuperAdminLogin />} />
-          <Route path="/test" element={<SupabaseTest />} />
+          <Route path="/test" element={<TestRoute />} />
 
           {/* Protected Routes */}
-          <Route
-            path="/super-admin"
-            element={
-              <ProtectedRoute>
-                <SuperAdminDashboard />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/admin"
-            element={
-              <ProtectedRoute>
-                <AdminDashboard />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/client"
-            element={
-              <ProtectedRoute>
-                <ClientDashboard />
-              </ProtectedRoute>
-            }
-          />
+          <Route path="/super-admin" element={<SuperAdminDashboard />} />
+          <Route path="/admin" element={<AdminDashboard />} />
+          <Route path="/client" element={<ClientDashboard />} />
 
-          {/* Redirect unknown routes to home */}
+          {/* Catch all route */}
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </main>
