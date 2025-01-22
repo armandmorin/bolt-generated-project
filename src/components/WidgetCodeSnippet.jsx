@@ -3,21 +3,10 @@ import styles from '../styles/widgetCode.module.css';
 
 const WidgetCodeSnippet = ({ clientKey }) => {
   const [copied, setCopied] = useState(false);
-  const settings = JSON.parse(localStorage.getItem('widgetSettings') || '{}');
 
-  // Create the installation code with proper escaping
-  const scriptCode = 
-`<script>
-  // Accessibility Widget Settings
-  window.accessibilitySettings = {
-    headerColor: "${settings.headerColor || '#60a5fa'}",
-    headerTextColor: "${settings.headerTextColor || '#1e293b'}",
-    buttonColor: "${settings.buttonColor || '#2563eb'}",
-    poweredByText: "${settings.poweredByText || 'Powered by Accessibility Widget'}",
-    poweredByColor: "${settings.poweredByColor || '#64748b'}"
-  };
-</script>
-<script src="${window.location.origin}/widget/accessibility-widget.js"></script>`;
+  // Create the installation code that uses Supabase
+  const scriptCode = `<!-- Accessibility Widget -->
+<script src="${window.location.origin}/widget/accessibility-widget.js" data-client-key="${clientKey}"></script>`;
 
   const handleCopy = () => {
     navigator.clipboard.writeText(scriptCode);

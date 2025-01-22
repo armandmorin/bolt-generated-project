@@ -1,23 +1,46 @@
 import React, { useState, useEffect } from 'react';
+import { supabase } from '../lib/supabase';
 import AccessibilityWidget from '../components/AccessibilityWidget';
 import styles from '../styles/widgetCustomization.module.css';
 
 const WidgetCustomization = () => {
-  const [widgetSettings, setWidgetSettings] = useState(() => {
-    const savedSettings = localStorage.getItem('widgetSettings');
-    return savedSettings ? JSON.parse(savedSettings) : {
-      headerColor: '#60a5fa',
-      headerTextColor: '#1e293b',
-      buttonColor: '#2563eb',
-      poweredByText: 'Powered by Our Company',
-      poweredByColor: '#64748b'
-    };
+  const [widgetSettings, setWidgetSettings] = useState({
+    headerColor: '#60a5fa',
+    headerTextColor: '#1e293b',
+    buttonColor: '#2563eb',
+    poweredByText: 'Powered by Our Company',
+    poweredByColor: '#64748b'
   });
 
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+
   useEffect(() => {
-    // Save settings whenever they change
-    localStorage.setItem('widgetSettings', JSON.stringify(widgetSettings));
-  }, [widgetSettings]);
+    loadSettings();
+  }, []);
+
+  const loadSettings = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('widget_settings')
+        .select('*')
+        .single();
+
+      if (error) throw error;
+      if (data) {
+        setWidgetSettings({
+          headerColor: data.header_color,
+          headerTextColor: data.header_text_color,
+          buttonColor: data.button_color,
+          poweredByText: data.powered_by_text,
+          poweredByColor: data.powered_by_color
+        });
+      }
+    } catch (error) {
+      console.error('Error loading settings:', error);
+      setError('Failed to load settings');
+    }
+  };
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -27,15 +50,37 @@ const WidgetCustomization = () => {
     }));
   };
 
-  const handleSave = () => {
-    localStorage.setItem('widgetSettings', JSON.stringify(widgetSettings));
-    alert('Widget settings saved successfully!');
+  const handleSave = async () => {
+    setLoading(true);
+    setError(null);
+
+    try {
+      const { error } = await supabase
+        .from('widget_settings')
+        .upsert({
+          header_color: widgetSettings.headerColor,
+          header_text_color: widgetSettings.headerTextColor,
+          button_color: widgetSettings.buttonColor,
+          powered_by_text: widgetSettings.poweredByText,
+          powered_by_color: widgetSettings.poweredByColor,
+          updated_at: new Date().toISOString()
+        });
+
+      if (error) throw error;
+      alert('Widget settings saved successfully!');
+    } catch (error) {
+      console.error('Error saving settings:', error);
+      setError('Failed to save settings');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
     <div className={styles.widgetCustomization}>
       <div className={styles.settingsPanel}>
         <h2>Widget Customization</h2>
+        {error && <div className={styles.error}>{error}</div>}
 
         <div className={styles.formGroup}>
           <label>Header Color</label>
@@ -92,8 +137,9 @@ const WidgetCustomization = () => {
             type="button" 
             className={styles.saveButton}
             onClick={handleSave}
+            disabled={loading}
           >
-            Save Changes
+            {loading ? 'Saving...' : 'Save Changes'}
           </button>
         </div>
       </div>
