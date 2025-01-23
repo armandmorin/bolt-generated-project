@@ -1,10 +1,13 @@
 import React, { useState } from 'react';
 import styles from '../styles/widgetCode.module.css';
 
-const WidgetCodeSnippet = ({ clientKey }) => {
+const WidgetCodeSnippet = () => {
   const [copied, setCopied] = useState(false);
+  
+  // Get the client key from localStorage
+  const clientKey = localStorage.getItem('clientKey');
 
-  // Create the installation code that uses Supabase
+  // Create the installation code that uses the correct client key
   const scriptCode = `<!-- Accessibility Widget -->
 <script src="${window.location.origin}/widget/accessibility-widget.js" data-client-key="${clientKey}"></script>`;
 
@@ -31,6 +34,11 @@ const WidgetCodeSnippet = ({ clientKey }) => {
         >
           {copied ? 'Copied!' : 'Copy Code'}
         </button>
+      </div>
+
+      <div className={styles.clientKeyInfo}>
+        <p><strong>Your Client Key:</strong> {clientKey}</p>
+        <p>This key is unique to your account and is required for the widget to work.</p>
       </div>
     </div>
   );

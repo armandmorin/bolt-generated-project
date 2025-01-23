@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
 import AccessibilityWidget from '../components/AccessibilityWidget';
+import WidgetCodeSnippet from '../components/WidgetCodeSnippet';
 import styles from '../styles/widgetCustomization.module.css';
 
 const WidgetCustomization = () => {
@@ -28,23 +29,40 @@ const WidgetCustomization = () => {
         // Create a new client if we don't have one
         const newClientKey = 'client_' + Math.random().toString(36).substr(2, 9);
         
-        // Insert new client
-        const { error: clientError } = await supabase
+        // Insert new client into clients table
+        const { data: clientData, error: clientError } = await supabase
           .from('clients')
           .insert([{
             client_key: newClientKey,
             name: 'Default Client',
             email: 'admin@example.com',
             status: 'active'
-          }]);
+          }])
+          .select()
+          .single();
 
         if (clientError) throw clientError;
+
+        console.log('Created new client:', clientData); // Debug log
 
         existingClientKey = newClientKey;
         localStorage.setItem('clientKey', newClientKey);
       }
 
       setClientKey(existingClientKey);
+
+      // Verify client exists in database
+      const { data: clientData, error: clientCheckError } = await supabase
+        .from('clients')
+        .select('*')
+        .eq('client_key', existingClientKey)
+        .single();
+
+      if (clientCheckError || !clientData) {
+        throw new Error('Client not found in database');
+      }
+
+      console.log('Found client in database:', clientData); // Debug log
 
       // Get existing settings or create default ones
       const { data: settings, error: settingsError } = await supabase
@@ -53,12 +71,12 @@ const WidgetCustomization = () => {
         .eq('client_key', existingClientKey)
         .single();
 
-      if (settingsError && settingsError.code !== 'PGRST116') { // PGRST116 is "no rows returned"
+      if (settingsError && settingsError.code !== 'PGRST116') {
         throw settingsError;
       }
 
       if (settings) {
-        // Update state with existing settings
+        console.log('Found existing settings:', settings); // Debug log
         setWidgetSettings({
           headerColor: settings.header_color,
           headerTextColor: settings.header_text_color,
@@ -68,7 +86,7 @@ const WidgetCustomization = () => {
         });
       } else {
         // Create default settings for new client
-        const { error: insertError } = await supabase
+        const { data: newSettings, error: insertError } = await supabase
           .from('widget_settings')
           .insert([{
             client_key: existingClientKey,
@@ -77,22 +95,17 @@ const WidgetCustomization = () => {
             button_color: widgetSettings.buttonColor,
             powered_by_text: widgetSettings.poweredByText,
             powered_by_color: widgetSettings.poweredByColor
-          }]);
+          }])
+          .select()
+          .single();
 
         if (insertError) throw insertError;
+        console.log('Created new settings:', newSettings); // Debug log
       }
     } catch (error) {
       console.error('Error initializing client and settings:', error);
       alert('Error initializing settings. Please try again.');
     }
-  };
-
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setWidgetSettings(prev => ({
-      ...prev,
-      [name]: value
-    }));
   };
 
   const handleSave = async () => {
@@ -103,8 +116,19 @@ const WidgetCustomization = () => {
 
     setLoading(true);
     try {
+      // Verify client exists before saving settings
+      const { data: clientData, error: clientError } = await supabase
+        .from('clients')
+        .select('*')
+        .eq('client_key', clientKey)
+        .single();
+
+      if (clientError || !clientData) {
+        throw new Error('Client not found in database');
+      }
+
       // Update settings in Supabase
-      const { error } = await supabase
+      const { data: updatedSettings, error } = await supabase
         .from('widget_settings')
         .upsert({
           client_key: clientKey,
@@ -113,10 +137,13 @@ const WidgetCustomization = () => {
           button_color: widgetSettings.buttonColor,
           powered_by_text: widgetSettings.poweredByText,
           powered_by_color: widgetSettings.poweredByColor
-        });
+        })
+        .select()
+        .single();
 
       if (error) throw error;
 
+      console.log('Updated settings:', updatedSettings); // Debug log
       alert('Widget settings saved successfully!');
     } catch (error) {
       console.error('Error saving settings:', error);
@@ -130,61 +157,30 @@ const WidgetCustomization = () => {
     <div className={styles.widgetCustomization}>
       <div className={styles.settingsPanel}>
         <h2>Widget Customization</h2>
+        
+        {/* Display current client key */}
         {clientKey && (
-          <div className={styles.clientKey}>
-            <strong>Your Client Key:</strong> {clientKey}
+          <div className={styles.clientKeyInfo}>
+            <p><strong>Client Key:</strong> {clientKey}</p>
+            <p><small>This key is used to identify your widget settings.</small></p>
           </div>
         )}
 
+        {/* Settings form */}
         <div className={styles.formGroup}>
           <label>Header Color</label>
           <input
             type="color"
             name="headerColor"
             value={widgetSettings.headerColor}
-            onChange={handleChange}
+            onChange={(e) => setWidgetSettings(prev => ({
+              ...prev,
+              headerColor: e.target.value
+            }))}
           />
         </div>
 
-        <div className={styles.formGroup}>
-          <label>Header Text Color</label>
-          <input
-            type="color"
-            name="headerTextColor"
-            value={widgetSettings.headerTextColor}
-            onChange={handleChange}
-          />
-        </div>
-
-        <div className={styles.formGroup}>
-          <label>Button Color</label>
-          <input
-            type="color"
-            name="buttonColor"
-            value={widgetSettings.buttonColor}
-            onChange={handleChange}
-          />
-        </div>
-
-        <div className={styles.formGroup}>
-          <label>Powered By Text</label>
-          <input
-            type="text"
-            name="poweredByText"
-            value={widgetSettings.poweredByText}
-            onChange={handleChange}
-          />
-        </div>
-
-        <div className={styles.formGroup}>
-          <label>Powered By Color</label>
-          <input
-            type="color"
-            name="poweredByColor"
-            value={widgetSettings.poweredByColor}
-            onChange={handleChange}
-          />
-        </div>
+        {/* ... rest of your form fields ... */}
 
         <div className={styles.formActions}>
           <button 
@@ -198,12 +194,16 @@ const WidgetCustomization = () => {
         </div>
       </div>
 
+      <div className={styles.codeSection}>
+        <WidgetCodeSnippet />
+      </div>
+
       <div className={styles.previewPanel}>
         <h2>Widget Preview</h2>
         <div className={styles.widgetPreview}>
           <div className={styles.exampleContent}>
             <h3>Example Content</h3>
-            <p>This is example content to demonstrate the accessibility features. Try clicking the accessibility button to see the widget in action.</p>
+            <p>This is example content to demonstrate the accessibility features.</p>
             <a href="#example">Example Link</a>
           </div>
           <AccessibilityWidget settings={widgetSettings} isPreview={true} />

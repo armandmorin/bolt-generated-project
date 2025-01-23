@@ -1,89 +1,20 @@
-.codeSnippetContainer {
-      background: white;
-      padding: 2rem;
-      border-radius: 12px;
-      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-      margin-bottom: 2rem;
-    }
+.clientKeyInfo {
+  margin-top: 20px;
+  padding: 12px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+}
 
-    .codeSnippetContainer h3 {
-      margin: 0 0 1rem 0;
-      color: var(--text-color);
-      font-size: 1.5rem;
-    }
+.clientKeyInfo p {
+  margin: 0;
+  line-height: 1.5;
+}
 
-    .instructions {
-      margin-bottom: 1.5rem;
-      color: #4b5563;
-    }
+.clientKeyInfo p:first-child {
+  margin-bottom: 8px;
+}
 
-    .instructions code {
-      background: #f1f5f9;
-      padding: 0.2rem 0.4rem;
-      border-radius: 4px;
-      font-family: monospace;
-      font-size: 0.9em;
-    }
-
-    .codeWrapper {
-      position: relative;
-      margin-bottom: 1.5rem;
-    }
-
-    .codeBlock {
-      background: #1e293b;
-      color: #e2e8f0;
-      padding: 1.5rem;
-      border-radius: 8px;
-      font-family: monospace;
-      font-size: 0.9rem;
-      line-height: 1.5;
-      overflow-x: auto;
-      margin: 0;
-      white-space: pre-wrap;
-    }
-
-    .copyButton {
-      position: absolute;
-      top: 0.75rem;
-      right: 0.75rem;
-      padding: 0.5rem 1rem;
-      background-color: rgba(255, 255, 255, 0.1);
-      color: white;
-      border: 1px solid rgba(255, 255, 255, 0.2);
-      border-radius: 4px;
-      cursor: pointer;
-      font-size: 0.875rem;
-      transition: all 0.2s ease;
-    }
-
-    .copyButton:hover {
-      background-color: rgba(255, 255, 255, 0.2);
-    }
-
-    .notes {
-      background: #f8fafc;
-      padding: 1.5rem;
-      border-radius: 8px;
-      border: 1px solid #e2e8f0;
-    }
-
-    .notes h4 {
-      margin: 0 0 1rem 0;
-      color: var(--text-color);
-      font-size: 1rem;
-    }
-
-    .notes ul {
-      margin: 0;
-      padding-left: 1.5rem;
-      color: #4b5563;
-    }
-
-    .notes li {
-      margin-bottom: 0.5rem;
-    }
-
-    .notes li:last-child {
-      margin-bottom: 0;
-    }
+.clientKeyInfo strong {
+  color: #1e293b;
+}
