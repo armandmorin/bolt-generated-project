@@ -12,33 +12,78 @@ const WidgetCustomization = () => {
     poweredByColor: '#64748b'
   });
 
+  const [clientKey, setClientKey] = useState(null);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
 
   useEffect(() => {
-    loadSettings();
+    initializeClientAndSettings();
   }, []);
 
-  const loadSettings = async () => {
+  const initializeClientAndSettings = async () => {
     try {
-      const { data, error } = await supabase
+      // First, check if we already have a client key in localStorage
+      let existingClientKey = localStorage.getItem('clientKey');
+      
+      if (!existingClientKey) {
+        // Create a new client if we don't have one
+        const newClientKey = 'client_' + Math.random().toString(36).substr(2, 9);
+        
+        // Insert new client
+        const { error: clientError } = await supabase
+          .from('clients')
+          .insert([{
+            client_key: newClientKey,
+            name: 'Default Client',
+            email: 'admin@example.com',
+            status: 'active'
+          }]);
+
+        if (clientError) throw clientError;
+
+        existingClientKey = newClientKey;
+        localStorage.setItem('clientKey', newClientKey);
+      }
+
+      setClientKey(existingClientKey);
+
+      // Get existing settings or create default ones
+      const { data: settings, error: settingsError } = await supabase
         .from('widget_settings')
         .select('*')
+        .eq('client_key', existingClientKey)
         .single();
 
-      if (error) throw error;
-      if (data) {
+      if (settingsError && settingsError.code !== 'PGRST116') { // PGRST116 is "no rows returned"
+        throw settingsError;
+      }
+
+      if (settings) {
+        // Update state with existing settings
         setWidgetSettings({
-          headerColor: data.header_color,
-          headerTextColor: data.header_text_color,
-          buttonColor: data.button_color,
-          poweredByText: data.powered_by_text,
-          poweredByColor: data.powered_by_color
+          headerColor: settings.header_color,
+          headerTextColor: settings.header_text_color,
+          buttonColor: settings.button_color,
+          poweredByText: settings.powered_by_text,
+          poweredByColor: settings.powered_by_color
         });
+      } else {
+        // Create default settings for new client
+        const { error: insertError } = await supabase
+          .from('widget_settings')
+          .insert([{
+            client_key: existingClientKey,
+            header_color: widgetSettings.headerColor,
+            header_text_color: widgetSettings.headerTextColor,
+            button_color: widgetSettings.buttonColor,
+            powered_by_text: widgetSettings.poweredByText,
+            powered_by_color: widgetSettings.poweredByColor
+          }]);
+
+        if (insertError) throw insertError;
       }
     } catch (error) {
-      console.error('Error loading settings:', error);
-      setError('Failed to load settings');
+      console.error('Error initializing client and settings:', error);
+      alert('Error initializing settings. Please try again.');
     }
   };
 
@@ -51,26 +96,31 @@ const WidgetCustomization = () => {
   };
 
   const handleSave = async () => {
-    setLoading(true);
-    setError(null);
+    if (!clientKey) {
+      alert('No client key found. Please refresh the page.');
+      return;
+    }
 
+    setLoading(true);
     try {
+      // Update settings in Supabase
       const { error } = await supabase
         .from('widget_settings')
         .upsert({
+          client_key: clientKey,
           header_color: widgetSettings.headerColor,
           header_text_color: widgetSettings.headerTextColor,
           button_color: widgetSettings.buttonColor,
           powered_by_text: widgetSettings.poweredByText,
-          powered_by_color: widgetSettings.poweredByColor,
-          updated_at: new Date().toISOString()
+          powered_by_color: widgetSettings.poweredByColor
         });
 
       if (error) throw error;
+
       alert('Widget settings saved successfully!');
     } catch (error) {
       console.error('Error saving settings:', error);
-      setError('Failed to save settings');
+      alert('Error saving settings. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -80,7 +130,11 @@ const WidgetCustomization = () => {
     <div className={styles.widgetCustomization}>
       <div className={styles.settingsPanel}>
         <h2>Widget Customization</h2>
-        {error && <div className={styles.error}>{error}</div>}
+        {clientKey && (
+          <div className={styles.clientKey}>
+            <strong>Your Client Key:</strong> {clientKey}
+          </div>
+        )}
 
         <div className={styles.formGroup}>
           <label>Header Color</label>
