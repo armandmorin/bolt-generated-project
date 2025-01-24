@@ -6,151 +6,49 @@ import styles from '../styles/widgetCustomization.module.css';
 
 const WidgetCustomization = () => {
   const [widgetSettings, setWidgetSettings] = useState({
+    // Header Settings
     headerColor: '#60a5fa',
     headerTextColor: '#1e293b',
+    headerLogo: '',
+    headerTitle: 'Accessibility Settings',
+
+    // Button Settings
     buttonColor: '#2563eb',
+    buttonSize: '64px',
+    buttonPosition: 'bottom-right',
+    buttonIcon: 'default', // 'default', 'wheelchair', 'custom'
+    customIconUrl: '',
+
+    // Panel Settings
+    panelWidth: '320px',
+    panelBackground: '#ffffff',
+    panelTextColor: '#1e293b',
+
+    // Feature Settings
+    featureButtonColor: '#f8fafc',
+    featureButtonActiveColor: '#e0e7ff',
+    featureButtonTextColor: '#1e293b',
+    featureButtonBorderColor: '#e2e8f0',
+    featureIconColor: '#4b5563',
+
+    // Footer Settings
     poweredByText: 'Powered by Our Company',
-    poweredByColor: '#64748b'
+    poweredByColor: '#64748b',
+    footerBackground: '#ffffff'
   });
 
   const [clientKey, setClientKey] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [activeTab, setActiveTab] = useState('header');
 
-  useEffect(() => {
-    initializeClientAndSettings();
-  }, []);
+  // ... existing useEffect and initialization code ...
 
-  const initializeClientAndSettings = async () => {
-    try {
-      // First, check if we already have a client key in localStorage
-      let existingClientKey = localStorage.getItem('clientKey');
-      
-      if (!existingClientKey) {
-        // Create a new client if we don't have one
-        const newClientKey = 'client_' + Math.random().toString(36).substr(2, 9);
-        
-        // Insert new client into clients table
-        const { data: clientData, error: clientError } = await supabase
-          .from('clients')
-          .insert([{
-            client_key: newClientKey,
-            name: 'Default Client',
-            email: 'admin@example.com',
-            status: 'active'
-          }])
-          .select()
-          .single();
-
-        if (clientError) throw clientError;
-
-        console.log('Created new client:', clientData); // Debug log
-
-        existingClientKey = newClientKey;
-        localStorage.setItem('clientKey', newClientKey);
-      }
-
-      setClientKey(existingClientKey);
-
-      // Verify client exists in database
-      const { data: clientData, error: clientCheckError } = await supabase
-        .from('clients')
-        .select('*')
-        .eq('client_key', existingClientKey)
-        .single();
-
-      if (clientCheckError || !clientData) {
-        throw new Error('Client not found in database');
-      }
-
-      console.log('Found client in database:', clientData); // Debug log
-
-      // Get existing settings or create default ones
-      const { data: settings, error: settingsError } = await supabase
-        .from('widget_settings')
-        .select('*')
-        .eq('client_key', existingClientKey)
-        .single();
-
-      if (settingsError && settingsError.code !== 'PGRST116') {
-        throw settingsError;
-      }
-
-      if (settings) {
-        console.log('Found existing settings:', settings); // Debug log
-        setWidgetSettings({
-          headerColor: settings.header_color,
-          headerTextColor: settings.header_text_color,
-          buttonColor: settings.button_color,
-          poweredByText: settings.powered_by_text,
-          poweredByColor: settings.powered_by_color
-        });
-      } else {
-        // Create default settings for new client
-        const { data: newSettings, error: insertError } = await supabase
-          .from('widget_settings')
-          .insert([{
-            client_key: existingClientKey,
-            header_color: widgetSettings.headerColor,
-            header_text_color: widgetSettings.headerTextColor,
-            button_color: widgetSettings.buttonColor,
-            powered_by_text: widgetSettings.poweredByText,
-            powered_by_color: widgetSettings.poweredByColor
-          }])
-          .select()
-          .single();
-
-        if (insertError) throw insertError;
-        console.log('Created new settings:', newSettings); // Debug log
-      }
-    } catch (error) {
-      console.error('Error initializing client and settings:', error);
-      alert('Error initializing settings. Please try again.');
-    }
-  };
-
-  const handleSave = async () => {
-    if (!clientKey) {
-      alert('No client key found. Please refresh the page.');
-      return;
-    }
-
-    setLoading(true);
-    try {
-      // Verify client exists before saving settings
-      const { data: clientData, error: clientError } = await supabase
-        .from('clients')
-        .select('*')
-        .eq('client_key', clientKey)
-        .single();
-
-      if (clientError || !clientData) {
-        throw new Error('Client not found in database');
-      }
-
-      // Update settings in Supabase
-      const { data: updatedSettings, error } = await supabase
-        .from('widget_settings')
-        .upsert({
-          client_key: clientKey,
-          header_color: widgetSettings.headerColor,
-          header_text_color: widgetSettings.headerTextColor,
-          button_color: widgetSettings.buttonColor,
-          powered_by_text: widgetSettings.poweredByText,
-          powered_by_color: widgetSettings.poweredByColor
-        })
-        .select()
-        .single();
-
-      if (error) throw error;
-
-      console.log('Updated settings:', updatedSettings); // Debug log
-      alert('Widget settings saved successfully!');
-    } catch (error) {
-      console.error('Error saving settings:', error);
-      alert('Error saving settings. Please try again.');
-    } finally {
-      setLoading(false);
-    }
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setWidgetSettings(prev => ({
+      ...prev,
+      [name]: value
+    }));
   };
 
   return (
@@ -158,29 +56,284 @@ const WidgetCustomization = () => {
       <div className={styles.settingsPanel}>
         <h2>Widget Customization</h2>
         
-        {/* Display current client key */}
         {clientKey && (
           <div className={styles.clientKeyInfo}>
-            <p><strong>Client Key:</strong> {clientKey}</p>
-            <p><small>This key is used to identify your widget settings.</small></p>
+            <strong>Client Key:</strong> {clientKey}
           </div>
         )}
 
-        {/* Settings form */}
-        <div className={styles.formGroup}>
-          <label>Header Color</label>
-          <input
-            type="color"
-            name="headerColor"
-            value={widgetSettings.headerColor}
-            onChange={(e) => setWidgetSettings(prev => ({
-              ...prev,
-              headerColor: e.target.value
-            }))}
-          />
+        <div className={styles.tabs}>
+          <button
+            className={`${styles.tab} ${activeTab === 'header' ? styles.active : ''}`}
+            onClick={() => setActiveTab('header')}
+          >
+            Header
+          </button>
+          <button
+            className={`${styles.tab} ${activeTab === 'button' ? styles.active : ''}`}
+            onClick={() => setActiveTab('button')}
+          >
+            Button
+          </button>
+          <button
+            className={`${styles.tab} ${activeTab === 'panel' ? styles.active : ''}`}
+            onClick={() => setActiveTab('panel')}
+          >
+            Panel
+          </button>
+          <button
+            className={`${styles.tab} ${activeTab === 'features' ? styles.active : ''}`}
+            onClick={() => setActiveTab('features')}
+          >
+            Features
+          </button>
+          <button
+            className={`${styles.tab} ${activeTab === 'footer' ? styles.active : ''}`}
+            onClick={() => setActiveTab('footer')}
+          >
+            Footer
+          </button>
         </div>
 
-        {/* ... rest of your form fields ... */}
+        <div className={styles.tabContent}>
+          {activeTab === 'header' && (
+            <>
+              <div className={styles.formGroup}>
+                <label>Header Title</label>
+                <input
+                  type="text"
+                  name="headerTitle"
+                  value={widgetSettings.headerTitle}
+                  onChange={handleChange}
+                  placeholder="Accessibility Settings"
+                />
+              </div>
+
+              <div className={styles.formGroup}>
+                <label>Header Color</label>
+                <input
+                  type="color"
+                  name="headerColor"
+                  value={widgetSettings.headerColor}
+                  onChange={handleChange}
+                />
+              </div>
+
+              <div className={styles.formGroup}>
+                <label>Header Text Color</label>
+                <input
+                  type="color"
+                  name="headerTextColor"
+                  value={widgetSettings.headerTextColor}
+                  onChange={handleChange}
+                />
+              </div>
+
+              <div className={styles.formGroup}>
+                <label>Header Logo URL (optional)</label>
+                <input
+                  type="url"
+                  name="headerLogo"
+                  value={widgetSettings.headerLogo}
+                  onChange={handleChange}
+                  placeholder="https://example.com/logo.png"
+                />
+              </div>
+            </>
+          )}
+
+          {activeTab === 'button' && (
+            <>
+              <div className={styles.formGroup}>
+                <label>Button Color</label>
+                <input
+                  type="color"
+                  name="buttonColor"
+                  value={widgetSettings.buttonColor}
+                  onChange={handleChange}
+                />
+              </div>
+
+              <div className={styles.formGroup}>
+                <label>Button Size</label>
+                <select
+                  name="buttonSize"
+                  value={widgetSettings.buttonSize}
+                  onChange={handleChange}
+                >
+                  <option value="48px">Small (48px)</option>
+                  <option value="64px">Medium (64px)</option>
+                  <option value="80px">Large (80px)</option>
+                </select>
+              </div>
+
+              <div className={styles.formGroup}>
+                <label>Button Position</label>
+                <select
+                  name="buttonPosition"
+                  value={widgetSettings.buttonPosition}
+                  onChange={handleChange}
+                >
+                  <option value="bottom-right">Bottom Right</option>
+                  <option value="bottom-left">Bottom Left</option>
+                  <option value="top-right">Top Right</option>
+                  <option value="top-left">Top Left</option>
+                </select>
+              </div>
+
+              <div className={styles.formGroup}>
+                <label>Button Icon</label>
+                <select
+                  name="buttonIcon"
+                  value={widgetSettings.buttonIcon}
+                  onChange={handleChange}
+                >
+                  <option value="default">Default Icon</option>
+                  <option value="wheelchair">Wheelchair Icon</option>
+                  <option value="custom">Custom Icon</option>
+                </select>
+              </div>
+
+              {widgetSettings.buttonIcon === 'custom' && (
+                <div className={styles.formGroup}>
+                  <label>Custom Icon URL</label>
+                  <input
+                    type="url"
+                    name="customIconUrl"
+                    value={widgetSettings.customIconUrl}
+                    onChange={handleChange}
+                    placeholder="https://example.com/icon.svg"
+                  />
+                </div>
+              )}
+            </>
+          )}
+
+          {activeTab === 'panel' && (
+            <>
+              <div className={styles.formGroup}>
+                <label>Panel Width</label>
+                <select
+                  name="panelWidth"
+                  value={widgetSettings.panelWidth}
+                  onChange={handleChange}
+                >
+                  <option value="280px">Narrow (280px)</option>
+                  <option value="320px">Standard (320px)</option>
+                  <option value="360px">Wide (360px)</option>
+                </select>
+              </div>
+
+              <div className={styles.formGroup}>
+                <label>Panel Background Color</label>
+                <input
+                  type="color"
+                  name="panelBackground"
+                  value={widgetSettings.panelBackground}
+                  onChange={handleChange}
+                />
+              </div>
+
+              <div className={styles.formGroup}>
+                <label>Panel Text Color</label>
+                <input
+                  type="color"
+                  name="panelTextColor"
+                  value={widgetSettings.panelTextColor}
+                  onChange={handleChange}
+                />
+              </div>
+            </>
+          )}
+
+          {activeTab === 'features' && (
+            <>
+              <div className={styles.formGroup}>
+                <label>Feature Button Color</label>
+                <input
+                  type="color"
+                  name="featureButtonColor"
+                  value={widgetSettings.featureButtonColor}
+                  onChange={handleChange}
+                />
+              </div>
+
+              <div className={styles.formGroup}>
+                <label>Feature Button Active Color</label>
+                <input
+                  type="color"
+                  name="featureButtonActiveColor"
+                  value={widgetSettings.featureButtonActiveColor}
+                  onChange={handleChange}
+                />
+              </div>
+
+              <div className={styles.formGroup}>
+                <label>Feature Button Text Color</label>
+                <input
+                  type="color"
+                  name="featureButtonTextColor"
+                  value={widgetSettings.featureButtonTextColor}
+                  onChange={handleChange}
+                />
+              </div>
+
+              <div className={styles.formGroup}>
+                <label>Feature Button Border Color</label>
+                <input
+                  type="color"
+                  name="featureButtonBorderColor"
+                  value={widgetSettings.featureButtonBorderColor}
+                  onChange={handleChange}
+                />
+              </div>
+
+              <div className={styles.formGroup}>
+                <label>Feature Icon Color</label>
+                <input
+                  type="color"
+                  name="featureIconColor"
+                  value={widgetSettings.featureIconColor}
+                  onChange={handleChange}
+                />
+              </div>
+            </>
+          )}
+
+          {activeTab === 'footer' && (
+            <>
+              <div className={styles.formGroup}>
+                <label>Powered By Text</label>
+                <input
+                  type="text"
+                  name="poweredByText"
+                  value={widgetSettings.poweredByText}
+                  onChange={handleChange}
+                />
+              </div>
+
+              <div className={styles.formGroup}>
+                <label>Powered By Color</label>
+                <input
+                  type="color"
+                  name="poweredByColor"
+                  value={widgetSettings.poweredByColor}
+                  onChange={handleChange}
+                />
+              </div>
+
+              <div className={styles.formGroup}>
+                <label>Footer Background Color</label>
+                <input
+                  type="color"
+                  name="footerBackground"
+                  value={widgetSettings.footerBackground}
+                  onChange={handleChange}
+                />
+              </div>
+            </>
+          )}
+        </div>
 
         <div className={styles.formActions}>
           <button 
@@ -194,10 +347,6 @@ const WidgetCustomization = () => {
         </div>
       </div>
 
-      <div className={styles.codeSection}>
-        <WidgetCodeSnippet />
-      </div>
-
       <div className={styles.previewPanel}>
         <h2>Widget Preview</h2>
         <div className={styles.widgetPreview}>
@@ -208,6 +357,10 @@ const WidgetCustomization = () => {
           </div>
           <AccessibilityWidget settings={widgetSettings} isPreview={true} />
         </div>
+      </div>
+
+      <div className={styles.codeSection}>
+        <WidgetCodeSnippet />
       </div>
     </div>
   );
