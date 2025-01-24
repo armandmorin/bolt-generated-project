@@ -4,44 +4,122 @@ import AccessibilityWidget from '../components/AccessibilityWidget';
 import WidgetCodeSnippet from '../components/WidgetCodeSnippet';
 import styles from '../styles/widgetCustomization.module.css';
 
+const defaultSettings = {
+  // Header Settings
+  headerColor: '#60a5fa',
+  headerTextColor: '#1e293b',
+  headerTitle: 'Accessibility Settings',
+  headerLogo: '',
+
+  // Button Settings
+  buttonColor: '#2563eb',
+  buttonSize: '64px',
+  buttonPosition: 'bottom-right',
+  buttonIcon: 'default',
+  customIconUrl: '',
+
+  // Panel Settings
+  panelWidth: '320px',
+  panelBackground: '#ffffff',
+  panelTextColor: '#1e293b',
+
+  // Feature Settings
+  featureButtonColor: '#f8fafc',
+  featureButtonActiveColor: '#e0e7ff',
+  featureButtonTextColor: '#1e293b',
+  featureButtonBorderColor: '#e2e8f0',
+  featureIconColor: '#4b5563',
+
+  // Footer Settings
+  poweredByText: 'Powered by Our Company',
+  poweredByColor: '#64748b',
+  footerBackground: '#ffffff'
+};
+
 const WidgetCustomization = () => {
-  const [widgetSettings, setWidgetSettings] = useState({
-    // Header Settings
-    headerColor: '#60a5fa',
-    headerTextColor: '#1e293b',
-    headerLogo: '',
-    headerTitle: 'Accessibility Settings',
-
-    // Button Settings
-    buttonColor: '#2563eb',
-    buttonSize: '64px',
-    buttonPosition: 'bottom-right',
-    buttonIcon: 'default', // 'default', 'wheelchair', 'custom'
-    customIconUrl: '',
-
-    // Panel Settings
-    panelWidth: '320px',
-    panelBackground: '#ffffff',
-    panelTextColor: '#1e293b',
-
-    // Feature Settings
-    featureButtonColor: '#f8fafc',
-    featureButtonActiveColor: '#e0e7ff',
-    featureButtonTextColor: '#1e293b',
-    featureButtonBorderColor: '#e2e8f0',
-    featureIconColor: '#4b5563',
-
-    // Footer Settings
-    poweredByText: 'Powered by Our Company',
-    poweredByColor: '#64748b',
-    footerBackground: '#ffffff'
-  });
-
+  const [widgetSettings, setWidgetSettings] = useState(defaultSettings);
   const [clientKey, setClientKey] = useState(null);
   const [loading, setLoading] = useState(false);
   const [activeTab, setActiveTab] = useState('header');
 
-  // ... existing useEffect and initialization code ...
+  useEffect(() => {
+    initializeClientAndSettings();
+  }, []);
+
+  const initializeClientAndSettings = async () => {
+    try {
+      setLoading(true);
+      // First, check if we already have a client key in localStorage
+      let existingClientKey = localStorage.getItem('clientKey');
+      
+      if (!existingClientKey) {
+        // Create a new client if we don't have one
+        const newClientKey = 'client_' + Math.random().toString(36).substr(2, 9);
+        
+        // Insert new client
+        const { error: clientError } = await supabase
+          .from('clients')
+          .insert([{
+            client_key: newClientKey,
+            name: 'Default Client',
+            email: 'admin@example.com',
+            status: 'active'
+          }]);
+
+        if (clientError) throw clientError;
+
+        existingClientKey = newClientKey;
+        localStorage.setItem('clientKey', newClientKey);
+      }
+
+      setClientKey(existingClientKey);
+
+      // Get existing settings or create default ones
+      const { data: settings, error: settingsError } = await supabase
+        .from('widget_settings')
+        .select('*')
+        .eq('client_key', existingClientKey)
+        .single();
+
+      if (settingsError && settingsError.code !== 'PGRST116') {
+        throw settingsError;
+      }
+
+      if (settings) {
+        // Merge existing settings with defaults to ensure all properties exist
+        setWidgetSettings({
+          ...defaultSettings,
+          ...settings,
+          // Map database column names to state properties
+          headerColor: settings.header_color || defaultSettings.headerColor,
+          headerTextColor: settings.header_text_color || defaultSettings.headerTextColor,
+          buttonColor: settings.button_color || defaultSettings.buttonColor,
+          poweredByText: settings.powered_by_text || defaultSettings.poweredByText,
+          poweredByColor: settings.powered_by_color || defaultSettings.poweredByColor
+        });
+      } else {
+        // Create default settings for new client
+        const { error: insertError } = await supabase
+          .from('widget_settings')
+          .insert([{
+            client_key: existingClientKey,
+            header_color: defaultSettings.headerColor,
+            header_text_color: defaultSettings.headerTextColor,
+            button_color: defaultSettings.buttonColor,
+            powered_by_text: defaultSettings.poweredByText,
+            powered_by_color: defaultSettings.poweredByColor
+          }]);
+
+        if (insertError) throw insertError;
+        setWidgetSettings(defaultSettings);
+      }
+    } catch (error) {
+      console.error('Error initializing client and settings:', error);
+      alert('Error initializing settings. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -50,6 +128,43 @@ const WidgetCustomization = () => {
       [name]: value
     }));
   };
+
+  const handleSave = async () => {
+    if (!clientKey) {
+      alert('No client key found. Please refresh the page.');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      // Map state properties to database column names
+      const dbSettings = {
+        client_key: clientKey,
+        header_color: widgetSettings.headerColor,
+        header_text_color: widgetSettings.headerTextColor,
+        button_color: widgetSettings.buttonColor,
+        powered_by_text: widgetSettings.poweredByText,
+        powered_by_color: widgetSettings.poweredByColor,
+        // Add new columns here as they're added to the database
+      };
+
+      const { error } = await supabase
+        .from('widget_settings')
+        .upsert(dbSettings);
+
+      if (error) throw error;
+      alert('Widget settings saved successfully!');
+    } catch (error) {
+      console.error('Error saving settings:', error);
+      alert('Error saving settings. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (loading) {
+    return <div className={styles.loading}>Loading...</div>;
+  }
 
   return (
     <div className={styles.widgetCustomization}>
@@ -103,7 +218,7 @@ const WidgetCustomization = () => {
                 <input
                   type="text"
                   name="headerTitle"
-                  value={widgetSettings.headerTitle}
+                  value={widgetSettings.headerTitle || ''}
                   onChange={handleChange}
                   placeholder="Accessibility Settings"
                 />
@@ -114,7 +229,7 @@ const WidgetCustomization = () => {
                 <input
                   type="color"
                   name="headerColor"
-                  value={widgetSettings.headerColor}
+                  value={widgetSettings.headerColor || '#60a5fa'}
                   onChange={handleChange}
                 />
               </div>
@@ -124,19 +239,8 @@ const WidgetCustomization = () => {
                 <input
                   type="color"
                   name="headerTextColor"
-                  value={widgetSettings.headerTextColor}
+                  value={widgetSettings.headerTextColor || '#1e293b'}
                   onChange={handleChange}
-                />
-              </div>
-
-              <div className={styles.formGroup}>
-                <label>Header Logo URL (optional)</label>
-                <input
-                  type="url"
-                  name="headerLogo"
-                  value={widgetSettings.headerLogo}
-                  onChange={handleChange}
-                  placeholder="https://example.com/logo.png"
                 />
               </div>
             </>
@@ -149,7 +253,7 @@ const WidgetCustomization = () => {
                 <input
                   type="color"
                   name="buttonColor"
-                  value={widgetSettings.buttonColor}
+                  value={widgetSettings.buttonColor || '#2563eb'}
                   onChange={handleChange}
                 />
               </div>
@@ -158,7 +262,7 @@ const WidgetCustomization = () => {
                 <label>Button Size</label>
                 <select
                   name="buttonSize"
-                  value={widgetSettings.buttonSize}
+                  value={widgetSettings.buttonSize || '64px'}
                   onChange={handleChange}
                 >
                   <option value="48px">Small (48px)</option>
@@ -171,7 +275,7 @@ const WidgetCustomization = () => {
                 <label>Button Position</label>
                 <select
                   name="buttonPosition"
-                  value={widgetSettings.buttonPosition}
+                  value={widgetSettings.buttonPosition || 'bottom-right'}
                   onChange={handleChange}
                 >
                   <option value="bottom-right">Bottom Right</option>
@@ -179,123 +283,6 @@ const WidgetCustomization = () => {
                   <option value="top-right">Top Right</option>
                   <option value="top-left">Top Left</option>
                 </select>
-              </div>
-
-              <div className={styles.formGroup}>
-                <label>Button Icon</label>
-                <select
-                  name="buttonIcon"
-                  value={widgetSettings.buttonIcon}
-                  onChange={handleChange}
-                >
-                  <option value="default">Default Icon</option>
-                  <option value="wheelchair">Wheelchair Icon</option>
-                  <option value="custom">Custom Icon</option>
-                </select>
-              </div>
-
-              {widgetSettings.buttonIcon === 'custom' && (
-                <div className={styles.formGroup}>
-                  <label>Custom Icon URL</label>
-                  <input
-                    type="url"
-                    name="customIconUrl"
-                    value={widgetSettings.customIconUrl}
-                    onChange={handleChange}
-                    placeholder="https://example.com/icon.svg"
-                  />
-                </div>
-              )}
-            </>
-          )}
-
-          {activeTab === 'panel' && (
-            <>
-              <div className={styles.formGroup}>
-                <label>Panel Width</label>
-                <select
-                  name="panelWidth"
-                  value={widgetSettings.panelWidth}
-                  onChange={handleChange}
-                >
-                  <option value="280px">Narrow (280px)</option>
-                  <option value="320px">Standard (320px)</option>
-                  <option value="360px">Wide (360px)</option>
-                </select>
-              </div>
-
-              <div className={styles.formGroup}>
-                <label>Panel Background Color</label>
-                <input
-                  type="color"
-                  name="panelBackground"
-                  value={widgetSettings.panelBackground}
-                  onChange={handleChange}
-                />
-              </div>
-
-              <div className={styles.formGroup}>
-                <label>Panel Text Color</label>
-                <input
-                  type="color"
-                  name="panelTextColor"
-                  value={widgetSettings.panelTextColor}
-                  onChange={handleChange}
-                />
-              </div>
-            </>
-          )}
-
-          {activeTab === 'features' && (
-            <>
-              <div className={styles.formGroup}>
-                <label>Feature Button Color</label>
-                <input
-                  type="color"
-                  name="featureButtonColor"
-                  value={widgetSettings.featureButtonColor}
-                  onChange={handleChange}
-                />
-              </div>
-
-              <div className={styles.formGroup}>
-                <label>Feature Button Active Color</label>
-                <input
-                  type="color"
-                  name="featureButtonActiveColor"
-                  value={widgetSettings.featureButtonActiveColor}
-                  onChange={handleChange}
-                />
-              </div>
-
-              <div className={styles.formGroup}>
-                <label>Feature Button Text Color</label>
-                <input
-                  type="color"
-                  name="featureButtonTextColor"
-                  value={widgetSettings.featureButtonTextColor}
-                  onChange={handleChange}
-                />
-              </div>
-
-              <div className={styles.formGroup}>
-                <label>Feature Button Border Color</label>
-                <input
-                  type="color"
-                  name="featureButtonBorderColor"
-                  value={widgetSettings.featureButtonBorderColor}
-                  onChange={handleChange}
-                />
-              </div>
-
-              <div className={styles.formGroup}>
-                <label>Feature Icon Color</label>
-                <input
-                  type="color"
-                  name="featureIconColor"
-                  value={widgetSettings.featureIconColor}
-                  onChange={handleChange}
-                />
               </div>
             </>
           )}
@@ -307,7 +294,7 @@ const WidgetCustomization = () => {
                 <input
                   type="text"
                   name="poweredByText"
-                  value={widgetSettings.poweredByText}
+                  value={widgetSettings.poweredByText || ''}
                   onChange={handleChange}
                 />
               </div>
@@ -317,17 +304,7 @@ const WidgetCustomization = () => {
                 <input
                   type="color"
                   name="poweredByColor"
-                  value={widgetSettings.poweredByColor}
-                  onChange={handleChange}
-                />
-              </div>
-
-              <div className={styles.formGroup}>
-                <label>Footer Background Color</label>
-                <input
-                  type="color"
-                  name="footerBackground"
-                  value={widgetSettings.footerBackground}
+                  value={widgetSettings.poweredByColor || '#64748b'}
                   onChange={handleChange}
                 />
               </div>
