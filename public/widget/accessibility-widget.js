@@ -142,10 +142,6 @@
   `;
   document.head.appendChild(styles);
 
-  // Create widget HTML
-  const container = document.createElement('div');
-  container.className = 'widget-container';
-  
   // Function to fetch settings from Supabase
   async function fetchSettings() {
     try {
@@ -341,6 +337,8 @@
     }
   }
 
-  // Initialize the widget
+  // Create container and initialize
+  const container = document.createElement('div');
+  container.className = 'widget-container';
   initWidget();
 })();
