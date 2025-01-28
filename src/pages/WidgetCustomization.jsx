@@ -25,39 +25,84 @@ const defaultSettings = {
 
 const WidgetCustomization = () => {
   const [widgetSettings, setWidgetSettings] = useState(defaultSettings);
+  const [clientKey, setClientKey] = useState(null);
   const [loading, setLoading] = useState(false);
   const [activeTab, setActiveTab] = useState('header');
 
   useEffect(() => {
-    loadSettings();
+    initializeClientAndSettings();
   }, []);
 
-  const loadSettings = async () => {
+  const initializeClientAndSettings = async () => {
     try {
       setLoading(true);
-      const { data: settings, error } = await supabase
+      // First, check if we already have a client key in localStorage
+      let existingClientKey = localStorage.getItem('clientKey');
+      
+      if (!existingClientKey) {
+        // Create a new client if we don't have one
+        const newClientKey = 'client_' + Math.random().toString(36).substr(2, 9);
+        
+        // Insert new client
+        const { error: clientError } = await supabase
+          .from('clients')
+          .insert([{
+            client_key: newClientKey,
+            name: 'Default Client',
+            email: 'admin@example.com',
+            status: 'active'
+          }]);
+
+        if (clientError) throw clientError;
+
+        existingClientKey = newClientKey;
+        localStorage.setItem('clientKey', newClientKey);
+      }
+
+      setClientKey(existingClientKey);
+
+      // Get existing settings or create default ones
+      const { data: settings, error: settingsError } = await supabase
         .from('widget_settings')
         .select('*')
+        .eq('client_key', existingClientKey)
         .single();
 
-      if (error && error.code !== 'PGRST116') {
-        throw error;
+      if (settingsError && settingsError.code !== 'PGRST116') {
+        throw settingsError;
       }
 
       if (settings) {
+        // Merge existing settings with defaults to ensure all properties exist
         setWidgetSettings({
           ...defaultSettings,
           ...settings,
+          // Map database column names to state properties
           headerColor: settings.header_color || defaultSettings.headerColor,
           headerTextColor: settings.header_text_color || defaultSettings.headerTextColor,
           buttonColor: settings.button_color || defaultSettings.buttonColor,
           poweredByText: settings.powered_by_text || defaultSettings.poweredByText,
           poweredByColor: settings.powered_by_color || defaultSettings.poweredByColor
         });
+      } else {
+        // Create default settings for new client
+        const { error: insertError } = await supabase
+          .from('widget_settings')
+          .insert([{
+            client_key: existingClientKey,
+            header_color: defaultSettings.headerColor,
+            header_text_color: defaultSettings.headerTextColor,
+            button_color: defaultSettings.buttonColor,
+            powered_by_text: defaultSettings.poweredByText,
+            powered_by_color: defaultSettings.poweredByColor
+          }]);
+
+        if (insertError) throw insertError;
+        setWidgetSettings(defaultSettings);
       }
     } catch (error) {
-      console.error('Error loading settings:', error);
-      alert('Error loading settings. Please try again.');
+      console.error('Error initializing client and settings:', error);
+      alert('Error initializing settings. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -72,14 +117,22 @@ const WidgetCustomization = () => {
   };
 
   const handleSave = async () => {
+    if (!clientKey) {
+      alert('No client key found. Please refresh the page.');
+      return;
+    }
+
     setLoading(true);
     try {
+      // Map state properties to database column names
       const dbSettings = {
+        client_key: clientKey,
         header_color: widgetSettings.headerColor,
         header_text_color: widgetSettings.headerTextColor,
         button_color: widgetSettings.buttonColor,
         powered_by_text: widgetSettings.poweredByText,
         powered_by_color: widgetSettings.poweredByColor,
+        // Add new columns here as they're added to the database
       };
 
       const { error } = await supabase
@@ -105,6 +158,12 @@ const WidgetCustomization = () => {
       <div className={styles.settingsPanel}>
         <h2>Widget Customization</h2>
         
+        {clientKey && (
+          <div className={styles.clientKeyInfo}>
+            <strong>Client Key:</strong> {clientKey}
+          </div>
+        )}
+
         <div className={styles.tabs}>
           <button
             className={`${styles.tab} ${activeTab === 'header' ? styles.active : ''}`}
@@ -134,7 +193,7 @@ const WidgetCustomization = () => {
                 <input
                   type="text"
                   name="headerTitle"
-                  value={widgetSettings.headerTitle}
+                  value={widgetSettings.headerTitle || ''}
                   onChange={handleChange}
                   placeholder="Accessibility Settings"
                 />
@@ -145,7 +204,7 @@ const WidgetCustomization = () => {
                 <input
                   type="color"
                   name="headerColor"
-                  value={widgetSettings.headerColor}
+                  value={widgetSettings.headerColor || '#60a5fa'}
                   onChange={handleChange}
                 />
               </div>
@@ -155,7 +214,7 @@ const WidgetCustomization = () => {
                 <input
                   type="color"
                   name="headerTextColor"
-                  value={widgetSettings.headerTextColor}
+                  value={widgetSettings.headerTextColor || '#1e293b'}
                   onChange={handleChange}
                 />
               </div>
@@ -169,7 +228,7 @@ const WidgetCustomization = () => {
                 <input
                   type="color"
                   name="buttonColor"
-                  value={widgetSettings.buttonColor}
+                  value={widgetSettings.buttonColor || '#2563eb'}
                   onChange={handleChange}
                 />
               </div>
@@ -178,7 +237,7 @@ const WidgetCustomization = () => {
                 <label>Button Size</label>
                 <select
                   name="buttonSize"
-                  value={widgetSettings.buttonSize}
+                  value={widgetSettings.buttonSize || '64px'}
                   onChange={handleChange}
                 >
                   <option value="48px">Small (48px)</option>
@@ -191,7 +250,7 @@ const WidgetCustomization = () => {
                 <label>Button Position</label>
                 <select
                   name="buttonPosition"
-                  value={widgetSettings.buttonPosition}
+                  value={widgetSettings.buttonPosition || 'bottom-right'}
                   onChange={handleChange}
                 >
                   <option value="bottom-right">Bottom Right</option>
@@ -210,7 +269,7 @@ const WidgetCustomization = () => {
                 <input
                   type="text"
                   name="poweredByText"
-                  value={widgetSettings.poweredByText}
+                  value={widgetSettings.poweredByText || ''}
                   onChange={handleChange}
                 />
               </div>
@@ -220,7 +279,7 @@ const WidgetCustomization = () => {
                 <input
                   type="color"
                   name="poweredByColor"
-                  value={widgetSettings.poweredByColor}
+                  value={widgetSettings.poweredByColor || '#64748b'}
                   onChange={handleChange}
                 />
               </div>
@@ -228,13 +287,16 @@ const WidgetCustomization = () => {
           )}
         </div>
 
-        <button 
-          className={styles.saveButton}
-          onClick={handleSave}
-          disabled={loading}
-        >
-          {loading ? 'Saving...' : 'Save Changes'}
-        </button>
+        <div className={styles.formActions}>
+          <button 
+            type="button" 
+            className={styles.saveButton}
+            onClick={handleSave}
+            disabled={loading}
+          >
+            {loading ? 'Saving...' : 'Save Changes'}
+          </button>
+        </div>
       </div>
 
       <div className={styles.previewPanel}>
