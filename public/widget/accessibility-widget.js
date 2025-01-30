@@ -3,7 +3,7 @@ async function fetchSettings() {
   try {
     // Try to get global settings
     const response = await fetch(
-      `${supabaseUrl}/rest/v1/global_widget_settings?select=*&limit=1`,
+      `${supabaseUrl}/rest/v1/widget_settings?select=*`,
       {
         headers: {
           'apikey': supabaseKey,
@@ -13,7 +13,25 @@ async function fetchSettings() {
     );
 
     if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
+      // If global settings table doesn't exist, use widget_settings table
+      const fallbackResponse = await fetch(
+        `${supabaseUrl}/rest/v1/widget_settings?client_key=eq.${clientKey}&select=*`,
+        {
+          headers: {
+            'apikey': supabaseKey,
+            'Authorization': `Bearer ${supabaseKey}`
+          }
+        }
+      );
+
+      if (!fallbackResponse.ok) {
+        throw new Error(`HTTP error! status: ${fallbackResponse.status}`);
+      }
+
+      const fallbackSettings = await fallbackResponse.json();
+      if (fallbackSettings && fallbackSettings.length > 0) {
+        return fallbackSettings[0];
+      }
     }
 
     const settings = await response.json();
@@ -22,7 +40,7 @@ async function fetchSettings() {
       return settings[0];
     }
 
-    // Return default settings if no global settings found
+    // Return default settings if no settings found
     return {
       header_color: '#60a5fa',
       header_text_color: '#1e293b',

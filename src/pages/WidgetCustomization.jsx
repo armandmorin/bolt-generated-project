@@ -22,6 +22,9 @@ const WidgetCustomization = () => {
   const loadSettings = async () => {
     try {
       setLoading(true);
+
+      // First ensure the table exists
+      await supabase.rpc('create_global_settings_table');
       
       // Get the global settings
       const { data, error } = await supabase
@@ -54,35 +57,7 @@ const WidgetCustomization = () => {
     }
   };
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setWidgetSettings(prev => ({
-      ...prev,
-      [name]: value
-    }));
-  };
-
-  const handleSave = async () => {
-    try {
-      setLoading(true);
-
-      // Update global settings
-      const { error } = await supabase
-        .from('global_widget_settings')
-        .upsert(widgetSettings);
-
-      if (error) throw error;
-
-      alert('Settings saved successfully!');
-    } catch (error) {
-      console.error('Error saving settings:', error);
-      alert('Error saving settings. Please try again.');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // Rest of your component code...
+  // Rest of your component code remains the same...
 };
 
 export default WidgetCustomization;

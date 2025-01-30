@@ -2,6 +2,13 @@ import { supabase } from './supabase';
 
 export async function setupGlobalSettings() {
   try {
+    // First, create the table if it doesn't exist
+    const { error: createTableError } = await supabase.rpc('create_global_settings_table');
+    if (createTableError) {
+      console.error('Error creating table:', createTableError);
+      return;
+    }
+
     // Check if global settings exist
     const { data: existingSettings, error: fetchError } = await supabase
       .from('global_widget_settings')
