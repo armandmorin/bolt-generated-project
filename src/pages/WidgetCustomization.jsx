@@ -1,27 +1,65 @@
+// Add this function to your WidgetCustomization component
+const initializeClientAndSettings = async () => {
+  try {
+    setLoading(true);
+    
+    // First, check if we already have a client key in localStorage
+    let existingClientKey = localStorage.getItem('clientKey');
+    
+    if (!existingClientKey) {
+      // Create a new client if we don't have one
+      const newClientKey = 'client_' + Math.random().toString(36).substr(2, 9);
+      
+      // Insert new client
+      const { error: clientError } = await supabase
+        .from('clients')
+        .insert([{
+          client_key: newClientKey,
+          name: 'Default Client',
+          email: 'admin@example.com',
+          status: 'active'
+        }]);
 
-import React, { useState, useEffect } from 'react';
-import { supabase } from '../lib/supabase';
-import AccessibilityWidget from '../components/AccessibilityWidget';
-import WidgetCodeSnippet from '../components/WidgetCodeSnippet';
-import styles from '../styles/widgetCustomization.module.css';
+      if (clientError) throw clientError;
 
-const WidgetCustomization = () => {
-  const [widgetSettings, setWidgetSettings] = useState({
-    headerColor: '#60a5fa',
-    headerTextColor: '#1e293b',
-    buttonColor: '#2563eb',
-    poweredByText: 'Powered by Accessibility Widget',
-    poweredByColor: '#64748b',
-    buttonSize: '64px',
-    buttonPosition: 'bottom-right'
-  });
-  const [clientKey, setClientKey] = useState(null);
-  const [loading, setLoading] = useState(false);
-  const [activeTab, setActiveTab] = useState('header');
+      // Create default widget settings
+      const { error: settingsError } = await supabase
+        .from('widget_settings')
+        .insert([{
+          client_key: newClientKey,
+          header_color: '#60a5fa',
+          header_text_color: '#1e293b',
+          button_color: '#2563eb',
+          powered_by_text: 'Powered by Accessibility Widget',
+          powered_by_color: '#64748b'
+        }]);
 
-  useEffect(() => {
-    initializeClientAndSettings();
-  }, []);
+      if (settingsError) throw settingsError;
 
-  const initializeClientAndSettings = async () => {
-    try
+      existingClientKey = newClientKey;
+      localStorage.setItem('clientKey', newClientKey);
+    }
+
+    setClientKey(existingClientKey);
+
+    // Get existing settings
+    const { data: settings, error: settingsError } = await supabase
+      .from('widget_settings')
+      .select('*')
+      .eq('client_key', existingClientKey)
+      .single();
+
+    if (settingsError && settingsError.code !== 'PGRST116') {
+      throw settingsError;
+    }
+
+    if (settings) {
+      setWidgetSettings(settings);
+    }
+  } catch (error) {
+    console.error('Error initializing:', error);
+    alert('Error initializing settings. Please try again.');
+  } finally {
+    setLoading(false);
+  }
+};
