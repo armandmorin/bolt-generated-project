@@ -1,65 +1,88 @@
-// Add this function to your WidgetCustomization component
-const initializeClientAndSettings = async () => {
-  try {
-    setLoading(true);
-    
-    // First, check if we already have a client key in localStorage
-    let existingClientKey = localStorage.getItem('clientKey');
-    
-    if (!existingClientKey) {
-      // Create a new client if we don't have one
-      const newClientKey = 'client_' + Math.random().toString(36).substr(2, 9);
+import React, { useState, useEffect } from 'react';
+import { supabase } from '../lib/supabase';
+import AccessibilityWidget from '../components/AccessibilityWidget';
+import WidgetCodeSnippet from '../components/WidgetCodeSnippet';
+import styles from '../styles/widgetCustomization.module.css';
+
+const WidgetCustomization = () => {
+  const [widgetSettings, setWidgetSettings] = useState({
+    header_color: '#60a5fa',
+    header_text_color: '#1e293b',
+    button_color: '#2563eb',
+    powered_by_text: 'Powered by Accessibility Widget',
+    powered_by_color: '#64748b'
+  });
+  const [loading, setLoading] = useState(false);
+  const [activeTab, setActiveTab] = useState('header');
+
+  useEffect(() => {
+    loadSettings();
+  }, []);
+
+  const loadSettings = async () => {
+    try {
+      setLoading(true);
       
-      // Insert new client
-      const { error: clientError } = await supabase
-        .from('clients')
-        .insert([{
-          client_key: newClientKey,
-          name: 'Default Client',
-          email: 'admin@example.com',
-          status: 'active'
-        }]);
+      // Get the global settings
+      const { data, error } = await supabase
+        .from('global_widget_settings')
+        .select('*')
+        .single();
 
-      if (clientError) throw clientError;
+      if (error) {
+        if (error.code === 'PGRST116') {
+          // No settings found, create default
+          const { data: newData, error: createError } = await supabase
+            .from('global_widget_settings')
+            .insert([widgetSettings])
+            .select()
+            .single();
 
-      // Create default widget settings
-      const { error: settingsError } = await supabase
-        .from('widget_settings')
-        .insert([{
-          client_key: newClientKey,
-          header_color: '#60a5fa',
-          header_text_color: '#1e293b',
-          button_color: '#2563eb',
-          powered_by_text: 'Powered by Accessibility Widget',
-          powered_by_color: '#64748b'
-        }]);
-
-      if (settingsError) throw settingsError;
-
-      existingClientKey = newClientKey;
-      localStorage.setItem('clientKey', newClientKey);
+          if (createError) throw createError;
+          setWidgetSettings(newData);
+        } else {
+          throw error;
+        }
+      } else if (data) {
+        setWidgetSettings(data);
+      }
+    } catch (error) {
+      console.error('Error loading settings:', error);
+      alert('Error loading settings. Please try again.');
+    } finally {
+      setLoading(false);
     }
+  };
 
-    setClientKey(existingClientKey);
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setWidgetSettings(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
 
-    // Get existing settings
-    const { data: settings, error: settingsError } = await supabase
-      .from('widget_settings')
-      .select('*')
-      .eq('client_key', existingClientKey)
-      .single();
+  const handleSave = async () => {
+    try {
+      setLoading(true);
 
-    if (settingsError && settingsError.code !== 'PGRST116') {
-      throw settingsError;
+      // Update global settings
+      const { error } = await supabase
+        .from('global_widget_settings')
+        .upsert(widgetSettings);
+
+      if (error) throw error;
+
+      alert('Settings saved successfully!');
+    } catch (error) {
+      console.error('Error saving settings:', error);
+      alert('Error saving settings. Please try again.');
+    } finally {
+      setLoading(false);
     }
+  };
 
-    if (settings) {
-      setWidgetSettings(settings);
-    }
-  } catch (error) {
-    console.error('Error initializing:', error);
-    alert('Error initializing settings. Please try again.');
-  } finally {
-    setLoading(false);
-  }
+  // Rest of your component code...
 };
+
+export default WidgetCustomization;
