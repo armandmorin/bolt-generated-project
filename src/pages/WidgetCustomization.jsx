@@ -72,7 +72,123 @@ const WidgetCustomization = () => {
     }
   };
 
-  // Rest of your component code...
+  return (
+    <div className={styles.widgetCustomization}>
+      <div className={styles.settingsPanel}>
+        <h2>Widget Customization</h2>
+        
+        <div className={styles.tabs}>
+          <button
+            className={`${styles.tab} ${activeTab === 'header' ? styles.active : ''}`}
+            onClick={() => setActiveTab('header')}
+          >
+            Header
+          </button>
+          <button
+            className={`${styles.tab} ${activeTab === 'button' ? styles.active : ''}`}
+            onClick={() => setActiveTab('button')}
+          >
+            Button
+          </button>
+          <button
+            className={`${styles.tab} ${activeTab === 'footer' ? styles.active : ''}`}
+            onClick={() => setActiveTab('footer')}
+          >
+            Footer
+          </button>
+        </div>
+
+        <div className={styles.tabContent}>
+          {activeTab === 'header' && (
+            <>
+              <div className={styles.formGroup}>
+                <label>Header Color</label>
+                <input
+                  type="color"
+                  name="header_color"
+                  value={widgetSettings.header_color}
+                  onChange={handleChange}
+                />
+              </div>
+
+              <div className={styles.formGroup}>
+                <label>Header Text Color</label>
+                <input
+                  type="color"
+                  name="header_text_color"
+                  value={widgetSettings.header_text_color}
+                  onChange={handleChange}
+                />
+              </div>
+            </>
+          )}
+
+          {activeTab === 'button' && (
+            <div className={styles.formGroup}>
+              <label>Button Color</label>
+              <input
+                type="color"
+                name="button_color"
+                value={widgetSettings.button_color}
+                onChange={handleChange}
+              />
+            </div>
+          )}
+
+          {activeTab === 'footer' && (
+            <>
+              <div className={styles.formGroup}>
+                <label>Powered By Text</label>
+                <input
+                  type="text"
+                  name="powered_by_text"
+                  value={widgetSettings.powered_by_text}
+                  onChange={handleChange}
+                />
+              </div>
+
+              <div className={styles.formGroup}>
+                <label>Powered By Color</label>
+                <input
+                  type="color"
+                  name="powered_by_color"
+                  value={widgetSettings.powered_by_color}
+                  onChange={handleChange}
+                />
+              </div>
+            </>
+          )}
+        </div>
+
+        <div className={styles.formActions}>
+          <button 
+            type="button" 
+            className={styles.saveButton}
+            onClick={handleSave}
+            disabled={loading}
+          >
+            {loading ? 'Saving...' : 'Save Changes'}
+          </button>
+        </div>
+      </div>
+
+      <div className={styles.previewPanel}>
+        <h2>Widget Preview</h2>
+        <div className={styles.previewContainer}>
+          <div className={styles.exampleContent}>
+            <h3>Example Content</h3>
+            <p>This is example content to demonstrate the accessibility features.</p>
+            <a href="#example">Example Link</a>
+          </div>
+          <AccessibilityWidget settings={widgetSettings} isPreview={true} />
+        </div>
+      </div>
+
+      <div className={styles.codeSection}>
+        <WidgetCodeSnippet />
+      </div>
+    </div>
+  );
 };
 
 export default WidgetCustomization;
