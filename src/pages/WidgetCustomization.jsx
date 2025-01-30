@@ -30,16 +30,15 @@ const WidgetCustomization = () => {
         .single();
 
       if (error) {
-        throw error;
+        console.warn('Error loading settings:', error);
+        return; // Keep using default settings
       }
 
       if (data) {
         setWidgetSettings(data);
       }
     } catch (error) {
-      console.error('Error loading settings:', error);
-      // Don't show alert to user, just use default settings
-      console.warn('Using default settings');
+      console.error('Error:', error);
     } finally {
       setLoading(false);
     }
