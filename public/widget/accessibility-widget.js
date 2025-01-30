@@ -3,7 +3,7 @@ async function fetchSettings() {
   try {
     // Try to get global settings
     const response = await fetch(
-      `${supabaseUrl}/rest/v1/widget_settings?select=*`,
+      `${supabaseUrl}/rest/v1/global_widget_settings?select=*`,
       {
         headers: {
           'apikey': supabaseKey,
@@ -13,25 +13,7 @@ async function fetchSettings() {
     );
 
     if (!response.ok) {
-      // If global settings table doesn't exist, use widget_settings table
-      const fallbackResponse = await fetch(
-        `${supabaseUrl}/rest/v1/widget_settings?client_key=eq.${clientKey}&select=*`,
-        {
-          headers: {
-            'apikey': supabaseKey,
-            'Authorization': `Bearer ${supabaseKey}`
-          }
-        }
-      );
-
-      if (!fallbackResponse.ok) {
-        throw new Error(`HTTP error! status: ${fallbackResponse.status}`);
-      }
-
-      const fallbackSettings = await fallbackResponse.json();
-      if (fallbackSettings && fallbackSettings.length > 0) {
-        return fallbackSettings[0];
-      }
+      throw new Error(`HTTP error! status: ${response.status}`);
     }
 
     const settings = await response.json();

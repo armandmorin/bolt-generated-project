@@ -22,9 +22,6 @@ const WidgetCustomization = () => {
   const loadSettings = async () => {
     try {
       setLoading(true);
-
-      // First ensure the table exists
-      await supabase.rpc('create_global_settings_table');
       
       // Get the global settings
       const { data, error } = await supabase
@@ -33,31 +30,50 @@ const WidgetCustomization = () => {
         .single();
 
       if (error) {
-        if (error.code === 'PGRST116') {
-          // No settings found, create default
-          const { data: newData, error: createError } = await supabase
-            .from('global_widget_settings')
-            .insert([widgetSettings])
-            .select()
-            .single();
+        throw error;
+      }
 
-          if (createError) throw createError;
-          setWidgetSettings(newData);
-        } else {
-          throw error;
-        }
-      } else if (data) {
+      if (data) {
         setWidgetSettings(data);
       }
     } catch (error) {
       console.error('Error loading settings:', error);
-      alert('Error loading settings. Please try again.');
+      // Don't show alert to user, just use default settings
+      console.warn('Using default settings');
     } finally {
       setLoading(false);
     }
   };
 
-  // Rest of your component code remains the same...
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setWidgetSettings(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+
+  const handleSave = async () => {
+    try {
+      setLoading(true);
+
+      // Update global settings
+      const { error } = await supabase
+        .from('global_widget_settings')
+        .upsert(widgetSettings);
+
+      if (error) throw error;
+
+      alert('Settings saved successfully!');
+    } catch (error) {
+      console.error('Error saving settings:', error);
+      alert('Error saving settings. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Rest of your component code...
 };
 
 export default WidgetCustomization;
