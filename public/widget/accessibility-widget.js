@@ -37,7 +37,6 @@
       return settings[0];
     } catch (error) {
       console.error('Failed to load widget settings:', error);
-      // Return default settings if there's an error
       return {
         header_color: '#60a5fa',
         header_text_color: '#1e293b',
