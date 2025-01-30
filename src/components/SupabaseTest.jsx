@@ -10,18 +10,25 @@ const SupabaseTest = () => {
   }, []);
 
   const loadClients = async () => {
-    const { data, error } = await supabase
-      .from('clients')
-      .select(`
-        *,
-        widget_settings (*)
-      `);
-    
-    if (error) {
-      setStatus(`Error loading clients: ${error.message}`);
-    } else {
+    try {
+      setStatus('Loading clients...');
+      const { data, error } = await supabase
+        .from('clients')
+        .select(`
+          *,
+          widget_settings (*)
+        `)
+        .order('created_at', { ascending: false });
+      
+      if (error) {
+        throw error;
+      }
+
       setClients(data || []);
       setStatus(`Loaded ${data.length} clients`);
+    } catch (error) {
+      console.error('Error:', error);
+      setStatus(`Error loading clients: ${error.message}`);
     }
   };
 
@@ -72,6 +79,7 @@ const SupabaseTest = () => {
       setStatus('Client created successfully!');
       alert(`Test client created!\n\nClient Key: ${clientKey}\n\nTest URL: ${testUrl}\n\nCopy this URL to test the widget.`);
     } catch (error) {
+      console.error('Error:', error);
       setStatus(`Error creating client: ${error.message}`);
     }
   };

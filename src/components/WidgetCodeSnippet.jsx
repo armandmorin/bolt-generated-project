@@ -1,9 +1,8 @@
 import React, { useState } from 'react';
 import styles from '../styles/widgetCode.module.css';
 
-const WidgetCodeSnippet = () => {
+const WidgetCodeSnippet = ({ clientKey }) => {
   const [copied, setCopied] = useState(false);
-  const clientKey = localStorage.getItem('clientKey');
 
   // Create a simpler, self-contained widget code
   const scriptCode = `<!-- Accessibility Widget -->

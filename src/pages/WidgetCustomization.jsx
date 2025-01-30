@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
 import AccessibilityWidget from '../components/AccessibilityWidget';
+import WidgetCodeSnippet from '../components/WidgetCodeSnippet';
 import styles from '../styles/widgetCustomization.module.css';
 
 const defaultSettings = {
@@ -16,6 +17,18 @@ const defaultSettings = {
   buttonPosition: 'bottom-right',
   buttonIcon: 'default',
   customIconUrl: '',
+
+  // Panel Settings
+  panelWidth: '320px',
+  panelBackground: '#ffffff',
+  panelTextColor: '#1e293b',
+
+  // Feature Settings
+  featureButtonColor: '#f8fafc',
+  featureButtonActiveColor: '#e0e7ff',
+  featureButtonTextColor: '#1e293b',
+  featureButtonBorderColor: '#e2e8f0',
+  featureIconColor: '#4b5563',
 
   // Footer Settings
   poweredByText: 'Powered by Our Company',
@@ -36,11 +49,14 @@ const WidgetCustomization = () => {
   const initializeClientAndSettings = async () => {
     try {
       setLoading(true);
+      // First, check if we already have a client key in localStorage
       let existingClientKey = localStorage.getItem('clientKey');
       
       if (!existingClientKey) {
+        // Create a new client if we don't have one
         const newClientKey = 'client_' + Math.random().toString(36).substr(2, 9);
         
+        // Insert new client
         const { error: clientError } = await supabase
           .from('clients')
           .insert([{
@@ -58,7 +74,7 @@ const WidgetCustomization = () => {
 
       setClientKey(existingClientKey);
 
-      // Get existing settings
+      // Get existing settings or create default ones
       const { data: settings, error: settingsError } = await supabase
         .from('widget_settings')
         .select('*')
@@ -70,42 +86,35 @@ const WidgetCustomization = () => {
       }
 
       if (settings) {
-        // Map database columns to state properties
-        const mappedSettings = {
+        // Merge existing settings with defaults to ensure all properties exist
+        setWidgetSettings({
           ...defaultSettings,
-          headerColor: settings.header_color,
-          headerTextColor: settings.header_text_color,
-          headerTitle: settings.header_title,
-          buttonColor: settings.button_color,
-          buttonSize: settings.button_size,
-          buttonPosition: settings.button_position,
-          poweredByText: settings.powered_by_text,
-          poweredByColor: settings.powered_by_color,
-        };
-        setWidgetSettings(mappedSettings);
+          ...settings,
+          // Map database column names to state properties
+          headerColor: settings.header_color || defaultSettings.headerColor,
+          headerTextColor: settings.header_text_color || defaultSettings.headerTextColor,
+          buttonColor: settings.button_color || defaultSettings.buttonColor,
+          poweredByText: settings.powered_by_text || defaultSettings.poweredByText,
+          poweredByColor: settings.powered_by_color || defaultSettings.poweredByColor
+        });
       } else {
-        // Create default settings
-        const defaultDbSettings = {
-          client_key: existingClientKey,
-          header_color: defaultSettings.headerColor,
-          header_text_color: defaultSettings.headerTextColor,
-          header_title: defaultSettings.headerTitle,
-          button_color: defaultSettings.buttonColor,
-          button_size: defaultSettings.buttonSize,
-          button_position: defaultSettings.buttonPosition,
-          powered_by_text: defaultSettings.poweredByText,
-          powered_by_color: defaultSettings.poweredByColor,
-        };
-
+        // Create default settings for new client
         const { error: insertError } = await supabase
           .from('widget_settings')
-          .insert([defaultDbSettings]);
+          .insert([{
+            client_key: existingClientKey,
+            header_color: defaultSettings.headerColor,
+            header_text_color: defaultSettings.headerTextColor,
+            button_color: defaultSettings.buttonColor,
+            powered_by_text: defaultSettings.poweredByText,
+            powered_by_color: defaultSettings.poweredByColor
+          }]);
 
         if (insertError) throw insertError;
         setWidgetSettings(defaultSettings);
       }
     } catch (error) {
-      console.error('Error initializing settings:', error);
+      console.error('Error initializing client and settings:', error);
       alert('Error initializing settings. Please try again.');
     } finally {
       setLoading(false);
@@ -133,20 +142,15 @@ const WidgetCustomization = () => {
         client_key: clientKey,
         header_color: widgetSettings.headerColor,
         header_text_color: widgetSettings.headerTextColor,
-        header_title: widgetSettings.headerTitle,
         button_color: widgetSettings.buttonColor,
-        button_size: widgetSettings.buttonSize,
-        button_position: widgetSettings.buttonPosition,
         powered_by_text: widgetSettings.poweredByText,
         powered_by_color: widgetSettings.poweredByColor,
+        // Add new columns here as they're added to the database
       };
 
       const { error } = await supabase
         .from('widget_settings')
-        .upsert(dbSettings, {
-          onConflict: 'client_key',
-          returning: 'minimal'
-        });
+        .upsert(dbSettings);
 
       if (error) throw error;
       alert('Widget settings saved successfully!');
@@ -185,6 +189,18 @@ const WidgetCustomization = () => {
             onClick={() => setActiveTab('button')}
           >
             Button
+          </button>
+          <button
+            className={`${styles.tab} ${activeTab === 'panel' ? styles.active : ''}`}
+            onClick={() => setActiveTab('panel')}
+          >
+            Panel
+          </button>
+          <button
+            className={`${styles.tab} ${activeTab === 'features' ? styles.active : ''}`}
+            onClick={() => setActiveTab('features')}
+          >
+            Features
           </button>
           <button
             className={`${styles.tab} ${activeTab === 'footer' ? styles.active : ''}`}
@@ -318,6 +334,10 @@ const WidgetCustomization = () => {
           </div>
           <AccessibilityWidget settings={widgetSettings} isPreview={true} />
         </div>
+      </div>
+
+      <div className={styles.codeSection}>
+        <WidgetCodeSnippet />
       </div>
     </div>
   );
