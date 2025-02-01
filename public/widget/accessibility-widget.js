@@ -19,6 +19,7 @@
           <h3>Accessibility Settings</h3>
         </div>
         <div class="accessibility-widget-content">
+          <!-- Content Adjustments -->
           <div class="widget-section">
             <h4>Content Adjustments</h4>
             <div class="feature-grid">
@@ -26,9 +27,83 @@
                 <span class="feature-icon">Aa</span>
                 <span class="feature-text">Readable Font</span>
               </button>
+              <button class="feature-button" data-feature="readAllText">
+                <span class="feature-icon">▶</span>
+                <span class="feature-text">Read All Text</span>
+              </button>
+              <button class="feature-button" data-feature="clickToSpeech">
+                <span class="feature-icon">🎧</span>
+                <span class="feature-text">Turn on Click to Speech</span>
+              </button>
+              <button class="feature-button" data-feature="fontScaling">
+                <span class="feature-icon">T↕</span>
+                <span class="feature-text">Font Scaling</span>
+              </button>
+              <button class="feature-button" data-feature="highlightLinks">
+                <span class="feature-icon">🔗</span>
+                <span class="feature-text">Highlight Links</span>
+              </button>
+              <button class="feature-button" data-feature="highlightTitles">
+                <span class="feature-icon">H</span>
+                <span class="feature-text">Highlight Titles</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Color Adjustments -->
+          <div class="widget-section">
+            <h4>Color Adjustments</h4>
+            <div class="feature-grid">
               <button class="feature-button" data-feature="highContrast">
                 <span class="feature-icon">◐</span>
                 <span class="feature-text">High Contrast</span>
+              </button>
+              <button class="feature-button" data-feature="lightContrast">
+                <span class="feature-icon">☀</span>
+                <span class="feature-text">Light Contrast</span>
+              </button>
+              <button class="feature-button" data-feature="darkContrast">
+                <span class="feature-icon">🌙</span>
+                <span class="feature-text">Dark Contrast</span>
+              </button>
+              <button class="feature-button" data-feature="monochrome">
+                <span class="feature-icon">◑</span>
+                <span class="feature-text">Monochrome</span>
+              </button>
+              <button class="feature-button" data-feature="highSaturation">
+                <span class="feature-icon">⚛</span>
+                <span class="feature-text">High Saturation</span>
+              </button>
+              <button class="feature-button" data-feature="lowSaturation">
+                <span class="feature-icon">💧</span>
+                <span class="feature-text">Low Saturation</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Orientation Adjustments -->
+          <div class="widget-section">
+            <h4>Orientation Adjustments</h4>
+            <div class="feature-grid">
+              <button class="feature-button" data-feature="muteSounds">
+                <span class="feature-icon">🔇</span>
+                <span class="feature-text">Mute Sounds</span>
+              </button>
+              <button class="feature-button" data-feature="hideImages">
+                <span class="feature-icon">🖼</span>
+                <span class="feature-text">Hide Images</span>
+              </button>
+              <button class="feature-button" data-feature="stopAnimations">
+                <span class="feature-icon">⛔</span>
+                <span class="feature-text">Stop Animations</span>
+              </button>
+              <button class="feature-button" data-feature="highlightHover">
+                <span class="feature-icon">🖱</span>
+                <span class="feature-text">Highlight Hover</span>
+              </button>
+              <button class="feature-button" data-feature="bigCursor">
+                <span class="feature-icon">➜</span>
+                <span class="feature-text">Big Cursor</span>
               </button>
             </div>
           </div>
@@ -39,7 +114,7 @@
       </div>
     `;
 
-    // Add basic styles
+    // Add styles
     const styles = document.createElement('style');
     styles.textContent = `
       .accessibility-widget-button {
@@ -72,6 +147,8 @@
         box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
         display: none;
         overflow: hidden;
+        max-height: 80vh;
+        overflow-y: auto;
       }
 
       .accessibility-widget-panel.open {
@@ -82,6 +159,9 @@
         padding: 16px;
         background: #60a5fa;
         color: #1e293b;
+        position: sticky;
+        top: 0;
+        z-index: 1;
       }
 
       .accessibility-widget-header h3 {
@@ -95,13 +175,14 @@
       }
 
       .widget-section {
-        margin-bottom: 16px;
+        margin-bottom: 24px;
       }
 
       .widget-section h4 {
         margin: 0 0 12px 0;
         font-size: 14px;
         font-weight: 600;
+        color: #1e293b;
       }
 
       .feature-grid {
@@ -115,6 +196,7 @@
         flex-direction: column;
         align-items: center;
         justify-content: center;
+        gap: 8px;
         padding: 12px;
         background: #f8fafc;
         border: 1px solid #e2e8f0;
@@ -132,12 +214,26 @@
         border-color: #818cf8;
       }
 
+      .feature-icon {
+        font-size: 24px;
+        line-height: 1;
+      }
+
+      .feature-text {
+        font-size: 12px;
+        text-align: center;
+        line-height: 1.2;
+      }
+
       .accessibility-widget-footer {
         padding: 12px;
         text-align: center;
         font-size: 12px;
         border-top: 1px solid #e2e8f0;
         color: #64748b;
+        position: sticky;
+        bottom: 0;
+        background: white;
       }
     `;
     document.head.appendChild(styles);
@@ -171,18 +267,112 @@
   const handleFeature = (feature, isActive) => {
     switch (feature) {
       case 'readableFont':
-        document.body.style.fontFamily = isActive ? 
-          'Arial, sans-serif' : '';
+        document.body.style.fontFamily = isActive ? 'Arial, sans-serif' : '';
+        break;
+      case 'readAllText':
+        if (isActive) {
+          const text = document.body.textContent;
+          const utterance = new SpeechSynthesisUtterance(text);
+          window.speechSynthesis.speak(utterance);
+        } else {
+          window.speechSynthesis.cancel();
+        }
+        break;
+      case 'clickToSpeech':
+        if (isActive) {
+          document.body.addEventListener('click', handleClickToSpeech);
+        } else {
+          document.body.removeEventListener('click', handleClickToSpeech);
+        }
+        break;
+      case 'fontScaling':
+        document.body.style.fontSize = isActive ? '120%' : '';
+        break;
+      case 'highlightLinks':
+        const links = document.querySelectorAll('a');
+        links.forEach(link => {
+          link.style.backgroundColor = isActive ? '#ffeb3b' : '';
+          link.style.color = isActive ? '#000' : '';
+        });
+        break;
+      case 'highlightTitles':
+        const headings = document.querySelectorAll('h1, h2, h3, h4, h5, h6');
+        headings.forEach(heading => {
+          heading.style.backgroundColor = isActive ? '#e3f2fd' : '';
+        });
         break;
       case 'highContrast':
+        document.body.style.filter = isActive ? 'contrast(150%)' : '';
+        break;
+      case 'lightContrast':
         if (isActive) {
-          document.body.style.backgroundColor = '#000';
-          document.body.style.color = '#fff';
+          document.body.style.backgroundColor = '#ffffff';
+          document.body.style.color = '#000000';
         } else {
           document.body.style.backgroundColor = '';
           document.body.style.color = '';
         }
         break;
+      case 'darkContrast':
+        if (isActive) {
+          document.body.style.backgroundColor = '#000000';
+          document.body.style.color = '#ffffff';
+        } else {
+          document.body.style.backgroundColor = '';
+          document.body.style.color = '';
+        }
+        break;
+      case 'monochrome':
+        document.body.style.filter = isActive ? 'grayscale(100%)' : '';
+        break;
+      case 'highSaturation':
+        document.body.style.filter = isActive ? 'saturate(200%)' : '';
+        break;
+      case 'lowSaturation':
+        document.body.style.filter = isActive ? 'saturate(50%)' : '';
+        break;
+      case 'muteSounds':
+        const mediaElements = document.querySelectorAll('video, audio');
+        mediaElements.forEach(element => {
+          element.muted = isActive;
+        });
+        break;
+      case 'hideImages':
+        const images = document.querySelectorAll('img');
+        images.forEach(img => {
+          img.style.display = isActive ? 'none' : '';
+        });
+        break;
+      case 'stopAnimations':
+        const style = document.createElement('style');
+        style.id = 'stop-animations';
+        style.textContent = '* { animation: none !important; transition: none !important; }';
+        if (isActive) {
+          document.head.appendChild(style);
+        } else {
+          document.getElementById('stop-animations')?.remove();
+        }
+        break;
+      case 'highlightHover':
+        if (isActive) {
+          const style = document.createElement('style');
+          style.id = 'highlight-hover';
+          style.textContent = '*:hover { outline: 2px solid #2563eb !important; }';
+          document.head.appendChild(style);
+        } else {
+          document.getElementById('highlight-hover')?.remove();
+        }
+        break;
+      case 'bigCursor':
+        document.body.style.cursor = isActive ? 'url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'32\' height=\'32\' viewBox=\'0 0 24 24\'%3E%3Cpath fill=\'%23000\' d=\'M7,2l12,11.2l-5.8,0.5l3.3,7.3l-2.2,1l-3.2-7.4L7,18.5V2\'/%3E%3C/svg%3E") 4 4, auto' : '';
+        break;
+    }
+  };
+
+  const handleClickToSpeech = (e) => {
+    if (e.target.textContent) {
+      const utterance = new SpeechSynthesisUtterance(e.target.textContent);
+      window.speechSynthesis.speak(utterance);
     }
   };
 
