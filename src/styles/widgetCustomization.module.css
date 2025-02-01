@@ -181,10 +181,19 @@
   overflow: hidden;
 }
 
+/* Fix for widget positioning in preview */
 .previewContainer > div {
   position: absolute !important;
   bottom: 20px !important;
   right: 20px !important;
+  top: auto !important;
+  left: auto !important;
+}
+
+/* Ensure the widget panel stays within the preview container */
+.previewContainer .widgetPanel {
+  max-height: calc(100% - 100px);
+  bottom: 100px;
 }
 
 .codeSection {

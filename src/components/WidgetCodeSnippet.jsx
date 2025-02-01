@@ -5,6 +5,7 @@ const WidgetCodeSnippet = () => {
   const [copied, setCopied] = useState(false);
 
   const scriptCode = `<!-- Accessibility Widget -->
+<script src="https://unpkg.com/@supabase/supabase-js"></script>
 <script>
   (function() {
     const script = document.createElement('script');
