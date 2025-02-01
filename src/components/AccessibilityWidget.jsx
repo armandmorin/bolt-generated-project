@@ -12,11 +12,34 @@ const AccessibilityWidget = ({ settings, isPreview = false }) => {
     }));
   };
 
+  // Apply settings to styles
+  const widgetStyle = {
+    right: settings?.buttonPosition?.includes('right') ? '20px' : 'auto',
+    left: settings?.buttonPosition?.includes('left') ? '20px' : 'auto',
+    top: settings?.buttonPosition?.includes('top') ? '20px' : 'auto',
+    bottom: settings?.buttonPosition?.includes('bottom') ? '20px' : 'auto',
+  };
+
+  const buttonStyle = {
+    backgroundColor: settings?.buttonColor || '#2563eb',
+    width: settings?.buttonSize || '64px',
+    height: settings?.buttonSize || '64px',
+  };
+
+  const headerStyle = {
+    backgroundColor: settings?.headerColor || '#60a5fa',
+    color: settings?.headerTextColor || '#1e293b',
+  };
+
+  const footerStyle = {
+    color: settings?.poweredByColor || '#64748b',
+  };
+
   return (
-    <div className={styles.widgetContainer}>
+    <div className={styles.widgetContainer} style={widgetStyle}>
       <button 
         className={styles.widgetToggle}
-        style={{ backgroundColor: settings.button_color }}
+        style={buttonStyle}
         onClick={() => setIsOpen(!isOpen)}
         aria-label="Accessibility Options"
       >
@@ -34,10 +57,7 @@ const AccessibilityWidget = ({ settings, isPreview = false }) => {
         <div className={styles.widgetPanel}>
           <div 
             className={styles.widgetHeader}
-            style={{ 
-              backgroundColor: settings.header_color,
-              color: settings.header_text_color 
-            }}
+            style={headerStyle}
           >
             <h3>Accessibility Settings</h3>
           </div>
@@ -186,9 +206,9 @@ const AccessibilityWidget = ({ settings, isPreview = false }) => {
 
           <div 
             className={styles.widgetFooter}
-            style={{ color: settings.powered_by_color }}
+            style={footerStyle}
           >
-            {settings.powered_by_text}
+            {settings?.poweredByText || 'Powered by Accessibility Widget'}
           </div>
         </div>
       )}

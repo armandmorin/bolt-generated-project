@@ -4,7 +4,6 @@ import styles from '../styles/widgetCode.module.css';
 const WidgetCodeSnippet = () => {
   const [copied, setCopied] = useState(false);
 
-  // Create widget installation code
   const scriptCode = `<!-- Accessibility Widget -->
 <script>
   // Widget settings
@@ -29,7 +28,7 @@ const WidgetCodeSnippet = () => {
     <div className={styles.codeSnippetContainer}>
       <h3>Widget Installation</h3>
       <p className={styles.instructions}>
-        Copy and paste this code snippet just before the closing <code>&lt;/body&gt;</code> tag of your website.
+        Copy and paste this code snippet just before the closing body tag of your website.
       </p>
       
       <div className={styles.codeWrapper}>
