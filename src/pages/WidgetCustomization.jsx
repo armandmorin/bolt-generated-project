@@ -6,42 +6,46 @@ import styles from '../styles/widgetCustomization.module.css';
 
 const WidgetCustomization = () => {
   const [widgetSettings, setWidgetSettings] = useState({
-    headerColor: '#60a5fa',
-    headerTextColor: '#1e293b',
-    buttonColor: '#2563eb',
-    poweredByText: 'Powered by Accessibility Widget',
-    poweredByColor: '#64748b',
-    buttonSize: '64px',
-    buttonPosition: 'bottom-right'
+    header_color: '#60a5fa',
+    header_text_color: '#1e293b',
+    button_color: '#2563eb',
+    powered_by_text: 'Powered by Accessibility Widget',
+    powered_by_color: '#64748b',
+    button_size: '64px',
+    button_position: 'bottom-right'
   });
 
   const [activeTab, setActiveTab] = useState('header');
   const [saving, setSaving] = useState(false);
-  const [settingsId, setSettingsId] = useState(null);
 
-  // Load existing settings on component mount
   useEffect(() => {
-    loadSettings();
+    loadGlobalSettings();
   }, []);
 
-  const loadSettings = async () => {
+  const loadGlobalSettings = async () => {
     try {
       const { data, error } = await supabase
         .from('global_widget_settings')
         .select('*')
         .single();
 
-      if (error && error.code !== 'PGRST116') { // PGRST116 is "no rows returned" error
+      if (error && error.code !== 'PGRST116') {
         throw error;
       }
 
       if (data) {
-        setWidgetSettings(data);
-        setSettingsId(data.id);
+        setWidgetSettings({
+          header_color: data.header_color,
+          header_text_color: data.header_text_color,
+          button_color: data.button_color,
+          powered_by_text: data.powered_by_text,
+          powered_by_color: data.powered_by_color,
+          button_size: data.button_size,
+          button_position: data.button_position
+        });
       }
     } catch (error) {
       console.error('Error loading settings:', error);
-      alert('Error loading settings. Using defaults.');
     }
   };
 
@@ -55,26 +59,45 @@ const WidgetCustomization = () => {
   const handleSaveSettings = async () => {
     setSaving(true);
     try {
+      // First, check if settings exist
+      const { data: existingSettings } = await supabase
+        .from('global_widget_settings')
+        .select('id')
+        .single();
+
       let response;
-      
-      if (settingsId) {
+      if (existingSettings) {
         // Update existing settings
         response = await supabase
           .from('global_widget_settings')
-          .update(widgetSettings)
-          .eq('id', settingsId);
+          .update({
+            header_color: widgetSettings.header_color,
+            header_text_color: widgetSettings.header_text_color,
+            button_color: widgetSettings.button_color,
+            powered_by_text: widgetSettings.powered_by_text,
+            powered_by_color: widgetSettings.powered_by_color,
+            button_size: widgetSettings.button_size,
+            button_position: widgetSettings.button_position,
+            updated_at: new Date().toISOString()
+          })
+          .eq('id', existingSettings.id);
       } else {
         // Insert new settings
         response = await supabase
           .from('global_widget_settings')
-          .insert([widgetSettings])
-          .select();
+          .insert([{
+            header_color: widgetSettings.header_color,
+            header_text_color: widgetSettings.header_text_color,
+            button_color: widgetSettings.button_color,
+            powered_by_text: widgetSettings.powered_by_text,
+            powered_by_color: widgetSettings.powered_by_color,
+            button_size: widgetSettings.button_size,
+            button_position: widgetSettings.button_position
+          }]);
       }
 
-      if (response.error) throw response.error;
-
-      if (response.data?.[0]?.id) {
-        setSettingsId(response.data[0].id);
+      if (response.error) {
+        throw response.error;
       }
 
       alert('Settings saved successfully!');
@@ -84,6 +107,17 @@ const WidgetCustomization = () => {
     } finally {
       setSaving(false);
     }
+  };
+
+  // Convert settings for the preview component
+  const previewSettings = {
+    headerColor: widgetSettings.header_color,
+    headerTextColor: widgetSettings.header_text_color,
+    buttonColor: widgetSettings.button_color,
+    poweredByText: widgetSettings.powered_by_text,
+    poweredByColor: widgetSettings.powered_by_color,
+    buttonSize: widgetSettings.button_size,
+    buttonPosition: widgetSettings.button_position
   };
 
   return (
@@ -128,16 +162,16 @@ const WidgetCustomization = () => {
                 <label>Header Color</label>
                 <input
                   type="color"
-                  value={widgetSettings.headerColor}
-                  onChange={(e) => handleSettingChange('headerColor', e.target.value)}
+                  value={widgetSettings.header_color}
+                  onChange={(e) => handleSettingChange('header_color', e.target.value)}
                 />
               </div>
               <div className={styles.formGroup}>
                 <label>Header Text Color</label>
                 <input
                   type="color"
-                  value={widgetSettings.headerTextColor}
-                  onChange={(e) => handleSettingChange('headerTextColor', e.target.value)}
+                  value={widgetSettings.header_text_color}
+                  onChange={(e) => handleSettingChange('header_text_color', e.target.value)}
                 />
               </div>
             </>
@@ -149,15 +183,15 @@ const WidgetCustomization = () => {
                 <label>Button Color</label>
                 <input
                   type="color"
-                  value={widgetSettings.buttonColor}
-                  onChange={(e) => handleSettingChange('buttonColor', e.target.value)}
+                  value={widgetSettings.button_color}
+                  onChange={(e) => handleSettingChange('button_color', e.target.value)}
                 />
               </div>
               <div className={styles.formGroup}>
                 <label>Button Size</label>
                 <select
-                  value={widgetSettings.buttonSize}
-                  onChange={(e) => handleSettingChange('buttonSize', e.target.value)}
+                  value={widgetSettings.button_size}
+                  onChange={(e) => handleSettingChange('button_size', e.target.value)}
                 >
                   <option value="48px">Small</option>
                   <option value="64px">Medium</option>
@@ -167,8 +201,8 @@ const WidgetCustomization = () => {
               <div className={styles.formGroup}>
                 <label>Button Position</label>
                 <select
-                  value={widgetSettings.buttonPosition}
-                  onChange={(e) => handleSettingChange('buttonPosition', e.target.value)}
+                  value={widgetSettings.button_position}
+                  onChange={(e) => handleSettingChange('button_position', e.target.value)}
                 >
                   <option value="bottom-right">Bottom Right</option>
                   <option value="bottom-left">Bottom Left</option>
@@ -185,16 +219,16 @@ const WidgetCustomization = () => {
                 <label>Powered By Text</label>
                 <input
                   type="text"
-                  value={widgetSettings.poweredByText}
-                  onChange={(e) => handleSettingChange('poweredByText', e.target.value)}
+                  value={widgetSettings.powered_by_text}
+                  onChange={(e) => handleSettingChange('powered_by_text', e.target.value)}
                 />
               </div>
               <div className={styles.formGroup}>
                 <label>Powered By Color</label>
                 <input
                   type="color"
-                  value={widgetSettings.poweredByColor}
-                  onChange={(e) => handleSettingChange('poweredByColor', e.target.value)}
+                  value={widgetSettings.powered_by_color}
+                  onChange={(e) => handleSettingChange('powered_by_color', e.target.value)}
                 />
               </div>
             </>
@@ -205,7 +239,7 @@ const WidgetCustomization = () => {
       <div className={styles.previewPanel}>
         <h2>Preview</h2>
         <div className={styles.previewContainer}>
-          <AccessibilityWidget settings={widgetSettings} isPreview={true} />
+          <AccessibilityWidget settings={previewSettings} isPreview={true} />
         </div>
       </div>
 

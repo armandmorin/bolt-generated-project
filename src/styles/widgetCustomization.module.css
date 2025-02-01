@@ -162,6 +162,7 @@
   border-radius: 0.75rem;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
   position: relative;
+  height: fit-content;
 }
 
 .previewPanel h2 {
@@ -173,11 +174,17 @@
 
 .previewContainer {
   position: relative;
-  height: 500px;
+  height: 600px;
   border: 2px dashed #e2e8f0;
   border-radius: 0.75rem;
   background: #f8fafc;
   overflow: hidden;
+}
+
+.previewContainer > div {
+  position: absolute !important;
+  bottom: 20px !important;
+  right: 20px !important;
 }
 
 .codeSection {
@@ -189,7 +196,6 @@
   margin-top: 1rem;
 }
 
-/* Responsive Design */
 @media (max-width: 1024px) {
   .widgetCustomization {
     grid-template-columns: 1fr;

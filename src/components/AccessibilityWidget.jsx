@@ -35,6 +35,118 @@ const AccessibilityWidget = ({ settings, isPreview = false }) => {
     color: settings?.poweredByColor || '#64748b',
   };
 
+  const handleFeature = (feature, isActive) => {
+    switch (feature) {
+      case 'readableFont':
+        document.body.style.fontFamily = isActive ? 'Arial, sans-serif' : '';
+        break;
+      case 'readAllText':
+        if (isActive) {
+          const text = document.body.textContent;
+          const utterance = new SpeechSynthesisUtterance(text);
+          window.speechSynthesis.speak(utterance);
+        } else {
+          window.speechSynthesis.cancel();
+        }
+        break;
+      case 'clickToSpeech':
+        if (isActive) {
+          document.body.addEventListener('click', handleClickToSpeech);
+        } else {
+          document.body.removeEventListener('click', handleClickToSpeech);
+        }
+        break;
+      case 'fontScaling':
+        document.body.style.fontSize = isActive ? '120%' : '';
+        break;
+      case 'highlightLinks':
+        const links = document.querySelectorAll('a');
+        links.forEach(link => {
+          link.style.backgroundColor = isActive ? '#ffeb3b' : '';
+          link.style.color = isActive ? '#000' : '';
+        });
+        break;
+      case 'highlightTitles':
+        const headings = document.querySelectorAll('h1, h2, h3, h4, h5, h6');
+        headings.forEach(heading => {
+          heading.style.backgroundColor = isActive ? '#e3f2fd' : '';
+        });
+        break;
+      case 'highContrast':
+        document.body.style.filter = isActive ? 'contrast(150%)' : '';
+        break;
+      case 'lightContrast':
+        if (isActive) {
+          document.body.style.backgroundColor = '#ffffff';
+          document.body.style.color = '#000000';
+        } else {
+          document.body.style.backgroundColor = '';
+          document.body.style.color = '';
+        }
+        break;
+      case 'darkContrast':
+        if (isActive) {
+          document.body.style.backgroundColor = '#000000';
+          document.body.style.color = '#ffffff';
+        } else {
+          document.body.style.backgroundColor = '';
+          document.body.style.color = '';
+        }
+        break;
+      case 'monochrome':
+        document.body.style.filter = isActive ? 'grayscale(100%)' : '';
+        break;
+      case 'highSaturation':
+        document.body.style.filter = isActive ? 'saturate(200%)' : '';
+        break;
+      case 'lowSaturation':
+        document.body.style.filter = isActive ? 'saturate(50%)' : '';
+        break;
+      case 'muteSounds':
+        const mediaElements = document.querySelectorAll('video, audio');
+        mediaElements.forEach(element => {
+          element.muted = isActive;
+        });
+        break;
+      case 'hideImages':
+        const images = document.querySelectorAll('img');
+        images.forEach(img => {
+          img.style.display = isActive ? 'none' : '';
+        });
+        break;
+      case 'stopAnimations':
+        const style = document.createElement('style');
+        style.id = 'stop-animations';
+        style.textContent = '* { animation: none !important; transition: none !important; }';
+        if (isActive) {
+          document.head.appendChild(style);
+        } else {
+          document.getElementById('stop-animations')?.remove();
+        }
+        break;
+      case 'highlightHover':
+        if (isActive) {
+          const style = document.createElement('style');
+          style.id = 'highlight-hover';
+          style.textContent = '*:hover { outline: 2px solid #2563eb !important; }';
+          document.head.appendChild(style);
+        } else {
+          document.getElementById('highlight-hover')?.remove();
+        }
+        break;
+      case 'bigCursor':
+        document.body.style.cursor = isActive ? 'url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'32\' height=\'32\' viewBox=\'0 0 24 24\'%3E%3Cpath fill=\'%23000\' d=\'M7,2l12,11.2l-5.8,0.5l3.3,7.3l-2.2,1l-3.2-7.4L7,18.5V2\'/%3E%3C/svg%3E") 4 4, auto' : '';
+        break;
+    }
+  };
+
+  const handleClickToSpeech = (e) => {
+    if (e.target.textContent) {
+      const utterance = new SpeechSynthesisUtterance(e.target.textContent);
+      window.speechSynthesis.speak(utterance);
+    }
+  };
+
   return (
     <div className={styles.widgetContainer} style={widgetStyle}>
       <button 

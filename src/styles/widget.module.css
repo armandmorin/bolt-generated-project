@@ -131,7 +131,6 @@
   z-index: 1;
 }
 
-/* Scrollbar Styling */
 .widgetPanel::-webkit-scrollbar {
   width: 6px;
 }
