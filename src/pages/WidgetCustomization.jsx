@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
 import AccessibilityWidget from '../components/AccessibilityWidget';
@@ -18,38 +17,12 @@ const WidgetCustomization = () => {
 
   const [activeTab, setActiveTab] = useState('header');
   const [saving, setSaving] = useState(false);
-  const [settingsId, setSettingsId] = useState(null);
 
   useEffect(() => {
-    loadSettings();
-    setupRealtimeSubscription();
+    loadGlobalSettings();
   }, []);
 
-  const setupRealtimeSubscription = () => {
-    const subscription = supabase
-      .channel('global_widget_settings_changes')
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'global_widget_settings'
-        },
-        (payload) => {
-          if (payload.new) {
-            setWidgetSettings(payload.new);
-            setSettingsId(payload.new.id);
-          }
-        }
-      )
-      .subscribe();
-
-    return () => {
-      subscription.unsubscribe();
-    };
-  };
-
-  const loadSettings = async () => {
+  const loadGlobalSettings = async () => {
     try {
       const { data, error } = await supabase
         .from('global_widget_settings')
@@ -70,11 +43,9 @@ const WidgetCustomization = () => {
           button_size: data.button_size || '64px',
           button_position: data.button_position || 'bottom-right'
         });
-        setSettingsId(data.id);
       }
     } catch (error) {
       console.error('Error loading settings:', error);
-      alert('Error loading settings. Using defaults.');
     }
   };
 
@@ -88,23 +59,200 @@ const WidgetCustomization = () => {
   const handleSaveSettings = async () => {
     setSaving(true);
     try {
-      let response;
-      
-      const settingsData = {
-        header_color: widgetSettings.header_color,
-        header_text_color: widgetSettings.header_text_color,
-        button_color: widgetSettings.button_color,
-        powered_by_text: widgetSettings.powered_by_text,
-        powered_by_color: widgetSettings.powered_by_color,
-        button_size: widgetSettings.button_size,
-        button_position: widgetSettings.button_position
-      };
+      const { data: existingSettings } = await supabase
+        .from('global_widget_settings')
+        .select('id')
+        .single();
 
-      if (settingsId) {
-        // Update existing settings
+      let response;
+      if (existingSettings) {
         response = await supabase
           .from('global_widget_settings')
-          .update(settingsData)
-          .eq('id', settingsId);
+          .update({
+            header_color: widgetSettings.header_color,
+            header_text_color: widgetSettings.header_text_color,
+            button_color: widgetSettings.button_color,
+            powered_by_text: widgetSettings.powered_by_text,
+            powered_by_color: widgetSettings.powered_by_color,
+            button_size: widgetSettings.button_size,
+            button_position: widgetSettings.button_position,
+            updated_at: new Date().toISOString()
+          })
+          .eq('id', existingSettings.id);
       } else {
-        //
+        response = await supabase
+          .from('global_widget_settings')
+          .insert([{
+            header_color: widgetSettings.header_color,
+            header_text_color: widgetSettings.header_text_color,
+            button_color: widgetSettings.button_color,
+            powered_by_text: widgetSettings.powered_by_text,
+            powered_by_color: widgetSettings.powered_by_color,
+            button_size: widgetSettings.button_size,
+            button_position: widgetSettings.button_position
+          }]);
+      }
+
+      if (response.error) {
+        throw response.error;
+      }
+
+      alert('Settings saved successfully!');
+    } catch (error) {
+      console.error('Error saving settings:', error);
+      alert('Error saving settings. Please try again.');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  // Convert snake_case settings to camelCase for the AccessibilityWidget
+  const previewSettings = {
+    headerColor: widgetSettings.header_color,
+    headerTextColor: widgetSettings.header_text_color,
+    buttonColor: widgetSettings.button_color,
+    poweredByText: widgetSettings.powered_by_text,
+    poweredByColor: widgetSettings.powered_by_color,
+    buttonSize: widgetSettings.button_size,
+    buttonPosition: widgetSettings.button_position
+  };
+
+  return (
+    <>
+      <div className={styles.widgetCustomization}>
+        <div className={styles.settingsPanel}>
+          <div className={styles.settingsHeader}>
+            <h2>Widget Settings</h2>
+            <button 
+              className={`${styles.saveButton} ${saving ? styles.saving : ''}`}
+              onClick={handleSaveSettings}
+              disabled={saving}
+            >
+              {saving ? 'Saving...' : 'Save Settings'}
+            </button>
+          </div>
+
+          <div className={styles.tabs}>
+            <button
+              className={`${styles.tab} ${activeTab === 'header' ? styles.active : ''}`}
+              onClick={() => setActiveTab('header')}
+            >
+              Header
+            </button>
+            <button
+              className={`${styles.tab} ${activeTab === 'button' ? styles.active : ''}`}
+              onClick={() => setActiveTab('button')}
+            >
+              Button
+            </button>
+            <button
+              className={`${styles.tab} ${activeTab === 'branding' ? styles.active : ''}`}
+              onClick={() => setActiveTab('branding')}
+            >
+              Branding
+            </button>
+          </div>
+
+          <div className={styles.tabContent}>
+            {activeTab === 'header' && (
+              <>
+                <div className={styles.formGroup}>
+                  <label>Header Color</label>
+                  <input
+                    type="color"
+                    value={widgetSettings.header_color}
+                    onChange={(e) => handleSettingChange('header_color', e.target.value)}
+                  />
+                </div>
+                <div className={styles.formGroup}>
+                  <label>Header Text Color</label>
+                  <input
+                    type="color"
+                    value={widgetSettings.header_text_color}
+                    onChange={(e) => handleSettingChange('header_text_color', e.target.value)}
+                  />
+                </div>
+              </>
+            )}
+
+            {activeTab === 'button' && (
+              <>
+                <div className={styles.formGroup}>
+                  <label>Button Color</label>
+                  <input
+                    type="color"
+                    value={widgetSettings.button_color}
+                    onChange={(e) => handleSettingChange('button_color', e.target.value)}
+                  />
+                </div>
+                <div className={styles.formGroup}>
+                  <label>Button Size</label>
+                  <select
+                    value={widgetSettings.button_size}
+                    onChange={(e) => handleSettingChange('button_size', e.target.value)}
+                  >
+                    <option value="48px">Small</option>
+                    <option value="64px">Medium</option>
+                    <option value="80px">Large</option>
+                  </select>
+                </div>
+                <div className={styles.formGroup}>
+                  <label>Button Position</label>
+                  <select
+                    value={widgetSettings.button_position}
+                    onChange={(e) => handleSettingChange('button_position', e.target.value)}
+                  >
+                    <option value="bottom-right">Bottom Right</option>
+                    <option value="bottom-left">Bottom Left</option>
+                    <option value="top-right">Top Right</option>
+                    <option value="top-left">Top Left</option>
+                  </select>
+                </div>
+              </>
+            )}
+
+            {activeTab === 'branding' && (
+              <>
+                <div className={styles.formGroup}>
+                  <label>Powered By Text</label>
+                  <input
+                    type="text"
+                    value={widgetSettings.powered_by_text}
+                    onChange={(e) => handleSettingChange('powered_by_text', e.target.value)}
+                  />
+                </div>
+                <div className={styles.formGroup}>
+                  <label>Powered By Color</label>
+                  <input
+                    type="color"
+                    value={widgetSettings.powered_by_color}
+                    onChange={(e) => handleSettingChange('powered_by_color', e.target.value)}
+                  />
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+
+        <div className={styles.previewPanel}>
+          <h2>Preview</h2>
+          <div className={styles.previewContainer}>
+            <div className={styles.previewPlaceholder}>
+              Widget preview will appear in the bottom right corner of the page
+            </div>
+          </div>
+        </div>
+
+        <div className={styles.codeSection}>
+          <WidgetCodeSnippet />
+        </div>
+      </div>
+      
+      <div className={styles.widgetPreviewWrapper}>
+        <AccessibilityWidget settings={previewSettings} isPreview={true} />
+      </div>
+    </>
+  );
+};
+
+export default WidgetCustomization;
