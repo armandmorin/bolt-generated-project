@@ -6,16 +6,12 @@ const WidgetCodeSnippet = () => {
 
   const scriptCode = `<!-- Accessibility Widget -->
 <script>
-  // Widget settings
-  const supabaseUrl = "https://hkurtvvrgwlgpbyfbmup.supabase.co";
-  const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhrdXJ0dnZyZ3dsZ3BieWZibXVwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Mzc1NTkyOTksImV4cCI6MjA1MzEzNTI5OX0.T8kS-k8XIcTzAHiX7NWQQtJ6Nkf7OFOsUYsIFAiL37o";
-
-  // Load the widget script
-  const script = document.createElement('script');
-  script.src = "${window.location.origin}/widget/accessibility-widget.js";
-  script.setAttribute('data-supabase-url', supabaseUrl);
-  script.setAttribute('data-supabase-key', supabaseKey);
-  document.body.appendChild(script);
+  (function() {
+    const script = document.createElement('script');
+    script.src = "${window.location.origin}/widget/accessibility-widget.js";
+    script.async = true;
+    document.body.appendChild(script);
+  })();
 </script>`;
 
   const handleCopy = () => {
