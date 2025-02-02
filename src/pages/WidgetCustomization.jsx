@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import * as React from 'react';
 import { getGlobalSettings, updateGlobalSettings } from '../lib/setupGlobalSettings';
 import AccessibilityWidget from '../components/AccessibilityWidget';
 import WidgetCodeSnippet from '../components/WidgetCodeSnippet';
@@ -14,22 +14,27 @@ const defaultSettings = {
   button_position: 'bottom-right'
 };
 
-export default function WidgetCustomization() {
-  const [widgetSettings, setWidgetSettings] = useState(defaultSettings);
-  const [activeTab, setActiveTab] = useState('header');
-  const [saving, setSaving] = useState(false);
+function WidgetCustomization() {
+  const [widgetSettings, setWidgetSettings] = React.useState(defaultSettings);
+  const [activeTab, setActiveTab] = React.useState('header');
+  const [saving, setSaving] = React.useState(false);
 
-  useEffect(() => {
+  React.useEffect(() => {
     const loadSettings = async () => {
-      const settings = await getGlobalSettings();
-      if (settings) {
-        setWidgetSettings(settings);
+      try {
+        const settings = await getGlobalSettings();
+        if (settings) {
+          console.log('Loaded settings:', settings);
+          setWidgetSettings(settings);
+        }
+      } catch (error) {
+        console.error('Error loading settings:', error);
       }
     };
     loadSettings();
   }, []);
 
-  useEffect(() => {
+  React.useEffect(() => {
     localStorage.setItem('widgetSettings', JSON.stringify(widgetSettings));
   }, [widgetSettings]);
 
@@ -43,6 +48,7 @@ export default function WidgetCustomization() {
   const handleSaveSettings = async () => {
     setSaving(true);
     try {
+      console.log('Saving settings:', widgetSettings);
       const success = await updateGlobalSettings(widgetSettings);
       if (success) {
         alert('Settings saved successfully!');
@@ -201,3 +207,5 @@ export default function WidgetCustomization() {
     </div>
   );
 }
+
+export default WidgetCustomization;

@@ -53,10 +53,10 @@ export async function updateGlobalSettings(settings) {
       button_position: settings.button_position
     };
 
-    // Save to localStorage first
+    // Save to localStorage
     localStorage.setItem(STORAGE_KEY, JSON.stringify(localSettings));
 
-    // Then save to database
+    // Save to database
     const { data: existingSettings } = await supabase
       .from('global_widget_settings')
       .select('id')
@@ -75,8 +75,7 @@ export async function updateGlobalSettings(settings) {
     }
 
     if (result.error) {
-      console.error('Database save error:', result.error);
-      return false;
+      throw result.error;
     }
 
     return true;
@@ -88,11 +87,7 @@ export async function updateGlobalSettings(settings) {
 
 export async function getGlobalSettings() {
   try {
-    // Try to get settings from localStorage first
-    const localSettings = localStorage.getItem(STORAGE_KEY);
-    const parsedLocalSettings = localSettings ? JSON.parse(localSettings) : null;
-
-    // Then get database settings
+    // Get database settings first
     const { data: dbSettings, error } = await supabase
       .from('global_widget_settings')
       .select('*')
@@ -102,15 +97,28 @@ export async function getGlobalSettings() {
       console.error('Database fetch error:', error);
     }
 
-    // Combine settings with proper fallbacks
+    // Get local settings
+    const localSettings = localStorage.getItem(STORAGE_KEY);
+    const parsedLocalSettings = localSettings ? JSON.parse(localSettings) : null;
+
+    // Default settings as fallback
+    const defaultSettings = {
+      header_color: '#60a5fa',
+      header_text_color: '#1e293b',
+      button_color: '#2563eb',
+      powered_by_text: 'Powered by Accessibility Widget',
+      powered_by_color: '#64748b',
+      button_size: '64px',
+      button_position: 'bottom-right'
+    };
+
+    // Combine settings with priority: DB > localStorage > defaults
     return {
-      header_color: parsedLocalSettings?.header_color || dbSettings?.header_color || '#60a5fa',
-      header_text_color: parsedLocalSettings?.header_text_color || dbSettings?.header_text_color || '#1e293b',
-      button_color: parsedLocalSettings?.button_color || dbSettings?.button_color || '#2563eb',
-      powered_by_text: parsedLocalSettings?.powered_by_text || dbSettings?.powered_by_text || 'Powered by Accessibility Widget',
-      powered_by_color: parsedLocalSettings?.powered_by_color || dbSettings?.powered_by_color || '#64748b',
-      button_size: parsedLocalSettings?.button_size || '64px',
-      button_position: parsedLocalSettings?.button_position || 'bottom-right'
+      ...defaultSettings,
+      ...parsedLocalSettings,
+      ...dbSettings,
+      button_size: parsedLocalSettings?.button_size || defaultSettings.button_size,
+      button_position: parsedLocalSettings?.button_position || defaultSettings.button_position
     };
   } catch (error) {
     console.error('Error fetching settings:', error);
