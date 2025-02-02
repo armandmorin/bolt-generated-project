@@ -14,7 +14,6 @@ const WidgetCustomization = () => {
     button_size: '64px',
     button_position: 'bottom-right'
   });
-
   const [activeTab, setActiveTab] = useState('header');
   const [saving, setSaving] = useState(false);
   const [settingsId, setSettingsId] = useState(null);
@@ -88,7 +87,6 @@ const WidgetCustomization = () => {
     setSaving(true);
     try {
       let response;
-      
       const settingsData = {
         header_color: widgetSettings.header_color,
         header_text_color: widgetSettings.header_text_color,
@@ -100,21 +98,24 @@ const WidgetCustomization = () => {
       };
 
       if (settingsId) {
-        // Update existing settings
         response = await supabase
           .from('global_widget_settings')
           .update(settingsData)
           .eq('id', settingsId);
       } else {
-        // Create new settings
         response = await supabase
           .from('global_widget_settings')
           .insert([settingsData])
           .select()
           .single();
+        if (!response.error) {
+          setSettingsId(response.data.id);
+        }
       }
 
       if (response.error) throw response.error;
+      // Save preview settings locally as fallback for widget preview
+      localStorage.setItem('widgetPreview', JSON.stringify(settingsData));
       alert('Settings saved successfully!');
     } catch (error) {
       console.error('Error saving settings:', error);
