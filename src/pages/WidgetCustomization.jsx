@@ -1,42 +1,46 @@
 import * as React from 'react';
-import { getGlobalSettings, updateGlobalSettings } from '../lib/setupGlobalSettings';
+import { supabase } from '../lib/supabase';
 import AccessibilityWidget from '../components/AccessibilityWidget';
 import WidgetCodeSnippet from '../components/WidgetCodeSnippet';
 import styles from '../styles/widgetCustomization.module.css';
 
-const defaultSettings = {
-  header_color: '#60a5fa',
-  header_text_color: '#1e293b',
-  button_color: '#2563eb',
-  powered_by_text: 'Powered by Accessibility Widget',
-  powered_by_color: '#64748b',
-  button_size: '64px',
-  button_position: 'bottom-right'
-};
-
 function WidgetCustomization() {
-  const [widgetSettings, setWidgetSettings] = React.useState(defaultSettings);
+  const [widgetSettings, setWidgetSettings] = React.useState({
+    header_color: '',
+    header_text_color: '',
+    button_color: '',
+    powered_by_text: '',
+    powered_by_color: '',
+    button_size: '64px',
+    button_position: 'bottom-right'
+  });
   const [activeTab, setActiveTab] = React.useState('header');
   const [saving, setSaving] = React.useState(false);
 
+  // Load settings on mount
   React.useEffect(() => {
-    const loadSettings = async () => {
-      try {
-        const settings = await getGlobalSettings();
-        if (settings) {
-          console.log('Loaded settings:', settings);
-          setWidgetSettings(settings);
-        }
-      } catch (error) {
+    async function loadSettings() {
+      const { data, error } = await supabase
+        .from('global_widget_settings')
+        .select('*')
+        .single();
+
+      if (error) {
         console.error('Error loading settings:', error);
+        return;
       }
-    };
+
+      if (data) {
+        console.log('Loaded settings:', data);
+        setWidgetSettings(prev => ({
+          ...prev,
+          ...data
+        }));
+      }
+    }
+
     loadSettings();
   }, []);
-
-  React.useEffect(() => {
-    localStorage.setItem('widgetSettings', JSON.stringify(widgetSettings));
-  }, [widgetSettings]);
 
   const handleSettingChange = (setting, value) => {
     setWidgetSettings(prev => ({
@@ -45,32 +49,57 @@ function WidgetCustomization() {
     }));
   };
 
-  const handleSaveSettings = async () => {
+  const handleSubmit = async (e) => {
+    e.preventDefault();
     setSaving(true);
+
     try {
-      console.log('Saving settings:', widgetSettings);
-      const success = await updateGlobalSettings(widgetSettings);
-      if (success) {
-        alert('Settings saved successfully!');
+      const { data: existingSettings } = await supabase
+        .from('global_widget_settings')
+        .select('id')
+        .single();
+
+      const dbSettings = {
+        header_color: widgetSettings.header_color,
+        header_text_color: widgetSettings.header_text_color,
+        button_color: widgetSettings.button_color,
+        powered_by_text: widgetSettings.powered_by_text,
+        powered_by_color: widgetSettings.powered_by_color
+      };
+
+      if (existingSettings) {
+        const { error } = await supabase
+          .from('global_widget_settings')
+          .update(dbSettings)
+          .eq('id', existingSettings.id);
+
+        if (error) throw error;
       } else {
-        alert('Failed to save settings. Please try again.');
+        const { error } = await supabase
+          .from('global_widget_settings')
+          .insert([dbSettings]);
+
+        if (error) throw error;
       }
+
+      alert('Settings saved successfully!');
+      window.location.reload(); // Refresh to ensure we have latest data
     } catch (error) {
       console.error('Error saving settings:', error);
-      alert(`Error saving settings: ${error.message}`);
+      alert('Failed to save settings. Please try again.');
     } finally {
       setSaving(false);
     }
   };
 
   return (
-    <div className={styles.widgetCustomization}>
+    <form onSubmit={handleSubmit} className={styles.widgetCustomization}>
       <div className={styles.settingsPanel}>
         <div className={styles.settingsHeader}>
           <h2>Widget Settings</h2>
           <button 
+            type="submit"
             className={`${styles.saveButton} ${saving ? styles.saving : ''}`}
-            onClick={handleSaveSettings}
             disabled={saving}
           >
             {saving ? 'Saving...' : 'Save Changes'}
@@ -79,18 +108,21 @@ function WidgetCustomization() {
 
         <div className={styles.tabs}>
           <button
+            type="button"
             className={`${styles.tab} ${activeTab === 'header' ? styles.active : ''}`}
             onClick={() => setActiveTab('header')}
           >
             Header
           </button>
           <button
+            type="button"
             className={`${styles.tab} ${activeTab === 'button' ? styles.active : ''}`}
             onClick={() => setActiveTab('button')}
           >
             Button
           </button>
           <button
+            type="button"
             className={`${styles.tab} ${activeTab === 'footer' ? styles.active : ''}`}
             onClick={() => setActiveTab('footer')}
           >
@@ -204,7 +236,7 @@ function WidgetCustomization() {
         <h2>Installation Code</h2>
         <WidgetCodeSnippet />
       </div>
-    </div>
+    </form>
   );
 }
 
