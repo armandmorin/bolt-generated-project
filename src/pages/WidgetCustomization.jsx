@@ -86,17 +86,17 @@ const WidgetCustomization = () => {
   const handleSaveSettings = async () => {
     setSaving(true);
     try {
-      let response;
+      // Exclude the 'button_position' column for saving to Supabase since it is missing.
       const settingsData = {
         header_color: widgetSettings.header_color,
         header_text_color: widgetSettings.header_text_color,
         button_color: widgetSettings.button_color,
         powered_by_text: widgetSettings.powered_by_text,
         powered_by_color: widgetSettings.powered_by_color,
-        button_size: widgetSettings.button_size,
-        button_position: widgetSettings.button_position
+        button_size: widgetSettings.button_size
       };
 
+      let response;
       if (settingsId) {
         response = await supabase
           .from('global_widget_settings')
@@ -115,7 +115,7 @@ const WidgetCustomization = () => {
 
       if (response.error) throw response.error;
       // Save preview settings locally as fallback for widget preview
-      localStorage.setItem('widgetPreview', JSON.stringify(settingsData));
+      localStorage.setItem('widgetPreview', JSON.stringify(widgetSettings));
       alert('Settings saved successfully!');
     } catch (error) {
       console.error('Error saving settings:', error);
