@@ -23,6 +23,39 @@ const WidgetCustomization = () => {
     setupRealtimeSubscription();
   }, []);
 
+  // Fallback: If DB retrieval fails, use localStorage.
+  const loadSettings = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('global_widget_settings')
+        .select('*')
+        .single();
+
+      if (error || !data) {
+        throw error;
+      }
+
+      setWidgetSettings({
+        header_color: data.header_color || '#60a5fa',
+        header_text_color: data.header_text_color || '#1e293b',
+        button_color: data.button_color || '#2563eb',
+        powered_by_text: data.powered_by_text || 'Powered by Accessibility Widget',
+        powered_by_color: data.powered_by_color || '#64748b',
+        // Retain local preview values for missing columns:
+        button_size: widgetSettings.button_size,
+        button_position: widgetSettings.button_position
+      });
+      setSettingsId(data.id);
+    } catch (error) {
+      const localPreview = localStorage.getItem('widgetPreview');
+      if (localPreview) {
+        setWidgetSettings(JSON.parse(localPreview));
+      } else {
+        alert('Error loading settings from DB, using defaults.');
+      }
+    }
+  };
+
   const setupRealtimeSubscription = () => {
     const subscription = supabase
       .channel('global_widget_settings_changes')
@@ -47,35 +80,6 @@ const WidgetCustomization = () => {
     };
   };
 
-  const loadSettings = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('global_widget_settings')
-        .select('*')
-        .single();
-
-      if (error && error.code !== 'PGRST116') {
-        throw error;
-      }
-
-      if (data) {
-        setWidgetSettings({
-          header_color: data.header_color || '#60a5fa',
-          header_text_color: data.header_text_color || '#1e293b',
-          button_color: data.button_color || '#2563eb',
-          powered_by_text: data.powered_by_text || 'Powered by Accessibility Widget',
-          powered_by_color: data.powered_by_color || '#64748b',
-          button_size: widgetSettings.button_size,
-          button_position: widgetSettings.button_position
-        });
-        setSettingsId(data.id);
-      }
-    } catch (error) {
-      console.error('Error loading settings:', error);
-      alert('Error loading settings. Using defaults.');
-    }
-  };
-
   const handleSettingChange = (setting, value) => {
     setWidgetSettings(prev => ({
       ...prev,
@@ -86,7 +90,7 @@ const WidgetCustomization = () => {
   const handleSaveSettings = async () => {
     setSaving(true);
     try {
-      // Exclude the 'button_size' and 'button_position' columns since they are missing
+      // Exclude missing columns from DB update
       const settingsData = {
         header_color: widgetSettings.header_color,
         header_text_color: widgetSettings.header_text_color,
@@ -112,7 +116,8 @@ const WidgetCustomization = () => {
         }
       }
 
-      if (response.error) throw response.error;      
+      if (response.error) throw response.error;
+      // Save complete settings to localStorage for preview fallback.
       localStorage.setItem('widgetPreview', JSON.stringify(widgetSettings));
       alert('Settings saved successfully!');
     } catch (error) {
