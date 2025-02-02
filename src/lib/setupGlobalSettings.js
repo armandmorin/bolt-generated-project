@@ -16,13 +16,13 @@ export async function setupGlobalSettings() {
     // If no settings exist, create default settings
     if (!existingSettings) {
       const defaultSettings = {
-        headerColor: '#60a5fa',
-        headerTextColor: '#1e293b',
-        buttonColor: '#2563eb',
-        poweredByText: 'Powered by Accessibility Widget',
-        poweredByColor: '#64748b',
-        buttonSize: '64px',
-        buttonPosition: 'bottom-right'
+        header_color: '#60a5fa',
+        header_text_color: '#1e293b',
+        button_color: '#2563eb',
+        powered_by_text: 'Powered by Accessibility Widget',
+        powered_by_color: '#64748b',
+        button_size: '64px',
+        button_position: 'bottom-right'
       };
 
       const { error: insertError } = await supabase
@@ -47,7 +47,10 @@ export async function setupGlobalSettings() {
         },
         (payload) => {
           console.log('Settings updated:', payload);
-          // You can add any additional handling for settings changes here
+          // Update localStorage when DB changes
+          if (payload.new) {
+            localStorage.setItem('widgetPreview', JSON.stringify(payload.new));
+          }
         }
       )
       .subscribe();
@@ -62,12 +65,28 @@ export async function setupGlobalSettings() {
 
 export async function updateGlobalSettings(settings) {
   try {
+    // Ensure only allowed columns are updated
+    const allowedSettings = {
+      header_color: settings.header_color,
+      header_text_color: settings.header_text_color,
+      button_color: settings.button_color,
+      powered_by_text: settings.powered_by_text,
+      powered_by_color: settings.powered_by_color
+    };
+
     const { error } = await supabase
       .from('global_widget_settings')
-      .update(settings)
+      .update(allowedSettings)
       .eq('id', settings.id);
 
     if (error) throw error;
+    
+    // Update localStorage
+    localStorage.setItem('widgetPreview', JSON.stringify({
+      ...settings,
+      ...allowedSettings
+    }));
+
     return true;
   } catch (error) {
     console.error('Error updating settings:', error);
@@ -77,48 +96,23 @@ export async function updateGlobalSettings(settings) {
 
 export async function getGlobalSettings() {
   try {
-    const { data, error } = await supabase
+    // First try to get from DB
+    const { data: dbData, error: dbError } = await supabase
       .from('global_widget_settings')
       .select('*')
       .single();
 
-    if (error) throw error;
-    return data;
+    // If DB retrieval fails, check localStorage
+    if (dbError) {
+      const localSettings = localStorage.getItem('widgetPreview');
+      if (localSettings) {
+        return JSON.parse(localSettings);
+      }
+    }
+
+    return dbData || null;
   } catch (error) {
     console.error('Error fetching settings:', error);
     return null;
   }
 }
-
-// SQL for creating the global_widget_settings table:
-/*
-create table if not exists global_widget_settings (
-  id uuid default uuid_generate_v4() primary key,
-  header_color varchar(255) default '#60a5fa',
-  header_text_color varchar(255) default '#1e293b',
-  button_color varchar(255) default '#2563eb',
-  powered_by_text varchar(255) default 'Powered by Accessibility Widget',
-  powered_by_color varchar(255) default '#64748b',
-  button_size varchar(255) default '64px',
-  button_position varchar(255) default 'bottom-right',
-  created_at timestamp with time zone default timezone('utc'::text, now()),
-  updated_at timestamp with time zone default timezone('utc'::text, now())
-);
-
--- Enable realtime
-alter publication supabase_realtime add table global_widget_settings;
-
--- Create trigger for updated_at
-create or replace function update_updated_at_column()
-returns trigger as $$
-begin
-    new.updated_at = now();
-    return new;
-end;
-$$ language 'plpgsql';
-
-create trigger update_global_widget_settings_updated_at
-    before update on global_widget_settings
-    for each row
-    execute procedure update_updated_at_column();
-*/
