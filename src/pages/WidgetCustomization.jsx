@@ -65,8 +65,8 @@ const WidgetCustomization = () => {
           button_color: data.button_color || '#2563eb',
           powered_by_text: data.powered_by_text || 'Powered by Accessibility Widget',
           powered_by_color: data.powered_by_color || '#64748b',
-          button_size: data.button_size || '64px',
-          button_position: data.button_position || 'bottom-right'
+          button_size: widgetSettings.button_size,
+          button_position: widgetSettings.button_position
         });
         setSettingsId(data.id);
       }
@@ -86,14 +86,13 @@ const WidgetCustomization = () => {
   const handleSaveSettings = async () => {
     setSaving(true);
     try {
-      // Exclude the 'button_position' column for saving to Supabase since it is missing.
+      // Exclude the 'button_size' and 'button_position' columns since they are missing
       const settingsData = {
         header_color: widgetSettings.header_color,
         header_text_color: widgetSettings.header_text_color,
         button_color: widgetSettings.button_color,
         powered_by_text: widgetSettings.powered_by_text,
-        powered_by_color: widgetSettings.powered_by_color,
-        button_size: widgetSettings.button_size
+        powered_by_color: widgetSettings.powered_by_color
       };
 
       let response;
@@ -113,8 +112,7 @@ const WidgetCustomization = () => {
         }
       }
 
-      if (response.error) throw response.error;
-      // Save preview settings locally as fallback for widget preview
+      if (response.error) throw response.error;      
       localStorage.setItem('widgetPreview', JSON.stringify(widgetSettings));
       alert('Settings saved successfully!');
     } catch (error) {
