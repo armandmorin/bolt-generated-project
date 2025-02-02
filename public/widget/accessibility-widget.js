@@ -164,7 +164,7 @@
               </button>
               <button class="feature-button" data-feature="clickToSpeech">
                 <span class="feature-icon">🎧</span>
-                <span class="feature-text">Turn on Click to Speech</span>
+                <span class="feature-text">Click to Speech</span>
               </button>
               <button class="feature-button" data-feature="fontScaling">
                 <span class="feature-icon">T↕</span>
@@ -177,6 +177,62 @@
               <button class="feature-button" data-feature="highlightTitles">
                 <span class="feature-icon">H</span>
                 <span class="feature-text">Highlight Titles</span>
+              </button>
+            </div>
+          </div>
+
+          <div class="widget-section">
+            <h4>Color Adjustments</h4>
+            <div class="feature-grid">
+              <button class="feature-button" data-feature="highContrast">
+                <span class="feature-icon">◐</span>
+                <span class="feature-text">High Contrast</span>
+              </button>
+              <button class="feature-button" data-feature="lightContrast">
+                <span class="feature-icon">☀</span>
+                <span class="feature-text">Light Contrast</span>
+              </button>
+              <button class="feature-button" data-feature="darkContrast">
+                <span class="feature-icon">🌙</span>
+                <span class="feature-text">Dark Contrast</span>
+              </button>
+              <button class="feature-button" data-feature="monochrome">
+                <span class="feature-icon">◑</span>
+                <span class="feature-text">Monochrome</span>
+              </button>
+              <button class="feature-button" data-feature="highSaturation">
+                <span class="feature-icon">⚛</span>
+                <span class="feature-text">High Saturation</span>
+              </button>
+              <button class="feature-button" data-feature="lowSaturation">
+                <span class="feature-icon">💧</span>
+                <span class="feature-text">Low Saturation</span>
+              </button>
+            </div>
+          </div>
+
+          <div class="widget-section">
+            <h4>Orientation Adjustments</h4>
+            <div class="feature-grid">
+              <button class="feature-button" data-feature="muteSounds">
+                <span class="feature-icon">🔇</span>
+                <span class="feature-text">Mute Sounds</span>
+              </button>
+              <button class="feature-button" data-feature="hideImages">
+                <span class="feature-icon">🖼</span>
+                <span class="feature-text">Hide Images</span>
+              </button>
+              <button class="feature-button" data-feature="stopAnimations">
+                <span class="feature-icon">⛔</span>
+                <span class="feature-text">Stop Animations</span>
+              </button>
+              <button class="feature-button" data-feature="highlightHover">
+                <span class="feature-icon">🖱</span>
+                <span class="feature-text">Highlight Hover</span>
+              </button>
+              <button class="feature-button" data-feature="bigCursor">
+                <span class="feature-icon">➜</span>
+                <span class="feature-text">Big Cursor</span>
               </button>
             </div>
           </div>
@@ -228,7 +284,7 @@
         break;
       case 'readAllText':
         if (isActive) {
-          const text = document.body.textContent;
+          const text = document.body.textContent || '';
           const utterance = new SpeechSynthesisUtterance(text);
           window.speechSynthesis.speak(utterance);
         } else {
@@ -257,6 +313,71 @@
         headings.forEach(heading => {
           heading.style.backgroundColor = isActive ? '#e3f2fd' : '';
         });
+        break;
+      case 'highContrast':
+        document.body.style.filter = isActive ? 'contrast(150%)' : '';
+        break;
+      case 'lightContrast':
+        if (isActive) {
+          document.body.style.backgroundColor = '#ffffff';
+          document.body.style.color = '#000000';
+        } else {
+          document.body.style.backgroundColor = '';
+          document.body.style.color = '';
+        }
+        break;
+      case 'darkContrast':
+        if (isActive) {
+          document.body.style.backgroundColor = '#000000';
+          document.body.style.color = '#ffffff';
+        } else {
+          document.body.style.backgroundColor = '';
+          document.body.style.color = '';
+        }
+        break;
+      case 'monochrome':
+        document.body.style.filter = isActive ? 'grayscale(100%)' : '';
+        break;
+      case 'highSaturation':
+        document.body.style.filter = isActive ? 'saturate(200%)' : '';
+        break;
+      case 'lowSaturation':
+        document.body.style.filter = isActive ? 'saturate(50%)' : '';
+        break;
+      case 'muteSounds':
+        const mediaElements = document.querySelectorAll('video, audio');
+        mediaElements.forEach(element => {
+          element.muted = isActive;
+        });
+        break;
+      case 'hideImages':
+        const images = document.querySelectorAll('img');
+        images.forEach(img => {
+          img.style.display = isActive ? 'none' : '';
+        });
+        break;
+      case 'stopAnimations':
+        const style = document.createElement('style');
+        style.id = 'stop-animations';
+        style.textContent = '* { animation: none !important; transition: none !important; }';
+        if (isActive) {
+          document.head.appendChild(style);
+        } else {
+          document.getElementById('stop-animations')?.remove();
+        }
+        break;
+      case 'highlightHover':
+        if (isActive) {
+          const style = document.createElement('style');
+          style.id = 'highlight-hover';
+          style.textContent = '*:hover { outline: 2px solid #2563eb !important; }';
+          document.head.appendChild(style);
+        } else {
+          document.getElementById('highlight-hover')?.remove();
+        }
+        break;
+      case 'bigCursor':
+        document.body.style.cursor = isActive ? 'url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'32\' height=\'32\' viewBox=\'0 0 24 24\'%3E%3Cpath fill=\'%23000\' d=\'M7,2l12,11.2l-5.8,0.5l3.3,7.3l-2.2,1l-3.2-7.4L7,18.5V2\'/%3E%3C/svg%3E") 4 4, auto' : '';
         break;
     }
   };
