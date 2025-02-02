@@ -1,11 +1,7 @@
 (function() {
-  // Get configuration from script tag
-  const currentScript = document.currentScript;
-  const supabaseUrl = currentScript?.getAttribute('data-supabase-url');
-  const supabaseKey = currentScript?.getAttribute('data-supabase-key');
-
   // Create widget immediately with default settings
   const createWidget = () => {
+    // Create container
     const container = document.createElement('div');
     container.className = 'accessibility-widget-container';
     container.style.position = 'fixed';
@@ -143,6 +139,7 @@
     `;
     document.head.appendChild(styles);
 
+    // Add HTML content
     container.innerHTML = `
       <button class="accessibility-widget-button" aria-label="Accessibility Options">
         <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
@@ -190,57 +187,117 @@
       </div>
     `;
 
-    // Add event listeners
-    const button = container.querySelector('.accessibility-widget-button');
-    const panel = container.querySelector('.accessibility-widget-panel');
-    const featureButtons = container.querySelectorAll('.feature-button');
+    // Add event listeners after the container is added to the DOM
+    setTimeout(() => {
+      const button = container.querySelector('.accessibility-widget-button');
+      const panel = container.querySelector('.accessibility-widget-panel');
+      const featureButtons = container.querySelectorAll('.feature-button');
 
-    button.addEventListener('click', () => {
-      panel.classList.toggle('open');
-    });
+      if (button && panel) {
+        button.addEventListener('click', (e) => {
+          e.stopPropagation();
+          panel.classList.toggle('open');
+        });
 
-    document.addEventListener('click', (e) => {
-      if (!container.contains(e.target)) {
-        panel.classList.remove('open');
+        document.addEventListener('click', (e) => {
+          if (!container.contains(e.target)) {
+            panel.classList.remove('open');
+          }
+        });
       }
-    });
 
-    featureButtons.forEach(btn => {
-      btn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        btn.classList.toggle('active');
-        const feature = btn.getAttribute('data-feature');
-        handleFeature(feature, btn.classList.contains('active'));
-      });
-    });
+      if (featureButtons.length > 0) {
+        featureButtons.forEach(btn => {
+          btn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            btn.classList.toggle('active');
+            const feature = btn.getAttribute('data-feature');
+            handleFeature(feature, btn.classList.contains('active'));
+          });
+        });
+      }
+    }, 0);
 
     return container;
   };
 
-  // Initialize widget immediately
-  const widget = createWidget();
-  document.body.appendChild(widget);
-
-  // Fetch settings after widget is created
-  const fetchSettings = async () => {
-    try {
-      if (!supabaseUrl || !supabaseKey) return;
-
-      const response = await fetch(`${supabaseUrl}/rest/v1/global_widget_settings?select=*`, {
-        headers: {
-          'apikey': supabaseKey,
-          'Authorization': `Bearer ${supabaseKey}`
+  const handleFeature = (feature, isActive) => {
+    switch (feature) {
+      case 'readableFont':
+        document.body.style.fontFamily = isActive ? 'Arial, sans-serif' : '';
+        break;
+      case 'readAllText':
+        if (isActive) {
+          const text = document.body.textContent;
+          const utterance = new SpeechSynthesisUtterance(text);
+          window.speechSynthesis.speak(utterance);
+        } else {
+          window.speechSynthesis.cancel();
         }
-      });
+        break;
+      case 'clickToSpeech':
+        if (isActive) {
+          document.body.addEventListener('click', handleClickToSpeech);
+        } else {
+          document.body.removeEventListener('click', handleClickToSpeech);
+        }
+        break;
+      case 'fontScaling':
+        document.body.style.fontSize = isActive ? '120%' : '';
+        break;
+      case 'highlightLinks':
+        const links = document.querySelectorAll('a');
+        links.forEach(link => {
+          link.style.backgroundColor = isActive ? '#ffeb3b' : '';
+          link.style.color = isActive ? '#000' : '';
+        });
+        break;
+      case 'highlightTitles':
+        const headings = document.querySelectorAll('h1, h2, h3, h4, h5, h6');
+        headings.forEach(heading => {
+          heading.style.backgroundColor = isActive ? '#e3f2fd' : '';
+        });
+        break;
+    }
+  };
 
-      if (!response.ok) return;
-      
-      const data = await response.json();
-      if (data?.[0]) {
-        updateWidgetStyles(data[0]);
+  const handleClickToSpeech = (e) => {
+    if (e.target.textContent) {
+      const utterance = new SpeechSynthesisUtterance(e.target.textContent);
+      window.speechSynthesis.speak(utterance);
+    }
+  };
+
+  // Initialize widget
+  const init = async () => {
+    // Create and append widget first
+    const widget = createWidget();
+    document.body.appendChild(widget);
+
+    // Get configuration from script tag
+    const currentScript = document.currentScript;
+    const supabaseUrl = currentScript?.getAttribute('data-supabase-url');
+    const supabaseKey = currentScript?.getAttribute('data-supabase-key');
+
+    // Fetch settings if credentials are available
+    if (supabaseUrl && supabaseKey) {
+      try {
+        const response = await fetch(`${supabaseUrl}/rest/v1/global_widget_settings?select=*`, {
+          headers: {
+            'apikey': supabaseKey,
+            'Authorization': `Bearer ${supabaseKey}`
+          }
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          if (data?.[0]) {
+            updateWidgetStyles(data[0]);
+          }
+        }
+      } catch (error) {
+        console.warn('Error fetching widget settings:', error);
       }
-    } catch (error) {
-      console.warn('Error fetching widget settings:', error);
     }
   };
 
@@ -276,6 +333,6 @@
     }
   };
 
-  // Start fetching settings
-  fetchSettings();
+  // Start initialization
+  init();
 })();
