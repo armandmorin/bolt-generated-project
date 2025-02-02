@@ -110,13 +110,11 @@ const WidgetCustomization = () => {
         response = await supabase
           .from('global_widget_settings')
           .insert([settingsData])
-          .select();
+          .select()
+          .single();
       }
 
-      if (response.error) {
-        throw response.error;
-      }
-
+      if (response.error) throw response.error;
       alert('Settings saved successfully!');
     } catch (error) {
       console.error('Error saving settings:', error);
@@ -251,7 +249,7 @@ const WidgetCustomization = () => {
           </div>
           <div className={styles.previewPlaceholder}>
             This is a preview of how the widget will appear on your website. 
-            The widget is fully functional - try clicking the button to see the panel!
+            The widget is fully functional in this preview.
           </div>
         </div>
       </div>
