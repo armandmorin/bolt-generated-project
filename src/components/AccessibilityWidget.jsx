@@ -131,7 +131,6 @@ const AccessibilityWidget = ({ settings, isPreview = false }) => {
     }
   };
 
-  // Close widget when clicking outside
   useEffect(() => {
     const handleClickOutside = (e) => {
       if (!e.target.closest(`.${styles.widgetContainer}`)) {
