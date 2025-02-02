@@ -19,33 +19,15 @@
   <p>The widget should appear in the bottom-right corner.</p>
 
   <!-- Widget Installation Code -->
+  <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
   <script>
-    // Get client key from URL parameter
-    const urlParams = new URLSearchParams(window.location.search);
-    const clientKey = urlParams.get('key');
-
-    if (clientKey) {
-      // Widget settings
-      const supabaseUrl = "https://hkurtvvrgwlgpbyfbmup.supabase.co";
-      const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhrdXJ0dnZyZ3dsZ3BieWZibXVwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Mzc1NTkyOTksImV4cCI6MjA1MzEzNTI5OX0.T8kS-k8XIcTzAHiX7NWQQtJ6Nkf7OFOsUYsIFAiL37o";
-
-      // Load the widget script
+    (function() {
       const script = document.createElement('script');
-      script.src = '/widget/accessibility-widget.js';
-      script.setAttribute('data-client-key', clientKey);
-      script.setAttribute('data-supabase-url', supabaseUrl);
-      script.setAttribute('data-supabase-key', supabaseKey);
+      script.src = "/widget/accessibility-widget.js";
+      script.setAttribute('data-supabase-url', 'https://hkurtvvrgwlgpbyfbmup.supabase.co');
+      script.setAttribute('data-supabase-key', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhrdXJ0dnZyZ3dsZ3BieWZibXVwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Mzc1NTkyOTksImV4cCI6MjA1MzEzNTI5OX0.T8kS-k8XIcTzAHiX7NWQQtJ6Nkf7OFOsUYsIFAiL37o');
       document.body.appendChild(script);
-
-      // Add debug information
-      console.log('Widget configuration:', {
-        clientKey,
-        supabaseUrl,
-        scriptSrc: script.src
-      });
-    } else {
-      document.body.innerHTML += '<p style="color: red;">Please add a client key to the URL: ?key=YOUR_CLIENT_KEY</p>';
-    }
+    })();
   </script>
 </body>
 </html>
