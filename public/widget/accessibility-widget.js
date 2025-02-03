@@ -1,8 +1,9 @@
 (function() {
-  // Create widget immediately with default settings
   const createWidget = () => {
-    // Existing createWidget function remains the same
-    // ...
+    // Create widget container
+    const container = document.createElement('div');
+    container.id = 'accessibility-widget-container';
+    return container;
   };
 
   const init = async () => {
@@ -14,12 +15,6 @@
     const currentScript = document.currentScript;
     const supabaseUrl = currentScript?.getAttribute('data-supabase-url');
     const supabaseKey = currentScript?.getAttribute('data-supabase-key');
-
-    // Fetch settings from localStorage first
-    const localSettings = localStorage.getItem('widgetPreview');
-    if (localSettings) {
-      updateWidgetStyles(JSON.parse(localSettings));
-    }
 
     // Fetch settings if credentials are available
     if (supabaseUrl && supabaseKey) {
@@ -35,8 +30,6 @@
           const data = await response.json();
           if (data?.[0]) {
             updateWidgetStyles(data[0]);
-            // Update localStorage for future use
-            localStorage.setItem('widgetPreview', JSON.stringify(data[0]));
           }
         }
       } catch (error) {
@@ -44,9 +37,6 @@
       }
     }
   };
-
-  // Rest of the script remains the same
-  // ...
 
   // Start initialization
   init();

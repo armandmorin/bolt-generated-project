@@ -1,23 +1,22 @@
 .widgetContainer {
   position: relative;
   z-index: 99999;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 }
 
 .widgetToggle {
-  width: 64px;
-  height: 64px;
-  padding: 0;
-  border: none;
-  border-radius: 50%;
-  background-color: #2563eb;
-  color: white;
-  cursor: pointer;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
-  transition: transform 0.3s ease;
   display: flex;
   align-items: center;
   justify-content: center;
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  border: none;
+  cursor: pointer;
+  transition: transform 0.2s ease;
+  padding: 0;
+  background-color: #2563eb;
+  color: white;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
 }
 
 .widgetToggle:hover {
@@ -33,7 +32,6 @@
   border-radius: 12px;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
   display: none;
-  overflow: hidden;
   max-height: 80vh;
   overflow-y: auto;
 }
@@ -45,7 +43,6 @@
 .widgetHeader {
   padding: 16px;
   background: #60a5fa;
-  color: #1e293b;
   position: sticky;
   top: 0;
   z-index: 1;
@@ -59,21 +56,6 @@
 
 .widgetBody {
   padding: 16px;
-}
-
-.widgetSection {
-  margin-bottom: 24px;
-}
-
-.widgetSection:last-child {
-  margin-bottom: 0;
-}
-
-.widgetSection h4 {
-  margin: 0 0 12px 0;
-  font-size: 14px;
-  font-weight: 600;
-  color: #1e293b;
 }
 
 .featureGrid {
@@ -101,12 +83,6 @@
 .featureButton:hover {
   background: #f1f5f9;
   border-color: #cbd5e1;
-}
-
-.featureButton.active {
-  background: #e0e7ff;
-  border-color: #818cf8;
-  color: #4f46e5;
 }
 
 .featureIcon {
@@ -153,6 +129,20 @@
   background: #94a3b8;
 }
 
+/* Preview specific styles */
+:global(.previewContainer) .widgetContainer {
+  position: absolute;
+  bottom: 20px;
+  right: 20px;
+}
+
+:global(.previewContainer) .widgetPanel {
+  display: block;
+  position: absolute;
+  bottom: 100px;
+  right: 20px;
+}
+
 /* Dark mode support */
 @media (prefers-color-scheme: dark) {
   .widgetPanel,
@@ -176,33 +166,12 @@
     border-color: #475569;
   }
 
-  .featureButton.active {
-    background: #312e81;
-    border-color: #4f46e5;
-    color: white;
-  }
-
   .featureText {
     color: #94a3b8;
-  }
-
-  .widgetSection h4 {
-    color: #e2e8f0;
   }
 
   .widgetFooter {
     border-top-color: #334155;
     color: #94a3b8;
   }
-}
-
-/* Fix for widget preview positioning */
-:global(.widgetPreviewWrapper) .widgetContainer {
-  position: relative;
-}
-
-:global(.widgetPreviewWrapper) .widgetPanel {
-  position: absolute;
-  z-index: 99999;
-  max-height: 600px;
 }
