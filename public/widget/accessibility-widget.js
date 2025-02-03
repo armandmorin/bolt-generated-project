@@ -1,185 +1,131 @@
-// Update only the styles section in the file
-const styles = document.createElement('style');
-styles.textContent = `
-  #accessibility-widget-container {
-    position: fixed;
-    bottom: 20px;
-    right: 20px;
-    z-index: 99999;
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+(function() {
+  // Create widget container
+  function createWidgetContainer() {
+    const container = document.createElement('div');
+    container.id = 'accessibility-widget-container';
+    return container;
   }
 
-  .widget-toggle button {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 64px;
-    height: 64px;
-    border-radius: 50%;
-    border: none;
-    cursor: pointer;
-    background-color: #2563eb;
-    color: white;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
-    transition: transform 0.2s ease;
-    padding: 0;
+  // Create widget HTML
+  function createWidgetHTML() {
+    return `
+      <div class="widget-toggle">
+        <button aria-label="Accessibility Options">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M12 2C13.1 2 14 2.9 14 4C14 5.1 13.1 6 12 6C10.9 6 10 5.1 10 4C10 2.9 10.9 2 12 2ZM21 9H15V22H13V16H11V22H9V9H3V7H21V9Z"/>
+          </svg>
+        </button>
+      </div>
+      <div class="widget-panel">
+        <div class="widget-header">
+          <h3>Accessibility Settings</h3>
+        </div>
+        <div class="widget-body">
+          <div class="feature-grid">
+            <button class="feature-button" data-feature="readableFont">
+              <span class="feature-icon">Aa</span>
+              <span class="feature-text">Readable Font</span>
+            </button>
+            <button class="feature-button" data-feature="highContrast">
+              <span class="feature-icon">◐</span>
+              <span class="feature-text">High Contrast</span>
+            </button>
+            <button class="feature-button" data-feature="largeText">
+              <span class="feature-icon">A+</span>
+              <span class="feature-text">Large Text</span>
+            </button>
+            <button class="feature-button" data-feature="highlightLinks">
+              <span class="feature-icon">🔗</span>
+              <span class="feature-text">Highlight Links</span>
+            </button>
+            <button class="feature-button" data-feature="textToSpeech">
+              <span class="feature-icon">🔊</span>
+              <span class="feature-text">Text to Speech</span>
+            </button>
+            <button class="feature-button" data-feature="dyslexiaFont">
+              <span class="feature-icon">Dx</span>
+              <span class="feature-text">Dyslexia Font</span>
+            </button>
+            <button class="feature-button" data-feature="cursorHighlight">
+              <span class="feature-icon">👆</span>
+              <span class="feature-text">Cursor Highlight</span>
+            </button>
+            <button class="feature-button" data-feature="invertColors">
+              <span class="feature-icon">🔄</span>
+              <span class="feature-text">Invert Colors</span>
+            </button>
+            <button class="feature-button" data-feature="reducedMotion">
+              <span class="feature-icon">⚡</span>
+              <span class="feature-text">Reduced Motion</span>
+            </button>
+            <button class="feature-button" data-feature="focusMode">
+              <span class="feature-icon">👀</span>
+              <span class="feature-text">Focus Mode</span>
+            </button>
+            <button class="feature-button" data-feature="readingGuide">
+              <span class="feature-icon">📏</span>
+              <span class="feature-text">Reading Guide</span>
+            </button>
+            <button class="feature-button" data-feature="monochrome">
+              <span class="feature-icon">⚫</span>
+              <span class="feature-text">Monochrome</span>
+            </button>
+          </div>
+        </div>
+        <div class="widget-footer">
+          Powered by Accessibility Widget
+        </div>
+      </div>
+    `;
   }
 
-  .widget-toggle button:hover {
-    transform: scale(1.1);
+  // Add styles (keep your existing styles here)
+  const styles = document.createElement('style');
+  styles.textContent = `
+    /* Your existing styles here */
+  `;
+
+  // Initialize widget
+  function initWidget() {
+    // Add styles first
+    document.head.appendChild(styles);
+
+    // Create and add widget container
+    const container = createWidgetContainer();
+    container.innerHTML = createWidgetHTML();
+    document.body.appendChild(container);
+
+    // Add event listeners
+    const toggle = container.querySelector('.widget-toggle button');
+    const panel = container.querySelector('.widget-panel');
+    const featureButtons = container.querySelectorAll('.feature-button');
+
+    toggle.addEventListener('click', (e) => {
+      e.preventDefault();
+      panel.classList.toggle('open');
+    });
+
+    featureButtons.forEach(button => {
+      button.addEventListener('click', (e) => {
+        e.preventDefault();
+        button.classList.toggle('active');
+        const feature = button.dataset.feature;
+        // Feature toggle logic here
+      });
+    });
+
+    // Close panel when clicking outside
+    document.addEventListener('click', (e) => {
+      if (!container.contains(e.target)) {
+        panel.classList.remove('open');
+      }
+    });
   }
 
-  .widget-panel {
-    position: absolute;
-    bottom: calc(100% + 16px);
-    right: 0;
-    width: 320px;
-    background: white;
-    border-radius: 12px;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
-    display: none;
-    max-height: 80vh;
-    overflow-y: auto;
+  // Load widget when DOM is ready
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initWidget);
+  } else {
+    initWidget();
   }
-
-  .widget-panel.open {
-    display: block;
-  }
-
-  .widget-header {
-    padding: 16px;
-    background: #60a5fa;
-    position: sticky;
-    top: 0;
-    z-index: 1;
-    border-top-left-radius: 12px;
-    border-top-right-radius: 12px;
-  }
-
-  .widget-header h3 {
-    margin: 0;
-    font-size: 16px;
-    font-weight: 500;
-    color: #1e293b;
-  }
-
-  .widget-body {
-    padding: 16px;
-  }
-
-  .feature-grid {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 8px;
-  }
-
-  .feature-button {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    padding: 12px;
-    background: #f8fafc;
-    border: 1px solid #e2e8f0;
-    border-radius: 8px;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    width: 100%;
-    min-height: 80px;
-  }
-
-  .feature-button:hover {
-    background: #f1f5f9;
-    border-color: #cbd5e1;
-  }
-
-  .feature-button.active {
-    background: #e0e7ff;
-    border-color: #818cf8;
-    color: #4f46e5;
-  }
-
-  .feature-icon {
-    font-size: 24px;
-    line-height: 1;
-  }
-
-  .feature-text {
-    font-size: 12px;
-    text-align: center;
-    line-height: 1.2;
-    color: #475569;
-    margin: 0;
-    padding: 0;
-  }
-
-  .widget-footer {
-    padding: 12px;
-    text-align: center;
-    font-size: 12px;
-    border-top: 1px solid #e2e8f0;
-    color: #64748b;
-    position: sticky;
-    bottom: 0;
-    background: white;
-    z-index: 1;
-  }
-
-  /* Scrollbar Styling */
-  .widget-panel::-webkit-scrollbar {
-    width: 6px;
-  }
-
-  .widget-panel::-webkit-scrollbar-track {
-    background: #f1f5f9;
-  }
-
-  .widget-panel::-webkit-scrollbar-thumb {
-    background: #cbd5e1;
-    border-radius: 3px;
-  }
-
-  .widget-panel::-webkit-scrollbar-thumb:hover {
-    background: #94a3b8;
-  }
-
-  /* Dark mode support */
-  @media (prefers-color-scheme: dark) {
-    .widget-panel,
-    .widget-footer {
-      background: #1e293b;
-    }
-
-    .widget-header {
-      background: #3b82f6;
-      color: white;
-    }
-
-    .feature-button {
-      background: #0f172a;
-      border-color: #334155;
-      color: #e2e8f0;
-    }
-
-    .feature-button:hover {
-      background: #1e293b;
-      border-color: #475569;
-    }
-
-    .feature-button.active {
-      background: #312e81;
-      border-color: #4f46e5;
-      color: white;
-    }
-
-    .feature-text {
-      color: #94a3b8;
-    }
-
-    .widget-footer {
-      border-top-color: #334155;
-      color: #94a3b8;
-    }
-  }
-`;
+})();
