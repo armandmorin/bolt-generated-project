@@ -32,99 +32,102 @@ const AccessibilityWidget = ({ settings = {}, isPreview = false }) => {
   };
 
   const applyFeatures = (activeFeatures) => {
-    // Readable Font
-    if (activeFeatures.readableFont) {
-      document.body.style.fontFamily = 'Arial, sans-serif';
-    } else {
-      document.body.style.fontFamily = '';
-    }
-
-    // High Contrast
-    if (activeFeatures.highContrast) {
-      document.body.style.filter = 'contrast(150%)';
-    } else {
-      document.body.style.filter = '';
-    }
-
-    // Large Text
-    if (activeFeatures.largeText) {
-      document.body.style.fontSize = '120%';
-    } else {
-      document.body.style.fontSize = '';
-    }
-
-    // Highlight Links
-    const links = document.querySelectorAll('a');
-    links.forEach(link => {
-      if (activeFeatures.highlightLinks) {
-        link.style.backgroundColor = '#ffeb3b';
-        link.style.color = '#000000';
+    // Apply each feature's effect
+    Object.entries(activeFeatures).forEach(([feature, isActive]) => {
+      if (isActive) {
+        applyFeature(feature);
       } else {
-        link.style.backgroundColor = '';
-        link.style.color = '';
+        removeFeature(feature);
       }
     });
+  };
 
-    // Text to Speech
-    if (activeFeatures.textToSpeech) {
-      document.addEventListener('click', handleTextToSpeech);
-    } else {
-      document.removeEventListener('click', handleTextToSpeech);
-      window.speechSynthesis?.cancel();
+  const applyFeature = (feature) => {
+    switch (feature) {
+      case 'readableFont':
+        document.body.style.fontFamily = 'Arial, sans-serif';
+        break;
+      case 'highContrast':
+        document.body.style.filter = 'contrast(150%)';
+        break;
+      case 'largeText':
+        document.body.style.fontSize = '120%';
+        break;
+      case 'highlightLinks':
+        document.querySelectorAll('a').forEach(link => {
+          link.style.backgroundColor = '#ffeb3b';
+          link.style.color = '#000000';
+        });
+        break;
+      case 'textToSpeech':
+        document.addEventListener('click', handleTextToSpeech);
+        break;
+      case 'dyslexiaFont':
+        document.body.style.fontFamily = 'OpenDyslexic, Arial, sans-serif';
+        break;
+      case 'cursorHighlight':
+        document.body.style.cursor = 'url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'32\' height=\'32\' viewBox=\'0 0 24 24\'%3E%3Ccircle cx=\'12\' cy=\'12\' r=\'10\' fill=\'%23ffeb3b\' opacity=\'0.5\'/%3E%3C/svg%3E") 16 16, auto';
+        break;
+      case 'invertColors':
+        document.body.style.filter = 'invert(100%)';
+        break;
+      case 'reducedMotion':
+        document.body.style.setProperty('--reduced-motion', 'reduce');
+        break;
+      case 'focusMode':
+        document.body.style.maxWidth = '800px';
+        document.body.style.margin = '0 auto';
+        document.body.style.padding = '20px';
+        document.body.style.backgroundColor = '#f8f9fa';
+        break;
+      case 'readingGuide':
+        addReadingGuide();
+        break;
+      case 'monochrome':
+        document.body.style.filter = 'grayscale(100%)';
+        break;
     }
+  };
 
-    // Dyslexia Font
-    if (activeFeatures.dyslexiaFont) {
-      document.body.style.fontFamily = 'OpenDyslexic, Arial, sans-serif';
-    }
-
-    // Cursor Highlight
-    if (activeFeatures.cursorHighlight) {
-      document.body.style.cursor = 'url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'32\' height=\'32\' viewBox=\'0 0 24 24\'%3E%3Ccircle cx=\'12\' cy=\'12\' r=\'10\' fill=\'%23ffeb3b\' opacity=\'0.5\'/%3E%3C/svg%3E") 16 16, auto';
-    } else {
-      document.body.style.cursor = '';
-    }
-
-    // Invert Colors
-    if (activeFeatures.invertColors) {
-      document.body.style.filter = 'invert(100%)';
-    }
-
-    // Reduced Motion
-    if (activeFeatures.reducedMotion) {
-      document.body.style.setProperty('--reduced-motion', 'reduce');
-    } else {
-      document.body.style.setProperty('--reduced-motion', 'no-preference');
-    }
-
-    // Focus Mode
-    if (activeFeatures.focusMode) {
-      document.body.style.maxWidth = '800px';
-      document.body.style.margin = '0 auto';
-      document.body.style.padding = '20px';
-      document.body.style.backgroundColor = '#f8f9fa';
-    }
-
-    // Reading Guide
-    if (activeFeatures.readingGuide) {
-      const guide = document.createElement('div');
-      guide.id = 'reading-guide';
-      guide.style.position = 'fixed';
-      guide.style.height = '40px';
-      guide.style.width = '100%';
-      guide.style.backgroundColor = 'rgba(255, 255, 0, 0.2)';
-      guide.style.pointerEvents = 'none';
-      guide.style.zIndex = '9999';
-      document.body.appendChild(guide);
-      document.addEventListener('mousemove', moveReadingGuide);
-    } else {
-      document.getElementById('reading-guide')?.remove();
-      document.removeEventListener('mousemove', moveReadingGuide);
-    }
-
-    // Monochrome
-    if (activeFeatures.monochrome) {
-      document.body.style.filter = 'grayscale(100%)';
+  const removeFeature = (feature) => {
+    switch (feature) {
+      case 'readableFont':
+      case 'dyslexiaFont':
+        document.body.style.fontFamily = '';
+        break;
+      case 'highContrast':
+      case 'invertColors':
+      case 'monochrome':
+        document.body.style.filter = '';
+        break;
+      case 'largeText':
+        document.body.style.fontSize = '';
+        break;
+      case 'highlightLinks':
+        document.querySelectorAll('a').forEach(link => {
+          link.style.backgroundColor = '';
+          link.style.color = '';
+        });
+        break;
+      case 'textToSpeech':
+        document.removeEventListener('click', handleTextToSpeech);
+        window.speechSynthesis?.cancel();
+        break;
+      case 'cursorHighlight':
+        document.body.style.cursor = '';
+        break;
+      case 'reducedMotion':
+        document.body.style.setProperty('--reduced-motion', 'no-preference');
+        break;
+      case 'focusMode':
+        document.body.style.maxWidth = '';
+        document.body.style.margin = '';
+        document.body.style.padding = '';
+        document.body.style.backgroundColor = '';
+        break;
+      case 'readingGuide':
+        removeReadingGuide();
+        break;
     }
   };
 
@@ -134,6 +137,24 @@ const AccessibilityWidget = ({ settings = {}, isPreview = false }) => {
       const utterance = new SpeechSynthesisUtterance(e.target.textContent);
       window.speechSynthesis.speak(utterance);
     }
+  };
+
+  const addReadingGuide = () => {
+    const guide = document.createElement('div');
+    guide.id = 'reading-guide';
+    guide.style.position = 'fixed';
+    guide.style.height = '40px';
+    guide.style.width = '100%';
+    guide.style.backgroundColor = 'rgba(255, 255, 0, 0.2)';
+    guide.style.pointerEvents = 'none';
+    guide.style.zIndex = '9999';
+    document.body.appendChild(guide);
+    document.addEventListener('mousemove', moveReadingGuide);
+  };
+
+  const removeReadingGuide = () => {
+    document.getElementById('reading-guide')?.remove();
+    document.removeEventListener('mousemove', moveReadingGuide);
   };
 
   const moveReadingGuide = (e) => {

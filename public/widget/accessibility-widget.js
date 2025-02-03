@@ -1,12 +1,21 @@
 (function() {
-  // Create widget container
-  function createWidgetContainer() {
-    const container = document.createElement('div');
-    container.id = 'accessibility-widget-container';
-    return container;
-  }
+  let widgetSettings = {
+    features: {
+      readableFont: false,
+      highContrast: false,
+      largeText: false,
+      highlightLinks: false,
+      textToSpeech: false,
+      dyslexiaFont: false,
+      cursorHighlight: false,
+      invertColors: false,
+      reducedMotion: false,
+      focusMode: false,
+      readingGuide: false,
+      monochrome: false
+    }
+  };
 
-  // Create widget HTML
   function createWidgetHTML() {
     return `
       <div class="widget-toggle">
@@ -22,15 +31,7 @@
         </div>
         <div class="widget-body">
           <div class="feature-grid">
-            <button class="feature-button" data-feature="readableFont">
-              <span class="feature-icon">Aa</span>
-              <span class="feature-text">Readable Font</span>
-            </button>
-            <button class="feature-button" data-feature="contrast">
-              <span class="feature-icon">🎨</span>
-              <span class="feature-text">High Contrast</span>
-            </button>
-            <!-- Add more features as needed -->
+            ${createFeatureButtons()}
           </div>
         </div>
         <div class="widget-footer">
@@ -40,152 +41,214 @@
     `;
   }
 
-  // Add widget styles
-  function addWidgetStyles() {
-    const styles = document.createElement('style');
-    styles.textContent = `
-      #accessibility-widget-container {
-        position: fixed;
-        bottom: 20px;
-        right: 20px;
-        z-index: 99999;
-      }
+  function createFeatureButtons() {
+    const features = {
+      readableFont: { icon: 'Aa', label: 'Readable Font' },
+      highContrast: { icon: '◐', label: 'High Contrast' },
+      largeText: { icon: 'A+', label: 'Large Text' },
+      highlightLinks: { icon: '🔗', label: 'Highlight Links' },
+      textToSpeech: { icon: '🔊', label: 'Text to Speech' },
+      dyslexiaFont: { icon: 'Dx', label: 'Dyslexia Font' },
+      cursorHighlight: { icon: '👆', label: 'Cursor Highlight' },
+      invertColors: { icon: '🔄', label: 'Invert Colors' },
+      reducedMotion: { icon: '⚡', label: 'Reduced Motion' },
+      focusMode: { icon: '👀', label: 'Focus Mode' },
+      readingGuide: { icon: '📏', label: 'Reading Guide' },
+      monochrome: { icon: '⚫', label: 'Monochrome' }
+    };
 
-      .widget-toggle button {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        width: 64px;
-        height: 64px;
-        border-radius: 50%;
-        border: none;
-        cursor: pointer;
-        background-color: #2563eb;
-        color: white;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
-        transition: transform 0.2s ease;
-      }
-
-      .widget-toggle button:hover {
-        transform: scale(1.1);
-      }
-
-      .widget-panel {
-        position: absolute;
-        bottom: calc(100% + 16px);
-        right: 0;
-        width: 320px;
-        background: white;
-        border-radius: 12px;
-        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
-        display: none;
-      }
-
-      .widget-panel.open {
-        display: block;
-      }
-
-      .widget-header {
-        padding: 16px;
-        background: #60a5fa;
-        border-top-left-radius: 12px;
-        border-top-right-radius: 12px;
-      }
-
-      .widget-header h3 {
-        margin: 0;
-        color: white;
-        font-size: 16px;
-        font-weight: 500;
-      }
-
-      .widget-body {
-        padding: 16px;
-      }
-
-      .feature-grid {
-        display: grid;
-        grid-template-columns: repeat(2, 1fr);
-        gap: 8px;
-      }
-
-      .feature-button {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        padding: 12px;
-        background: #f8fafc;
-        border: 1px solid #e2e8f0;
-        border-radius: 8px;
-        cursor: pointer;
-        transition: all 0.2s ease;
-      }
-
-      .feature-button:hover {
-        background: #f1f5f9;
-        border-color: #cbd5e1;
-      }
-
-      .feature-icon {
-        font-size: 24px;
-        margin-bottom: 8px;
-      }
-
-      .feature-text {
-        font-size: 12px;
-        text-align: center;
-        color: #475569;
-      }
-
-      .widget-footer {
-        padding: 12px;
-        text-align: center;
-        font-size: 12px;
-        border-top: 1px solid #e2e8f0;
-        color: #64748b;
-      }
-    `;
-    document.head.appendChild(styles);
+    return Object.entries(features)
+      .map(([key, { icon, label }]) => `
+        <button class="feature-button" data-feature="${key}">
+          <span class="feature-icon">${icon}</span>
+          <span class="feature-text">${label}</span>
+        </button>
+      `)
+      .join('');
   }
 
-  // Initialize widget
+  function applyFeature(feature, isActive) {
+    switch (feature) {
+      case 'readableFont':
+        document.body.style.fontFamily = isActive ? 'Arial, sans-serif' : '';
+        break;
+      case 'highContrast':
+        document.body.style.filter = isActive ? 'contrast(150%)' : '';
+        break;
+      case 'largeText':
+        document.body.style.fontSize = isActive ? '120%' : '';
+        break;
+      case 'highlightLinks':
+        document.querySelectorAll('a').forEach(link => {
+          link.style.backgroundColor = isActive ? '#ffeb3b' : '';
+          link.style.color = isActive ? '#000000' : '';
+        });
+        break;
+      case 'textToSpeech':
+        if (isActive) {
+          document.addEventListener('click', handleTextToSpeech);
+        } else {
+          document.removeEventListener('click', handleTextToSpeech);
+          window.speechSynthesis?.cancel();
+        }
+        break;
+      case 'dyslexiaFont':
+        document.body.style.fontFamily = isActive ? 'OpenDyslexic, Arial, sans-serif' : '';
+        break;
+      case 'cursorHighlight':
+        document.body.style.cursor = isActive ? 
+          'url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'32\' height=\'32\' viewBox=\'0 0 24 24\'%3E%3Ccircle cx=\'12\' cy=\'12\' r=\'10\' fill=\'%23ffeb3b\' opacity=\'0.5\'/%3E%3C/svg%3E") 16 16, auto' : '';
+        break;
+      case 'invertColors':
+        document.body.style.filter = isActive ? 'invert(100%)' : '';
+        break;
+      case 'reducedMotion':
+        document.body.style.setProperty('--reduced-motion', isActive ? 'reduce' : 'no-preference');
+        break;
+      case 'focusMode':
+        if (isActive) {
+          document.body.style.maxWidth = '800px';
+          document.body.style.margin = '0 auto';
+          document.body.style.padding = '20px';
+          document.body.style.backgroundColor = '#f8f9fa';
+        } else {
+          document.body.style.maxWidth = '';
+          document.body.style.margin = '';
+          document.body.style.padding = '';
+          document.body.style.backgroundColor = '';
+        }
+        break;
+      case 'readingGuide':
+        if (isActive) {
+          const guide = document.createElement('div');
+          guide.id = 'reading-guide';
+          guide.style.position = 'fixed';
+          guide.style.height = '40px';
+          guide.style.width = '100%';
+          guide.style.backgroundColor = 'rgba(255, 255, 0, 0.2)';
+          guide.style.pointerEvents = 'none';
+          guide.style.zIndex = '9999';
+          document.body.appendChild(guide);
+          document.addEventListener('mousemove', moveReadingGuide);
+        } else {
+          document.getElementById('reading-guide')?.remove();
+          document.removeEventListener('mousemove', moveReadingGuide);
+        }
+        break;
+      case 'monochrome':
+        document.body.style.filter = isActive ? 'grayscale(100%)' : '';
+        break;
+    }
+  }
+
+  function handleTextToSpeech(e) {
+    if (e.target.textContent && window.speechSynthesis) {
+      window.speechSynthesis.cancel();
+      const utterance = new SpeechSynthesisUtterance(e.target.textContent);
+      window.speechSynthesis.speak(utterance);
+    }
+  }
+
+  function moveReadingGuide(e) {
+    const guide = document.getElementById('reading-guide');
+    if (guide) {
+      guide.style.top = `${e.clientY - 20}px`;
+    }
+  }
+
+  async function loadSettings() {
+    const script = document.currentScript;
+    const supabaseUrl = script?.getAttribute('data-supabase-url');
+    const supabaseKey = script?.getAttribute('data-supabase-key');
+
+    if (supabaseUrl && supabaseKey) {
+      try {
+        const response = await fetch(`${supabaseUrl}/rest/v1/global_widget_settings?select=*`, {
+          headers: {
+            'apikey': supabaseKey,
+            'Authorization': `Bearer ${supabaseKey}`
+          }
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          if (data?.[0]) {
+            widgetSettings = {
+              ...widgetSettings,
+              ...data[0]
+            };
+            updateWidgetStyles();
+          }
+        }
+      } catch (error) {
+        console.warn('Error loading widget settings:', error);
+      }
+    }
+  }
+
+  function updateWidgetStyles() {
+    const container = document.getElementById('accessibility-widget-container');
+    if (!container) return;
+
+    const toggle = container.querySelector('.widget-toggle button');
+    const header = container.querySelector('.widget-header');
+    const footer = container.querySelector('.widget-footer');
+
+    if (toggle) {
+      toggle.style.backgroundColor = widgetSettings.button_color || '#2563eb';
+      toggle.style.width = widgetSettings.button_size || '64px';
+      toggle.style.height = widgetSettings.button_size || '64px';
+    }
+
+    if (header) {
+      header.style.backgroundColor = widgetSettings.header_color || '#60a5fa';
+      header.style.color = widgetSettings.header_text_color || '#ffffff';
+    }
+
+    if (footer) {
+      footer.style.color = widgetSettings.powered_by_color || '#64748b';
+      footer.textContent = widgetSettings.powered_by_text || 'Powered by Accessibility Widget';
+    }
+  }
+
   function initWidget() {
-    // Create container
-    const container = createWidgetContainer();
+    const container = document.createElement('div');
+    container.id = 'accessibility-widget-container';
     container.innerHTML = createWidgetHTML();
     document.body.appendChild(container);
 
-    // Add styles
-    addWidgetStyles();
-
-    // Add event listeners
     const toggle = container.querySelector('.widget-toggle button');
     const panel = container.querySelector('.widget-panel');
-    
+    const featureButtons = container.querySelectorAll('.feature-button');
+
     toggle.addEventListener('click', () => {
       panel.classList.toggle('open');
     });
 
-    // Close panel when clicking outside
+    featureButtons.forEach(button => {
+      button.addEventListener('click', () => {
+        const feature = button.dataset.feature;
+        button.classList.toggle('active');
+        widgetSettings.features[feature] = !widgetSettings.features[feature];
+        applyFeature(feature, widgetSettings.features[feature]);
+      });
+    });
+
     document.addEventListener('click', (e) => {
       if (!container.contains(e.target)) {
         panel.classList.remove('open');
       }
     });
 
-    // Feature buttons functionality
-    const featureButtons = container.querySelectorAll('.feature-button');
-    featureButtons.forEach(button => {
-      button.addEventListener('click', () => {
-        const feature = button.dataset.feature;
-        button.classList.toggle('active');
-        // Add feature-specific functionality here
-      });
-    });
+    loadSettings();
   }
 
-  // Load widget when DOM is ready
+  // Add styles
+  const styles = document.createElement('style');
+  styles.textContent = `/* Add your CSS styles here */`; // Add your CSS from widget.module.css
+  document.head.appendChild(styles);
+
+  // Initialize widget
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', initWidget);
   } else {
