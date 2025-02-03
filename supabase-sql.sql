@@ -1,34 +1,25 @@
--- Drop the existing table if it exists
-DROP TABLE IF EXISTS global_widget_settings;
-
--- Create the table with proper structure
-CREATE TABLE global_widget_settings (
+-- Create clients table if it doesn't exist
+CREATE TABLE IF NOT EXISTS clients (
     id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-    header_color VARCHAR,
-    header_text_color VARCHAR,
-    button_color VARCHAR,
-    powered_by_text VARCHAR,
-    powered_by_color VARCHAR,
-    button_size VARCHAR,
-    button_position VARCHAR,
+    name VARCHAR NOT NULL,
+    website VARCHAR NOT NULL,
+    contact_email VARCHAR NOT NULL,
+    client_key VARCHAR NOT NULL UNIQUE,
+    status VARCHAR NOT NULL DEFAULT 'active',
     created_at TIMESTAMPTZ DEFAULT NOW(),
     updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
 -- Enable RLS
-ALTER TABLE global_widget_settings ENABLE ROW LEVEL SECURITY;
+ALTER TABLE clients ENABLE ROW LEVEL SECURITY;
 
--- Drop existing policies if any
-DROP POLICY IF EXISTS "Enable all operations for all users" ON global_widget_settings;
-
--- Create a new policy that allows all operations
-CREATE POLICY "Enable all operations for all users"
-ON global_widget_settings
-FOR ALL
-USING (true)
-WITH CHECK (true);
+-- Create policy for clients table
+CREATE POLICY "Enable all operations for all users" ON clients
+    FOR ALL
+    USING (true)
+    WITH CHECK (true);
 
 -- Grant necessary permissions
-GRANT ALL ON global_widget_settings TO anon;
-GRANT ALL ON global_widget_settings TO authenticated;
-GRANT ALL ON global_widget_settings TO service_role;
+GRANT ALL ON clients TO anon;
+GRANT ALL ON clients TO authenticated;
+GRANT ALL ON clients TO service_role;

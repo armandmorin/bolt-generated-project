@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import styles from '../styles/client.module.css';
+import { supabase } from '../lib/supabase';
 import WidgetCodeSnippet from '../components/WidgetCodeSnippet';
+import styles from '../styles/client.module.css';
 
-const ClientManagement = () => {
+function ClientManagement() {
   const [clients, setClients] = useState([]);
   const [newClient, setNewClient] = useState({
     name: '',
@@ -13,12 +14,30 @@ const ClientManagement = () => {
   const [showCodeModal, setShowCodeModal] = useState(false);
   const [selectedClientCode, setSelectedClientCode] = useState('');
 
+  // Load clients from Supabase
   useEffect(() => {
-    const savedClients = localStorage.getItem('clients');
-    if (savedClients) {
-      setClients(JSON.parse(savedClients));
-    }
+    loadClients();
   }, []);
+
+  async function loadClients() {
+    const { data, error } = await supabase
+      .from('clients')
+      .select('*')
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      console.error('Error loading clients:', error);
+      return;
+    }
+
+    if (data) {
+      setClients(data);
+    }
+  }
+
+  const generateClientKey = () => {
+    return 'client_' + Math.random().toString(36).substring(2, 10);
+  };
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -28,40 +47,65 @@ const ClientManagement = () => {
     }));
   };
 
-  const generateScriptKey = () => {
-    return 'sk_' + Math.random().toString(36).substr(2, 16);
-  };
-
-  const addClient = (e) => {
+  const addClient = async (e) => {
     e.preventDefault();
-    const updatedClients = [...clients, {
-      ...newClient,
-      id: Date.now(),
-      status: 'active',
-      scriptKey: generateScriptKey()
-    }];
-    setClients(updatedClients);
-    localStorage.setItem('clients', JSON.stringify(updatedClients));
-    setNewClient({ name: '', website: '', contactEmail: '' });
+    
+    const clientKey = generateClientKey();
+    const newClientData = {
+      name: newClient.name,
+      website: newClient.website,
+      contact_email: newClient.contactEmail,
+      client_key: clientKey,
+      status: 'active'
+    };
+
+    // Add to Supabase
+    const { error } = await supabase
+      .from('clients')
+      .insert([newClientData]);
+
+    if (error) {
+      console.error('Error adding client:', error);
+      alert('Failed to add client. Please try again.');
+      return;
+    }
+
+    // Reload clients
+    await loadClients();
+    
+    // Reset form
+    setNewClient({
+      name: '',
+      website: '',
+      contactEmail: ''
+    });
   };
 
-  const toggleClientStatus = (id) => {
-    const updatedClients = clients.map(client => 
-      client.id === id ? { ...client, status: client.status === 'active' ? 'inactive' : 'active' } : client
-    );
-    setClients(updatedClients);
-    localStorage.setItem('clients', JSON.stringify(updatedClients));
+  const toggleClientStatus = async (id, currentStatus) => {
+    const newStatus = currentStatus === 'active' ? 'inactive' : 'active';
+    
+    const { error } = await supabase
+      .from('clients')
+      .update({ status: newStatus })
+      .eq('id', id);
+
+    if (error) {
+      console.error('Error updating client status:', error);
+      return;
+    }
+
+    await loadClients();
   };
 
   const showClientCode = (client) => {
-    setSelectedClientCode(client.scriptKey);
+    setSelectedClientCode(client.client_key);
     setShowCodeModal(true);
   };
 
   const filteredClients = clients.filter(client =>
     client.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
     client.website.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    client.contactEmail.toLowerCase().includes(searchQuery.toLowerCase())
+    client.contact_email.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   return (
@@ -126,6 +170,7 @@ const ClientManagement = () => {
               <th>Name</th>
               <th>Website</th>
               <th>Email</th>
+              <th>Client Key</th>
               <th>Status</th>
               <th>Actions</th>
             </tr>
@@ -139,7 +184,8 @@ const ClientManagement = () => {
                     {client.website}
                   </a>
                 </td>
-                <td>{client.contactEmail}</td>
+                <td>{client.contact_email}</td>
+                <td>{client.client_key}</td>
                 <td>
                   <span className={`${styles.status} ${client.status === 'active' ? styles.statusActive : styles.statusInactive}`}>
                     {client.status}
@@ -155,7 +201,7 @@ const ClientManagement = () => {
                     </button>
                     <button
                       className={`${styles.statusButton} ${client.status === 'active' ? styles.statusButtonActive : styles.statusButtonInactive}`}
-                      onClick={() => toggleClientStatus(client.id)}
+                      onClick={() => toggleClientStatus(client.id, client.status)}
                     >
                       {client.status === 'active' ? 'Deactivate' : 'Activate'}
                     </button>
@@ -182,6 +228,6 @@ const ClientManagement = () => {
       )}
     </div>
   );
-};
+}
 
 export default ClientManagement;
