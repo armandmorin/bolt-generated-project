@@ -375,17 +375,17 @@
     // Apply each setting individually with console logging
     if (settings.button_color) {
       console.log('Setting button color:', settings.button_color);
-      button.style.backgroundColor = settings.button_color;
+      button.style.backgroundColor = settings.button_color + ' !important';
     }
 
     if (settings.header_color) {
       console.log('Setting header color:', settings.header_color);
-      header.style.backgroundColor = settings.header_color;
+      header.style.backgroundColor = settings.header_color + ' !important';
     }
 
     if (settings.header_text_color) {
       console.log('Setting header text color:', settings.header_text_color);
-      headerText.style.color = settings.header_text_color;
+      headerText.style.color = settings.header_text_color + ' !important';
     }
 
     if (settings.powered_by_text) {
@@ -395,7 +395,7 @@
 
     if (settings.powered_by_color) {
       console.log('Setting powered by color:', settings.powered_by_color);
-      footer.style.color = settings.powered_by_color;
+      footer.style.color = settings.powered_by_color + ' !important';
     }
 
     if (settings.button_size) {
