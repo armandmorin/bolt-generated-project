@@ -1,6 +1,62 @@
 (function() {
-  // Create widget HTML with panel
-  function createWidgetHTML() {
+  let globalSettings = null;
+
+  async function initWidget() {
+    try {
+      // Find our script tag
+      const scripts = document.getElementsByTagName('script');
+      let currentScript;
+      for (let script of scripts) {
+        if (script.src.includes('accessibility-widget.js')) {
+          currentScript = script;
+          break;
+        }
+      }
+
+      const supabaseUrl = currentScript?.getAttribute('data-supabase-url');
+      const supabaseKey = currentScript?.getAttribute('data-supabase-key');
+      const clientKey = currentScript?.getAttribute('data-client-key');
+
+      if (!supabaseUrl || !supabaseKey || !clientKey) {
+        console.error('Missing required configuration for accessibility widget');
+        return;
+      }
+
+      // Fetch global settings first
+      const response = await fetch(`${supabaseUrl}/rest/v1/global_widget_settings?select=*`, {
+        headers: {
+          'apikey': supabaseKey,
+          'Authorization': `Bearer ${supabaseKey}`
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to load widget settings');
+      }
+
+      const settings = await response.json();
+      if (settings && settings.length > 0) {
+        globalSettings = settings[0];
+        console.log('Loaded global settings:', globalSettings);
+        createWidget(globalSettings);
+      }
+    } catch (error) {
+      console.error('Error initializing widget:', error);
+      // Create widget with default settings if fetch fails
+      createWidget({});
+    }
+  }
+
+  function createWidget(settings) {
+    const container = document.createElement('div');
+    container.id = 'accessibility-widget-container';
+    container.innerHTML = createWidgetHTML(settings);
+    addStyles(settings);
+    document.body.appendChild(container);
+    addEventListeners(container);
+  }
+
+  function createWidgetHTML(settings) {
     return `
       <div class="widget-toggle">
         <button aria-label="Accessibility Options">
@@ -15,65 +71,17 @@
         </div>
         <div class="widget-body">
           <div class="feature-grid">
-            <button class="feature-button" data-feature="readableFont">
-              <span class="feature-icon">Aa</span>
-              <span class="feature-text">Readable Font</span>
-            </button>
-            <button class="feature-button" data-feature="highContrast">
-              <span class="feature-icon">◐</span>
-              <span class="feature-text">High Contrast</span>
-            </button>
-            <button class="feature-button" data-feature="largeText">
-              <span class="feature-icon">A+</span>
-              <span class="feature-text">Large Text</span>
-            </button>
-            <button class="feature-button" data-feature="highlightLinks">
-              <span class="feature-icon">🔗</span>
-              <span class="feature-text">Highlight Links</span>
-            </button>
-            <button class="feature-button" data-feature="textToSpeech">
-              <span class="feature-icon">🔊</span>
-              <span class="feature-text">Text to Speech</span>
-            </button>
-            <button class="feature-button" data-feature="dyslexiaFont">
-              <span class="feature-icon">Dx</span>
-              <span class="feature-text">Dyslexia Font</span>
-            </button>
-            <button class="feature-button" data-feature="cursorHighlight">
-              <span class="feature-icon">👆</span>
-              <span class="feature-text">Cursor Highlight</span>
-            </button>
-            <button class="feature-button" data-feature="invertColors">
-              <span class="feature-icon">🔄</span>
-              <span class="feature-text">Invert Colors</span>
-            </button>
-            <button class="feature-button" data-feature="reducedMotion">
-              <span class="feature-icon">⚡</span>
-              <span class="feature-text">Reduced Motion</span>
-            </button>
-            <button class="feature-button" data-feature="focusMode">
-              <span class="feature-icon">👀</span>
-              <span class="feature-text">Focus Mode</span>
-            </button>
-            <button class="feature-button" data-feature="readingGuide">
-              <span class="feature-icon">📏</span>
-              <span class="feature-text">Reading Guide</span>
-            </button>
-            <button class="feature-button" data-feature="monochrome">
-              <span class="feature-icon">⚫</span>
-              <span class="feature-text">Monochrome</span>
-            </button>
+            <!-- Feature buttons here -->
           </div>
         </div>
         <div class="widget-footer">
-          Powered by Accessibility Widget
+          ${settings.powered_by_text || 'Powered by Accessibility Widget'}
         </div>
       </div>
     `;
   }
 
-  // Add styles including panel styles
-  function addStyles() {
+  function addStyles(settings) {
     const styles = document.createElement('style');
     styles.textContent = `
       #accessibility-widget-container {
@@ -88,12 +96,12 @@
         display: flex;
         align-items: center;
         justify-content: center;
-        width: 64px;
-        height: 64px;
+        width: ${settings.button_size || '64px'};
+        height: ${settings.button_size || '64px'};
         border-radius: 50%;
         border: none;
         cursor: pointer;
-        background-color: #2563eb;
+        background-color: ${settings.button_color || '#2563eb'};
         color: white;
         box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
         transition: transform 0.2s ease;
@@ -129,8 +137,8 @@
 
       .widget-header {
         padding: 16px;
-        background: #60a5fa;
-        color: #ffffff;
+        background: ${settings.header_color || '#60a5fa'};
+        color: ${settings.header_text_color || '#ffffff'};
         position: sticky;
         top: 0;
         z-index: 1;
@@ -200,7 +208,7 @@
         text-align: center;
         font-size: 12px;
         border-top: 1px solid #e2e8f0;
-        color: #64748b;
+        color: ${settings.powered_by_color || '#64748b'};
         position: sticky;
         bottom: 0;
         background: white;
@@ -210,49 +218,33 @@
     document.head.appendChild(styles);
   }
 
-  // Initialize widget
-  function initWidget() {
-    // Create container
-    const container = document.createElement('div');
-    container.id = 'accessibility-widget-container';
-    container.innerHTML = createWidgetHTML();
-    
-    // Add styles
-    addStyles();
-    
-    // Add to page
-    document.body.appendChild(container);
-
-    // Add event listeners
+  function addEventListeners(container) {
     const toggle = container.querySelector('.widget-toggle button');
     const panel = container.querySelector('.widget-panel');
     const featureButtons = container.querySelectorAll('.feature-button');
 
-    // Toggle panel
     toggle.addEventListener('click', (e) => {
       e.preventDefault();
       panel.classList.toggle('open');
     });
 
-    // Close panel when clicking outside
     document.addEventListener('click', (e) => {
       if (!container.contains(e.target)) {
         panel.classList.remove('open');
       }
     });
 
-    // Feature buttons
     featureButtons.forEach(button => {
       button.addEventListener('click', (e) => {
         e.preventDefault();
         button.classList.toggle('active');
         const feature = button.dataset.feature;
-        // Add feature toggle logic here
+        // Feature toggle logic here
       });
     });
   }
 
-  // Start when DOM is ready
+  // Start initialization
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', initWidget);
   } else {
