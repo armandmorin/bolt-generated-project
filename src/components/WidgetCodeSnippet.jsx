@@ -4,15 +4,13 @@ import styles from '../styles/widgetCode.module.css';
 const WidgetCodeSnippet = ({ clientKey }) => {
   const [copied, setCopied] = useState(false);
 
-  // Use the deployed application URL
-  const appUrl = 'https://bolt-generated-project-beige.vercel.app';
-
   const scriptCode = `<!-- Accessibility Widget -->
 <script>
   (function() {
     const script = document.createElement('script');
-    script.src = "${appUrl}/widget/accessibility-widget.js";
+    script.src = "https://bolt-generated-project-beige.vercel.app/widget/accessibility-widget.js";
     script.setAttribute('data-client-key', '${clientKey}');
+    script.async = true;
     document.body.appendChild(script);
   })();
 </script>`;
