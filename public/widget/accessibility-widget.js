@@ -1,5 +1,5 @@
 (function() {
-  // Initial styles should include panel styles
+  // Initial styles
   const initialStyles = document.createElement('style');
   initialStyles.textContent = `
     #accessibility-widget-container {
@@ -127,7 +127,7 @@
     }
   `;
 
-  // Create initial HTML with full panel structure
+  // Create initial HTML
   const container = document.createElement('div');
   container.id = 'accessibility-widget-container';
   container.innerHTML = `
@@ -204,7 +204,7 @@
   document.head.appendChild(initialStyles);
   document.body.appendChild(container);
 
-  // Add event listeners immediately
+  // Add event listeners
   const toggle = container.querySelector('.widget-toggle button');
   const panel = container.querySelector('.widget-panel');
   const featureButtons = container.querySelectorAll('.feature-button');
@@ -231,12 +231,95 @@
     });
   });
 
-  // Feature toggle function
   function handleFeatureToggle(feature, isActive) {
-    // Your existing feature toggle code...
+    switch (feature) {
+      case 'readableFont':
+        document.body.style.fontFamily = isActive ? 'Arial, sans-serif' : '';
+        break;
+      case 'highContrast':
+        document.body.style.filter = isActive ? 'contrast(150%)' : '';
+        break;
+      case 'largeText':
+        document.body.style.fontSize = isActive ? '120%' : '';
+        break;
+      case 'highlightLinks':
+        document.querySelectorAll('a').forEach(link => {
+          link.style.backgroundColor = isActive ? '#ffeb3b' : '';
+          link.style.color = isActive ? '#000000' : '';
+        });
+        break;
+      case 'textToSpeech':
+        if (isActive) {
+          document.addEventListener('click', handleTextToSpeech);
+        } else {
+          document.removeEventListener('click', handleTextToSpeech);
+          window.speechSynthesis?.cancel();
+        }
+        break;
+      case 'dyslexiaFont':
+        document.body.style.fontFamily = isActive ? 'OpenDyslexic, Arial, sans-serif' : '';
+        break;
+      case 'cursorHighlight':
+        document.body.style.cursor = isActive ? 'url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'32\' height=\'32\' viewBox=\'0 0 24 24\'%3E%3Ccircle cx=\'12\' cy=\'12\' r=\'10\' fill=\'%23ffeb3b\' opacity=\'0.5\'/%3E%3C/svg%3E") 16 16, auto' : '';
+        break;
+      case 'invertColors':
+        document.body.style.filter = isActive ? 'invert(100%)' : '';
+        break;
+      case 'reducedMotion':
+        document.body.style.setProperty('--reduced-motion', isActive ? 'reduce' : 'no-preference');
+        break;
+      case 'focusMode':
+        if (isActive) {
+          document.body.style.maxWidth = '800px';
+          document.body.style.margin = '0 auto';
+          document.body.style.padding = '20px';
+          document.body.style.backgroundColor = '#f8f9fa';
+        } else {
+          document.body.style.maxWidth = '';
+          document.body.style.margin = '';
+          document.body.style.padding = '';
+          document.body.style.backgroundColor = '';
+        }
+        break;
+      case 'readingGuide':
+        if (isActive) {
+          const guide = document.createElement('div');
+          guide.id = 'reading-guide';
+          guide.style.position = 'fixed';
+          guide.style.height = '40px';
+          guide.style.width = '100%';
+          guide.style.backgroundColor = 'rgba(255, 255, 0, 0.2)';
+          guide.style.pointerEvents = 'none';
+          guide.style.zIndex = '9999';
+          document.body.appendChild(guide);
+          document.addEventListener('mousemove', moveReadingGuide);
+        } else {
+          document.getElementById('reading-guide')?.remove();
+          document.removeEventListener('mousemove', moveReadingGuide);
+        }
+        break;
+      case 'monochrome':
+        document.body.style.filter = isActive ? 'grayscale(100%)' : '';
+        break;
+    }
   }
 
-  // Load settings and update styles
+  function handleTextToSpeech(e) {
+    if (e.target.textContent && window.speechSynthesis) {
+      window.speechSynthesis.cancel();
+      const utterance = new SpeechSynthesisUtterance(e.target.textContent);
+      window.speechSynthesis.speak(utterance);
+    }
+  }
+
+  function moveReadingGuide(e) {
+    const guide = document.getElementById('reading-guide');
+    if (guide) {
+      guide.style.top = `${e.clientY - 20}px`;
+    }
+  }
+
+  // Load and apply settings
   async function loadSettings() {
     try {
       const scripts = document.getElementsByTagName('script');
@@ -254,49 +337,71 @@
         return;
       }
 
+      // Get base URL from script src
       const scriptUrl = new URL(currentScript.src);
-      const baseUrl = scriptUrl.origin;
-      
-      const response = await fetch(`${baseUrl}/api/widget-settings?clientKey=${clientKey}`);
+      console.log('Loading settings from:', scriptUrl.origin);
+
+      const response = await fetch(`${scriptUrl.origin}/api/widget-settings?clientKey=${clientKey}`, {
+        method: 'GET',
+        headers: {
+          'Accept': 'application/json'
+        }
+      });
 
       if (!response.ok) {
-        throw new Error('Failed to load widget settings');
+        throw new Error(`Failed to load widget settings: ${response.statusText}`);
       }
 
       const settings = await response.json();
+      console.log('Loaded settings:', settings);
+
       if (settings) {
         updateStyles(settings);
       }
     } catch (error) {
-      console.error('Error loading widget settings:', error);
+      console.error('Error loading settings:', error);
     }
   }
 
-  // Update styles with settings
   function updateStyles(settings) {
+    console.log('Applying settings:', settings);
+
+    // Get all the elements we need to update
     const button = container.querySelector('.widget-toggle button');
     const header = container.querySelector('.widget-header');
     const headerText = container.querySelector('.widget-header h3');
     const footer = container.querySelector('.widget-footer');
 
+    // Apply each setting individually with console logging
     if (settings.button_color) {
+      console.log('Setting button color:', settings.button_color);
       button.style.backgroundColor = settings.button_color;
     }
-    if (settings.button_size) {
-      button.style.width = settings.button_size;
-      button.style.height = settings.button_size;
-    }
+
     if (settings.header_color) {
+      console.log('Setting header color:', settings.header_color);
       header.style.backgroundColor = settings.header_color;
     }
+
     if (settings.header_text_color) {
+      console.log('Setting header text color:', settings.header_text_color);
       headerText.style.color = settings.header_text_color;
     }
+
     if (settings.powered_by_text) {
+      console.log('Setting powered by text:', settings.powered_by_text);
       footer.textContent = settings.powered_by_text;
     }
+
     if (settings.powered_by_color) {
+      console.log('Setting powered by color:', settings.powered_by_color);
       footer.style.color = settings.powered_by_color;
+    }
+
+    if (settings.button_size) {
+      console.log('Setting button size:', settings.button_size);
+      button.style.width = settings.button_size;
+      button.style.height = settings.button_size;
     }
   }
 
