@@ -67,7 +67,7 @@
           </div>
         </div>
         <div class="widget-footer">
-          ${settings.poweredByText}
+          ${settings.poweredByText || 'Powered by Accessibility Widget'}
         </div>
       </div>
     `;
@@ -88,8 +88,8 @@
         display: flex;
         align-items: center;
         justify-content: center;
-        width: ${settings.buttonSize};
-        height: ${settings.buttonSize};
+        width: ${settings.buttonSize || '64px'};
+        height: ${settings.buttonSize || '64px'};
         border-radius: 50%;
         border: none;
         cursor: pointer;
@@ -336,18 +336,10 @@
         return;
       }
 
-      // Get the base URL from the script src
-      const scriptUrl = new URL(currentScript.src);
-      const baseUrl = `${scriptUrl.protocol}//${scriptUrl.host}`;
-
-      // Get widget settings from the API
-      const response = await fetch(`${baseUrl}/api/widget-settings?clientKey=${clientKey}`);
-      if (!response.ok) {
-        throw new Error('Failed to load widget settings');
-      }
-
-      const settings = await response.json();
-      if (settings) {
+      // Get settings from localStorage
+      const savedSettings = localStorage.getItem('widgetSettings');
+      if (savedSettings) {
+        const settings = JSON.parse(savedSettings);
         const container = document.createElement('div');
         container.id = 'accessibility-widget-container';
         container.innerHTML = createWidgetHTML(settings);
