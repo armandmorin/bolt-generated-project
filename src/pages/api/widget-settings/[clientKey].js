@@ -1,17 +1,11 @@
-import { supabase } from '../../lib/supabase';
+import { supabase } from '../../../lib/supabase';
 
 export default async function handler(req, res) {
-  // Enable CORS
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
-
   if (req.method !== 'GET') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  // Get client key from query parameter
-  const clientKey = req.query.clientKey;
+  const { clientKey } = req.params;
 
   if (!clientKey) {
     return res.status(400).json({ error: 'Client key is required' });
