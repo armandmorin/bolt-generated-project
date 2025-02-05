@@ -94,7 +94,7 @@
         border: none;
         cursor: pointer;
         background-color: ${settings.button_color || '#2563eb'} !important;
-        color: white;
+        color: white !important;
         box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
         transition: transform 0.2s ease;
         padding: 0;
@@ -103,7 +103,7 @@
       .widget-toggle .widget-icon {
         width: 32px;
         height: 32px;
-        color: white;
+        color: white !important;
       }
 
       .widget-toggle button:hover {
@@ -335,10 +335,6 @@
         console.error('Missing client key for accessibility widget');
         return;
       }
-
-      // Get the base URL from the script src
-      const scriptUrl = new URL(currentScript.src);
-      const baseUrl = `${scriptUrl.protocol}//${scriptUrl.host}`;
 
       // Try to get settings from localStorage
       let settings;
