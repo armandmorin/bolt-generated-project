@@ -331,42 +331,32 @@
       }
 
       const clientKey = currentScript?.getAttribute('data-client-key');
-      const supabaseUrl = currentScript?.getAttribute('data-supabase-url');
-      const supabaseKey = currentScript?.getAttribute('data-supabase-key');
-
-      if (!clientKey || !supabaseUrl || !supabaseKey) {
-        console.error('Missing required configuration for accessibility widget');
+      if (!clientKey) {
+        console.error('Missing client key for accessibility widget');
         return;
       }
 
-      const { createClient } = window.supabase;
-      const supabase = createClient(supabaseUrl, supabaseKey);
+      // Get the base URL from the script src
+      const scriptUrl = new URL(currentScript.src);
+      const baseUrl = `${scriptUrl.protocol}//${scriptUrl.host}`;
 
-      // First verify the client
-      const { data: clientData, error: clientError } = await supabase
-        .from('clients')
-        .select('*')
-        .eq('client_key', clientKey)
-        .eq('status', 'active')
-        .single();
-
-      if (clientError || !clientData) {
-        console.error('Invalid or inactive client key');
-        return;
+      // Get widget settings from the API
+      const response = await fetch(`${baseUrl}/api/widget-settings/${clientKey}`);
+      if (!response.ok) {
+        throw new Error('Failed to load widget settings');
       }
 
-      // Get widget settings
-      const { data: settings, error: settingsError } = await supabase
-        .from('global_widget_settings')
-        .select('*')
-        .single();
-
-      if (settingsError) {
-        throw settingsError;
-      }
-
+      const settings = await response.json();
       if (settings) {
-        globalSettings = settings;
+        globalSettings = {
+          header_color: settings.headerColor,
+          header_text_color: settings.headerTextColor,
+          button_color: settings.buttonColor,
+          button_size: settings.buttonSize || '64px',
+          powered_by_text: settings.poweredByText,
+          powered_by_color: settings.poweredByColor
+        };
+
         const container = document.createElement('div');
         container.id = 'accessibility-widget-container';
         container.innerHTML = createWidgetHTML(globalSettings);
@@ -376,6 +366,22 @@
       }
     } catch (error) {
       console.error('Error initializing widget:', error);
+      // Create widget with default settings if there's an error
+      const defaultSettings = {
+        header_color: '#60a5fa',
+        header_text_color: '#ffffff',
+        button_color: '#2563eb',
+        button_size: '64px',
+        powered_by_text: 'Powered by Accessibility Widget',
+        powered_by_color: '#64748b'
+      };
+
+      const container = document.createElement('div');
+      container.id = 'accessibility-widget-container';
+      container.innerHTML = createWidgetHTML(defaultSettings);
+      addStyles(defaultSettings);
+      document.body.appendChild(container);
+      addEventListeners(container);
     }
   }
 
