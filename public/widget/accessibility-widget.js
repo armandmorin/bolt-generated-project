@@ -93,7 +93,7 @@
         border-radius: 50%;
         border: none;
         cursor: pointer;
-        background-color: ${settings.button_color || '#2563eb'};
+        background-color: ${settings.button_color || '#2563eb'} !important;
         color: white;
         box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
         transition: transform 0.2s ease;
@@ -129,7 +129,7 @@
 
       .widget-header {
         padding: 16px;
-        background: ${settings.header_color || '#60a5fa'};
+        background: ${settings.header_color || '#60a5fa'} !important;
       }
 
       .widget-header h3 {
@@ -195,7 +195,7 @@
         text-align: center;
         font-size: 12px;
         border-top: 1px solid #e2e8f0;
-        color: ${settings.powered_by_color || '#64748b'};
+        color: ${settings.powered_by_color || '#64748b'} !important;
         position: sticky;
         bottom: 0;
         background: white;
@@ -234,8 +234,8 @@
         document.body.style.fontFamily = isActive ? 'OpenDyslexic, Arial, sans-serif' : '';
         break;
       case 'cursorHighlight':
-        document.body.style.cursor = isActive ? 'url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'32\' height=\'32\' viewBox=\'0 0 24 24\'%3E%3C/svg%3E");
-          break;
+        document.body.style.cursor = isActive ? 'url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'32\' height=\'32\' viewBox=\'0 0 24 24\'%3E%3Ccircle cx=\'12\' cy=\'12\' r=\'10\' fill=\'%23ffeb3b\' opacity=\'0.5\'/%3E%3C/svg%3E") 16 16, auto' : '';
+        break;
       case 'invertColors':
         document.body.style.filter = isActive ? 'invert(100%)' : '';
         break;
@@ -340,40 +340,38 @@
       const scriptUrl = new URL(currentScript.src);
       const baseUrl = `${scriptUrl.protocol}//${scriptUrl.host}`;
 
-      // Fetch settings from the Widget Settings API
-      const response = await fetch(`${baseUrl}/api/widget-settings/${clientKey}`);
-      if (!response.ok) {
-        throw new Error('Failed to load widget settings');
+      // Try to get settings from localStorage
+      let settings;
+      try {
+        const savedSettings = localStorage.getItem('widgetSettings');
+        if (savedSettings) {
+          settings = JSON.parse(savedSettings);
+        }
+      } catch (e) {
+        console.warn('Error reading settings from localStorage:', e);
       }
 
-      const settings = await response.json();
-      if (settings) {
-        globalSettings = settings;
-        const container = document.createElement('div');
-        container.id = 'accessibility-widget-container';
-        container.innerHTML = createWidgetHTML(globalSettings);
-        addStyles(globalSettings);
-        document.body.appendChild(container);
-        addEventListeners(container);
+      // If no settings in localStorage, use defaults
+      if (!settings) {
+        settings = {
+          header_color: '#60a5fa',
+          header_text_color: '#ffffff',
+          button_color: '#2563eb',
+          button_size: '64px',
+          powered_by_text: 'Powered by Accessibility Widget',
+          powered_by_color: '#64748b'
+        };
       }
-    } catch (error) {
-      console.error('Error initializing widget:', error);
-      // Fallback to default settings if fetch fails
-      const defaultSettings = {
-        header_color: '#60a5fa',
-        header_text_color: '#ffffff',
-        button_color: '#2563eb',
-        button_size: '64px',
-        powered_by_text: 'Powered by Accessibility Widget',
-        powered_by_color: '#64748b'
-      };
-      globalSettings = defaultSettings;
+
+      globalSettings = settings;
       const container = document.createElement('div');
       container.id = 'accessibility-widget-container';
-      container.innerHTML = createWidgetHTML(defaultSettings);
-      addStyles(defaultSettings);
+      container.innerHTML = createWidgetHTML(globalSettings);
+      addStyles(globalSettings);
       document.body.appendChild(container);
       addEventListeners(container);
+    } catch (error) {
+      console.error('Error initializing widget:', error);
     }
   }
 
