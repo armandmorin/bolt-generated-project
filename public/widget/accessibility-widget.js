@@ -331,24 +331,42 @@
       }
 
       const clientKey = currentScript?.getAttribute('data-client-key');
-      if (!clientKey) {
-        console.error('Missing client key for accessibility widget');
+      const supabaseUrl = currentScript?.getAttribute('data-supabase-url');
+      const supabaseKey = currentScript?.getAttribute('data-supabase-key');
+
+      if (!clientKey || !supabaseUrl || !supabaseKey) {
+        console.error('Missing required configuration for accessibility widget');
         return;
       }
 
-      // Get settings from localStorage
-      const savedSettings = localStorage.getItem('widgetSettings');
-      if (savedSettings) {
-        const settings = JSON.parse(savedSettings);
-        globalSettings = {
-          header_color: settings.headerColor,
-          header_text_color: settings.headerTextColor,
-          button_color: settings.buttonColor,
-          button_size: settings.buttonSize,
-          powered_by_text: settings.poweredByText,
-          powered_by_color: settings.poweredByColor
-        };
-        
+      const { createClient } = window.supabase;
+      const supabase = createClient(supabaseUrl, supabaseKey);
+
+      // First verify the client
+      const { data: clientData, error: clientError } = await supabase
+        .from('clients')
+        .select('*')
+        .eq('client_key', clientKey)
+        .eq('status', 'active')
+        .single();
+
+      if (clientError || !clientData) {
+        console.error('Invalid or inactive client key');
+        return;
+      }
+
+      // Get widget settings
+      const { data: settings, error: settingsError } = await supabase
+        .from('global_widget_settings')
+        .select('*')
+        .single();
+
+      if (settingsError) {
+        throw settingsError;
+      }
+
+      if (settings) {
+        globalSettings = settings;
         const container = document.createElement('div');
         container.id = 'accessibility-widget-container';
         container.innerHTML = createWidgetHTML(globalSettings);
