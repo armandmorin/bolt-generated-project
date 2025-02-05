@@ -9,13 +9,13 @@ const WidgetCodeSnippet = ({ clientKey }) => {
 
   const scriptCode = `<!-- Accessibility Widget -->
 <script>
-  (function() {
-    const script = document.createElement('script');
-    script.src = "${origin}/widget/accessibility-widget.js";
-    script.setAttribute('data-client-key', '${clientKey}');
-    document.body.appendChild(script);
-  })();
-</script>`;
+    (function() {
+      const script = document.createElement('script');
+      script.src = "${origin}/widget/accessibility-widget.js";
+      script.setAttribute('data-client-key', '${clientKey}');
+      document.body.appendChild(script);
+    })();
+  </script>`;
 
   const handleCopy = () => {
     navigator.clipboard.writeText(scriptCode);
