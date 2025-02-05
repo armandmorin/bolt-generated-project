@@ -336,27 +336,23 @@
         return;
       }
 
-      // Get the base URL from the script src
-      const scriptUrl = new URL(currentScript.src);
-      const baseUrl = `${scriptUrl.protocol}//${scriptUrl.host}`;
+      // Default settings
+      const settings = {
+        header_color: '#60a5fa',
+        header_text_color: '#ffffff',
+        button_color: '#2563eb',
+        button_size: '64px',
+        powered_by_text: 'Powered by Accessibility Widget',
+        powered_by_color: '#64748b'
+      };
 
-      // Updated URL format
-      const response = await fetch(`${baseUrl}/api/widget-settings?clientKey=${clientKey}`);
-
-      if (!response.ok) {
-        throw new Error('Failed to load widget settings');
-      }
-
-      const settings = await response.json();
-      if (settings) {
-        globalSettings = settings;
-        const container = document.createElement('div');
-        container.id = 'accessibility-widget-container';
-        container.innerHTML = createWidgetHTML(globalSettings);
-        addStyles(globalSettings);
-        document.body.appendChild(container);
-        addEventListeners(container);
-      }
+      globalSettings = settings;
+      const container = document.createElement('div');
+      container.id = 'accessibility-widget-container';
+      container.innerHTML = createWidgetHTML(globalSettings);
+      addStyles(globalSettings);
+      document.body.appendChild(container);
+      addEventListeners(container);
     } catch (error) {
       console.error('Error initializing widget:', error);
     }
