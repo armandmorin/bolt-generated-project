@@ -331,41 +331,49 @@
       }
 
       const clientKey = currentScript?.getAttribute('data-client-key');
-      if (!clientKey) {
-        console.error('Missing client key for accessibility widget');
+      const supabaseUrl = currentScript?.getAttribute('data-supabase-url');
+      const supabaseKey = currentScript?.getAttribute('data-supabase-key');
+
+      if (!clientKey || !supabaseUrl || !supabaseKey) {
+        console.error('Missing required configuration for accessibility widget');
         return;
       }
 
-      // Try to get settings from localStorage
-      let settings;
-      try {
-        const savedSettings = localStorage.getItem('widgetSettings');
-        if (savedSettings) {
-          settings = JSON.parse(savedSettings);
-        }
-      } catch (e) {
-        console.warn('Error reading settings from localStorage:', e);
+      const { createClient } = window.supabase;
+      const supabase = createClient(supabaseUrl, supabaseKey);
+
+      // First verify the client
+      const { data: clientData, error: clientError } = await supabase
+        .from('clients')
+        .select('*')
+        .eq('client_key', clientKey)
+        .eq('status', 'active')
+        .single();
+
+      if (clientError || !clientData) {
+        console.error('Invalid or inactive client key');
+        return;
       }
 
-      // If no settings in localStorage, use defaults
-      if (!settings) {
-        settings = {
-          header_color: '#60a5fa',
-          header_text_color: '#ffffff',
-          button_color: '#2563eb',
-          button_size: '64px',
-          powered_by_text: 'Powered by Accessibility Widget',
-          powered_by_color: '#64748b'
-        };
+      // Get widget settings
+      const { data: settings, error: settingsError } = await supabase
+        .from('global_widget_settings')
+        .select('*')
+        .single();
+
+      if (settingsError) {
+        throw settingsError;
       }
 
-      globalSettings = settings;
-      const container = document.createElement('div');
-      container.id = 'accessibility-widget-container';
-      container.innerHTML = createWidgetHTML(globalSettings);
-      addStyles(globalSettings);
-      document.body.appendChild(container);
-      addEventListeners(container);
+      if (settings) {
+        globalSettings = settings;
+        const container = document.createElement('div');
+        container.id = 'accessibility-widget-container';
+        container.innerHTML = createWidgetHTML(globalSettings);
+        addStyles(globalSettings);
+        document.body.appendChild(container);
+        addEventListeners(container);
+      }
     } catch (error) {
       console.error('Error initializing widget:', error);
     }
