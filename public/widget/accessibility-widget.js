@@ -93,7 +93,7 @@
         border-radius: 50%;
         border: none;
         cursor: pointer;
-        background-color: ${settings.button_color || '#2563eb'} !important;
+        background-color: ${settings.button_color} !important;
         color: white !important;
         box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
         transition: transform 0.2s ease;
@@ -129,14 +129,14 @@
 
       .widget-header {
         padding: 16px;
-        background: ${settings.header_color || '#60a5fa'} !important;
+        background: ${settings.header_color} !important;
       }
 
       .widget-header h3 {
         margin: 0;
         font-size: 16px;
         font-weight: 500;
-        color: ${settings.header_text_color || '#ffffff'} !important;
+        color: ${settings.header_text_color} !important;
       }
 
       .widget-body {
@@ -195,7 +195,7 @@
         text-align: center;
         font-size: 12px;
         border-top: 1px solid #e2e8f0;
-        color: ${settings.powered_by_color || '#64748b'} !important;
+        color: ${settings.powered_by_color} !important;
         position: sticky;
         bottom: 0;
         background: white;
@@ -331,42 +331,24 @@
       }
 
       const clientKey = currentScript?.getAttribute('data-client-key');
-      const supabaseUrl = currentScript?.getAttribute('data-supabase-url');
-      const supabaseKey = currentScript?.getAttribute('data-supabase-key');
-
-      if (!clientKey || !supabaseUrl || !supabaseKey) {
-        console.error('Missing required configuration for accessibility widget');
+      if (!clientKey) {
+        console.error('Missing client key for accessibility widget');
         return;
       }
 
-      const { createClient } = window.supabase;
-      const supabase = createClient(supabaseUrl, supabaseKey);
-
-      // First verify the client
-      const { data: clientData, error: clientError } = await supabase
-        .from('clients')
-        .select('*')
-        .eq('client_key', clientKey)
-        .eq('status', 'active')
-        .single();
-
-      if (clientError || !clientData) {
-        console.error('Invalid or inactive client key');
-        return;
-      }
-
-      // Get widget settings
-      const { data: settings, error: settingsError } = await supabase
-        .from('global_widget_settings')
-        .select('*')
-        .single();
-
-      if (settingsError) {
-        throw settingsError;
-      }
-
-      if (settings) {
-        globalSettings = settings;
+      // Get settings from localStorage
+      const savedSettings = localStorage.getItem('widgetSettings');
+      if (savedSettings) {
+        const settings = JSON.parse(savedSettings);
+        globalSettings = {
+          header_color: settings.headerColor,
+          header_text_color: settings.headerTextColor,
+          button_color: settings.buttonColor,
+          button_size: settings.buttonSize,
+          powered_by_text: settings.poweredByText,
+          powered_by_color: settings.poweredByColor
+        };
+        
         const container = document.createElement('div');
         container.id = 'accessibility-widget-container';
         container.innerHTML = createWidgetHTML(globalSettings);
