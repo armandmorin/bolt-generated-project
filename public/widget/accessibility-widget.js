@@ -340,46 +340,40 @@
       const scriptUrl = new URL(currentScript.src);
       const baseUrl = `${scriptUrl.protocol}//${scriptUrl.host}`;
 
-      // Try to get settings from localStorage first
-      let settings;
-      try {
-        const savedSettings = localStorage.getItem('widgetSettings');
-        if (savedSettings) {
-          const parsedSettings = JSON.parse(savedSettings);
-          settings = {
-            header_color: parsedSettings.headerColor || '#60a5fa',
-            header_text_color: parsedSettings.headerTextColor || '#ffffff',
-            button_color: parsedSettings.buttonColor || '#2563eb',
-            button_size: parsedSettings.buttonSize || '64px',
-            powered_by_text: parsedSettings.poweredByText || 'Powered by Accessibility Widget',
-            powered_by_color: parsedSettings.poweredByColor || '#64748b'
-          };
-        }
-      } catch (e) {
-        console.warn('Error reading settings from localStorage:', e);
+      // Fetch settings from the Widget Settings API
+      const response = await fetch(`${baseUrl}/api/widget-settings/${clientKey}`);
+      if (!response.ok) {
+        throw new Error('Failed to load widget settings');
       }
 
-      // If no settings in localStorage, use defaults
-      if (!settings) {
-        settings = {
-          header_color: '#60a5fa',
-          header_text_color: '#ffffff',
-          button_color: '#2563eb',
-          button_size: '64px',
-          powered_by_text: 'Powered by Accessibility Widget',
-          powered_by_color: '#64748b'
-        };
+      const settings = await response.json();
+      if (settings) {
+        globalSettings = settings;
+        const container = document.createElement('div');
+        container.id = 'accessibility-widget-container';
+        container.innerHTML = createWidgetHTML(globalSettings);
+        addStyles(globalSettings);
+        document.body.appendChild(container);
+        addEventListeners(container);
       }
-
-      globalSettings = settings;
-      const container = document.createElement('div');
-      container.id = 'accessibility-widget-container';
-      container.innerHTML = createWidgetHTML(globalSettings);
-      addStyles(globalSettings);
-      document.body.appendChild(container);
-      addEventListeners(container);
     } catch (error) {
       console.error('Error initializing widget:', error);
+      // Fallback to default settings if fetch fails
+      const defaultSettings = {
+        header_color: '#60a5fa',
+        header_text_color: '#ffffff',
+        button_color: '#2563eb',
+        button_size: '64px',
+        powered_by_text: 'Powered by Accessibility Widget',
+        powered_by_color: '#64748b'
+      };
+      globalSettings = defaultSettings;
+      const container = document.createElement('div');
+      container.id = 'accessibility-widget-container';
+      container.innerHTML = createWidgetHTML(defaultSettings);
+      addStyles(defaultSettings);
+      document.body.appendChild(container);
+      addEventListeners(container);
     }
   }
 
