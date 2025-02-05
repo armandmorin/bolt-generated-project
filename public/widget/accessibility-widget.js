@@ -234,8 +234,8 @@
         document.body.style.fontFamily = isActive ? 'OpenDyslexic, Arial, sans-serif' : '';
         break;
       case 'cursorHighlight':
-        document.body.style.cursor = isActive ? 'url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'32\' height=\'32\' viewBox=\'0 0 24 24\'%3E%3Ccircle cx=\'12\' cy=\'12\' r=\'10\' fill=\'%23ffeb3b\' opacity=\'0.5\'/%3E%3C/svg%3E") 16 16, auto' : '';
-        break;
+        document.body.style.cursor = isActive ? 'url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'32\' height=\'32\' viewBox=\'0 0 24 24\'%3E%3C/svg%3E");
+          break;
       case 'invertColors':
         document.body.style.filter = isActive ? 'invert(100%)' : '';
         break;
