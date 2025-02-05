@@ -4,12 +4,15 @@ import styles from '../styles/widgetCode.module.css';
 const WidgetCodeSnippet = ({ clientKey }) => {
   const [copied, setCopied] = useState(false);
 
+  // Get the current origin or use a default for development
+  const origin = window.location.origin;
+
   const scriptCode = `<!-- Accessibility Widget -->
 <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
 <script>
   (function() {
     const script = document.createElement('script');
-    script.src = "${window.location.origin}/widget/accessibility-widget.js";
+    script.src = "${origin}/widget/accessibility-widget.js";
     script.setAttribute('data-supabase-url', 'https://hkurtvvrgwlgpbyfbmup.supabase.co');
     script.setAttribute('data-supabase-key', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhrdXJ0dnZyZ3dsZ3BieWZibXVwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Mzc1NTkyOTksImV4cCI6MjA1MzEzNTI5OX0.T8kS-k8XIcTzAHiX7NWQQtJ6Nkf7OFOsUYsIFAiL37o');
     script.setAttribute('data-client-key', '${clientKey}');
