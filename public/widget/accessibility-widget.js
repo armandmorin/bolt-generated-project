@@ -67,7 +67,7 @@
           </div>
         </div>
         <div class="widget-footer">
-          ${settings.powered_by_text || 'Powered by Accessibility Widget'}
+          ${settings.poweredByText}
         </div>
       </div>
     `;
@@ -88,12 +88,12 @@
         display: flex;
         align-items: center;
         justify-content: center;
-        width: ${settings.button_size || '64px'};
-        height: ${settings.button_size || '64px'};
+        width: ${settings.buttonSize};
+        height: ${settings.buttonSize};
         border-radius: 50%;
         border: none;
         cursor: pointer;
-        background-color: ${settings.button_color} !important;
+        background-color: ${settings.buttonColor} !important;
         color: white !important;
         box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
         transition: transform 0.2s ease;
@@ -129,14 +129,14 @@
 
       .widget-header {
         padding: 16px;
-        background: ${settings.header_color} !important;
+        background: ${settings.headerColor} !important;
       }
 
       .widget-header h3 {
         margin: 0;
         font-size: 16px;
         font-weight: 500;
-        color: ${settings.header_text_color} !important;
+        color: ${settings.headerTextColor} !important;
       }
 
       .widget-body {
@@ -195,7 +195,7 @@
         text-align: center;
         font-size: 12px;
         border-top: 1px solid #e2e8f0;
-        color: ${settings.powered_by_color} !important;
+        color: ${settings.poweredByColor} !important;
         position: sticky;
         bottom: 0;
         background: white;
@@ -341,47 +341,22 @@
       const baseUrl = `${scriptUrl.protocol}//${scriptUrl.host}`;
 
       // Get widget settings from the API
-      const response = await fetch(`${baseUrl}/api/widget-settings/${clientKey}`);
+      const response = await fetch(`${baseUrl}/api/widget-settings?clientKey=${clientKey}`);
       if (!response.ok) {
         throw new Error('Failed to load widget settings');
       }
 
       const settings = await response.json();
       if (settings) {
-        globalSettings = {
-          header_color: settings.headerColor,
-          header_text_color: settings.headerTextColor,
-          button_color: settings.buttonColor,
-          button_size: settings.buttonSize || '64px',
-          powered_by_text: settings.poweredByText,
-          powered_by_color: settings.poweredByColor
-        };
-
         const container = document.createElement('div');
         container.id = 'accessibility-widget-container';
-        container.innerHTML = createWidgetHTML(globalSettings);
-        addStyles(globalSettings);
+        container.innerHTML = createWidgetHTML(settings);
+        addStyles(settings);
         document.body.appendChild(container);
         addEventListeners(container);
       }
     } catch (error) {
       console.error('Error initializing widget:', error);
-      // Create widget with default settings if there's an error
-      const defaultSettings = {
-        header_color: '#60a5fa',
-        header_text_color: '#ffffff',
-        button_color: '#2563eb',
-        button_size: '64px',
-        powered_by_text: 'Powered by Accessibility Widget',
-        powered_by_color: '#64748b'
-      };
-
-      const container = document.createElement('div');
-      container.id = 'accessibility-widget-container';
-      container.innerHTML = createWidgetHTML(defaultSettings);
-      addStyles(defaultSettings);
-      document.body.appendChild(container);
-      addEventListeners(container);
     }
   }
 
