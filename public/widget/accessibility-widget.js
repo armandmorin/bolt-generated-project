@@ -25,7 +25,8 @@
           headers: {
             'apikey': SUPABASE_KEY,
             'Authorization': `Bearer ${SUPABASE_KEY}`,
-            'Content-Type': 'application/json'
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
           }
         }
       );
@@ -35,7 +36,13 @@
       }
 
       const data = await response.json();
-      return data?.[0] || getDefaultSettings();
+      if (data && data.length > 0) {
+        console.log('Using global settings');
+        return data[0];
+      }
+
+      console.log('No global settings found, using defaults');
+      return getDefaultSettings();
     } catch (error) {
       console.error('Error fetching global settings:', error);
       return getDefaultSettings();
@@ -45,12 +52,24 @@
   async function getClientSettings(clientKey) {
     try {
       // First, get the client data
-      const { data: clientData, error: clientError } = await supabaseFetch(
-        'clients',
-        `client_key=eq.${encodeURIComponent(clientKey)}`
+      const clientResponse = await fetch(
+        `${SUPABASE_URL}/rest/v1/clients?select=id&client_key=eq.${encodeURIComponent(clientKey)}`,
+        {
+          headers: {
+            'apikey': SUPABASE_KEY,
+            'Authorization': `Bearer ${SUPABASE_KEY}`,
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+          }
+        }
       );
 
-      if (clientError || !clientData?.length) {
+      if (!clientResponse.ok) {
+        throw new Error('Failed to fetch client');
+      }
+
+      const clientData = await clientResponse.json();
+      if (!clientData || clientData.length === 0) {
         console.log('Client not found, using global settings');
         return getGlobalSettings();
       }
@@ -58,16 +77,25 @@
       const clientId = clientData[0].id;
 
       // Then get client-specific settings
-      const { data: settingsData, error: settingsError } = await supabaseFetch(
-        'widget_settings',
-        `client_id=eq.${clientId}`
+      const settingsResponse = await fetch(
+        `${SUPABASE_URL}/rest/v1/widget_settings?select=*&client_id=eq.${encodeURIComponent(clientId)}`,
+        {
+          headers: {
+            'apikey': SUPABASE_KEY,
+            'Authorization': `Bearer ${SUPABASE_KEY}`,
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+          }
+        }
       );
 
-      if (settingsError) {
+      if (!settingsResponse.ok) {
         throw new Error('Failed to fetch client settings');
       }
 
-      if (settingsData?.length) {
+      const settingsData = await settingsResponse.json();
+      
+      if (settingsData && settingsData.length > 0) {
         console.log('Using client-specific settings');
         return settingsData[0];
       }
@@ -77,31 +105,6 @@
     } catch (error) {
       console.error('Error in getClientSettings:', error);
       return getGlobalSettings();
-    }
-  }
-
-  async function supabaseFetch(table, query = '') {
-    try {
-      const response = await fetch(
-        `${SUPABASE_URL}/rest/v1/${table}?select=*&${query}`,
-        {
-          headers: {
-            'apikey': SUPABASE_KEY,
-            'Authorization': `Bearer ${SUPABASE_KEY}`,
-            'Content-Type': 'application/json'
-          }
-        }
-      );
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-
-      const data = await response.json();
-      return { data, error: null };
-    } catch (error) {
-      console.error(`Error fetching from ${table}:`, error);
-      return { data: null, error };
     }
   }
 

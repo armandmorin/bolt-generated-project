@@ -9,11 +9,11 @@ function ClientEdit() {
   const navigate = useNavigate();
   const [client, setClient] = useState(null);
   const [widgetSettings, setWidgetSettings] = useState({
-    header_color: '',
-    header_text_color: '',
-    button_color: '',
-    powered_by_text: '',
-    powered_by_color: '',
+    header_color: '#60a5fa',
+    header_text_color: '#ffffff',
+    button_color: '#2563eb',
+    powered_by_text: 'Powered by Accessibility Widget',
+    powered_by_color: '#64748b',
     button_size: '64px',
     button_position: 'bottom-right'
   });
@@ -29,10 +29,7 @@ function ClientEdit() {
       // Load client details
       const { data: clientData, error: clientError } = await supabase
         .from('clients')
-        .select(`
-          *,
-          widget_settings (*)
-        `)
+        .select('*')
         .eq('id', clientId)
         .single();
 
@@ -40,11 +37,17 @@ function ClientEdit() {
 
       setClient(clientData);
       
-      // If client has custom widget settings, use them
-      if (clientData.widget_settings && clientData.widget_settings.length > 0) {
-        setWidgetSettings(clientData.widget_settings[0]);
+      // Load widget settings for this client
+      const { data: settingsData, error: settingsError } = await supabase
+        .from('widget_settings')
+        .select('*')
+        .eq('client_id', clientId)
+        .single();
+
+      if (!settingsError && settingsData) {
+        setWidgetSettings(settingsData);
       } else {
-        // Load default settings
+        // Load default settings from global settings
         const { data: defaultSettings } = await supabase
           .from('global_widget_settings')
           .select('*')
@@ -54,7 +57,7 @@ function ClientEdit() {
         if (defaultSettings) {
           setWidgetSettings({
             ...defaultSettings,
-            client_id: clientId // Add client_id for new settings
+            client_id: clientId
           });
         }
       }
@@ -81,56 +84,46 @@ function ClientEdit() {
 
       if (clientError) throw clientError;
 
-      // Check if widget settings exist for this client
+      // Check if widget settings exist
       const { data: existingSettings } = await supabase
         .from('widget_settings')
         .select('id')
         .eq('client_id', clientId);
 
-      let settingsError;
+      const settingsData = {
+        client_id: clientId,
+        header_color: widgetSettings.header_color,
+        header_text_color: widgetSettings.header_text_color,
+        button_color: widgetSettings.button_color,
+        powered_by_text: widgetSettings.powered_by_text,
+        powered_by_color: widgetSettings.powered_by_color,
+        button_size: widgetSettings.button_size,
+        button_position: widgetSettings.button_position
+      };
 
-      if (existingSettings && existingSettings.length > 0) {
+      let settingsError;
+      if (existingSettings?.length > 0) {
         // Update existing settings
         const { error } = await supabase
           .from('widget_settings')
-          .update({
-            header_color: widgetSettings.header_color,
-            header_text_color: widgetSettings.header_text_color,
-            button_color: widgetSettings.button_color,
-            powered_by_text: widgetSettings.powered_by_text,
-            powered_by_color: widgetSettings.powered_by_color,
-            button_size: widgetSettings.button_size,
-            button_position: widgetSettings.button_position,
-            updated_at: new Date().toISOString()
-          })
+          .update(settingsData)
           .eq('client_id', clientId);
-        
         settingsError = error;
       } else {
         // Insert new settings
         const { error } = await supabase
           .from('widget_settings')
-          .insert([{
-            client_id: clientId,
-            header_color: widgetSettings.header_color,
-            header_text_color: widgetSettings.header_text_color,
-            button_color: widgetSettings.button_color,
-            powered_by_text: widgetSettings.powered_by_text,
-            powered_by_color: widgetSettings.powered_by_color,
-            button_size: widgetSettings.button_size,
-            button_position: widgetSettings.button_position
-          }]);
-        
+          .insert([settingsData]);
         settingsError = error;
       }
 
       if (settingsError) throw settingsError;
 
       alert('Changes saved successfully');
-      await loadClientData(); // Reload the data to ensure we have the latest
+      await loadClientData(); // Reload the data
     } catch (error) {
       console.error('Error saving changes:', error);
-      alert('Error saving changes');
+      alert('Error saving changes: ' + error.message);
     } finally {
       setSaving(false);
     }
