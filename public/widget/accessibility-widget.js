@@ -1,4 +1,8 @@
 (function() {
+  // Internal Supabase configuration
+  const SUPABASE_URL = 'https://hkurtvvrgwlgpbyfbmup.supabase.co';
+  const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhrdXJ0dnZyZ3dsZ3BieWZibXVwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Mzc1NTkyOTksImV4cCI6MjA1MzEzNTI5OX0.T8kS-k8XIcTzAHiX7NWQQtJ6Nkf7OFOsUYsIFAiL37o';
+
   let globalSettings = null;
 
   function createWidgetHTML(settings) {
@@ -330,19 +334,17 @@
         }
       }
 
-      const supabaseUrl = currentScript?.getAttribute('data-supabase-url');
-      const supabaseKey = currentScript?.getAttribute('data-supabase-key');
       const clientKey = currentScript?.getAttribute('data-client-key');
 
-      if (!supabaseUrl || !supabaseKey || !clientKey) {
-        console.error('Missing required configuration for accessibility widget');
+      if (!clientKey) {
+        console.error('Missing required client key for accessibility widget');
         return;
       }
 
-      const response = await fetch(`${supabaseUrl}/rest/v1/global_widget_settings?select=*`, {
+      const response = await fetch(`${SUPABASE_URL}/rest/v1/global_widget_settings?select=*`, {
         headers: {
-          'apikey': supabaseKey,
-          'Authorization': `Bearer ${supabaseKey}`
+          'apikey': SUPABASE_KEY,
+          'Authorization': `Bearer ${SUPABASE_KEY}`
         }
       });
 
