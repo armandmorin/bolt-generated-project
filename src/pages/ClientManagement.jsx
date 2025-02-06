@@ -10,7 +10,7 @@ function ClientManagement() {
   const [newClient, setNewClient] = useState({
     name: '',
     website: '',
-    contact_email: '' // Changed from contactEmail to contact_email
+    contact_email: ''
   });
   const [searchQuery, setSearchQuery] = useState('');
   const [showCodeModal, setShowCodeModal] = useState(false);
@@ -55,7 +55,7 @@ function ClientManagement() {
     const newClientData = {
       name: newClient.name,
       website: newClient.website,
-      contact_email: newClient.contact_email, // Changed from contactEmail to contact_email
+      contact_email: newClient.contact_email,
       client_key: clientKey,
       status: 'active'
     };
@@ -75,11 +75,40 @@ function ClientManagement() {
     setNewClient({
       name: '',
       website: '',
-      contact_email: '' // Changed from contactEmail to contact_email
+      contact_email: ''
     });
   };
 
-  // ... rest of the component remains the same ...
+  const toggleClientStatus = async (id, currentStatus) => {
+    const newStatus = currentStatus === 'active' ? 'inactive' : 'active';
+    
+    const { error } = await supabase
+      .from('clients')
+      .update({ status: newStatus })
+      .eq('id', id);
+
+    if (error) {
+      console.error('Error updating client status:', error);
+      return;
+    }
+
+    await loadClients();
+  };
+
+  const showClientCode = (client) => {
+    setSelectedClientCode(client.client_key);
+    setShowCodeModal(true);
+  };
+
+  const handleEditClient = (clientId) => {
+    navigate(`/client-edit/${clientId}`);
+  };
+
+  const filteredClients = clients.filter(client =>
+    client.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    client.website?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    client.contact_email?.toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
   return (
     <div className={styles.clientManagement}>
@@ -122,8 +151,8 @@ function ClientManagement() {
             <label>Contact Email</label>
             <input
               type="email"
-              name="contact_email" // Changed from contactEmail to contact_email
-              value={newClient.contact_email} // Changed from contactEmail to contact_email
+              name="contact_email"
+              value={newClient.contact_email}
               onChange={handleInputChange}
               required
             />
@@ -135,7 +164,80 @@ function ClientManagement() {
         </form>
       </div>
 
-      {/* ... rest of the JSX remains the same ... */}
+      <div className={styles.clientsList}>
+        <h3>Client List</h3>
+        {filteredClients.length > 0 ? (
+          <table className={styles.clientTable}>
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Website</th>
+                <th>Email</th>
+                <th>Client Key</th>
+                <th>Status</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filteredClients.map(client => (
+                <tr key={client.id}>
+                  <td>{client.name}</td>
+                  <td>
+                    <a href={client.website} target="_blank" rel="noopener noreferrer">
+                      {client.website}
+                    </a>
+                  </td>
+                  <td>{client.contact_email}</td>
+                  <td>{client.client_key}</td>
+                  <td>
+                    <span className={`${styles.status} ${client.status === 'active' ? styles.statusActive : styles.statusInactive}`}>
+                      {client.status}
+                    </span>
+                  </td>
+                  <td>
+                    <div className={styles.actionButtons}>
+                      <button
+                        className={styles.editButton}
+                        onClick={() => handleEditClient(client.id)}
+                      >
+                        Edit
+                      </button>
+                      <button
+                        className={styles.codeButton}
+                        onClick={() => showClientCode(client)}
+                      >
+                        Get Code
+                      </button>
+                      <button
+                        className={`${styles.statusButton} ${client.status === 'active' ? styles.statusButtonActive : styles.statusButtonInactive}`}
+                        onClick={() => toggleClientStatus(client.id, client.status)}
+                      >
+                        {client.status === 'active' ? 'Deactivate' : 'Activate'}
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        ) : (
+          <p className={styles.noClients}>No clients found.</p>
+        )}
+      </div>
+
+      {showCodeModal && (
+        <div className={styles.modal}>
+          <div className={styles.modalContent}>
+            <h3>Installation Code</h3>
+            <WidgetCodeSnippet clientKey={selectedClientCode} />
+            <div className={styles.modalButtons}>
+              <button onClick={() => setShowCodeModal(false)} className={styles.closeButton}>
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
