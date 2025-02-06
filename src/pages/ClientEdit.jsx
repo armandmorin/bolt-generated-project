@@ -29,7 +29,10 @@ function ClientEdit() {
       // Load client details
       const { data: clientData, error: clientError } = await supabase
         .from('clients')
-        .select('*, widget_settings(*)')
+        .select(`
+          *,
+          widget_settings (*)
+        `)
         .eq('id', clientId)
         .single();
 
@@ -38,8 +41,8 @@ function ClientEdit() {
       setClient(clientData);
       
       // If client has custom widget settings, use them
-      if (clientData.widget_settings) {
-        setWidgetSettings(clientData.widget_settings);
+      if (clientData.widget_settings && clientData.widget_settings.length > 0) {
+        setWidgetSettings(clientData.widget_settings[0]);
       } else {
         // Load default settings
         const { data: defaultSettings } = await supabase
@@ -49,7 +52,10 @@ function ClientEdit() {
           .single();
 
         if (defaultSettings) {
-          setWidgetSettings(defaultSettings);
+          setWidgetSettings({
+            ...defaultSettings,
+            client_id: clientId // Add client_id for new settings
+          });
         }
       }
     } catch (error) {
@@ -63,7 +69,8 @@ function ClientEdit() {
     setSaving(true);
 
     try {
-      const { error: updateError } = await supabase
+      // Update client details
+      const { error: clientError } = await supabase
         .from('clients')
         .update({
           name: client.name,
@@ -72,34 +79,58 @@ function ClientEdit() {
         })
         .eq('id', clientId);
 
-      if (updateError) throw updateError;
+      if (clientError) throw clientError;
 
-      // Update or insert widget settings
+      // Check if widget settings exist for this client
       const { data: existingSettings } = await supabase
         .from('widget_settings')
         .select('id')
-        .eq('client_id', clientId)
-        .single();
+        .eq('client_id', clientId);
 
-      if (existingSettings) {
-        await supabase
+      let settingsError;
+
+      if (existingSettings && existingSettings.length > 0) {
+        // Update existing settings
+        const { error } = await supabase
           .from('widget_settings')
-          .update(widgetSettings)
+          .update({
+            header_color: widgetSettings.header_color,
+            header_text_color: widgetSettings.header_text_color,
+            button_color: widgetSettings.button_color,
+            powered_by_text: widgetSettings.powered_by_text,
+            powered_by_color: widgetSettings.powered_by_color,
+            button_size: widgetSettings.button_size,
+            button_position: widgetSettings.button_position,
+            updated_at: new Date().toISOString()
+          })
           .eq('client_id', clientId);
+        
+        settingsError = error;
       } else {
-        await supabase
+        // Insert new settings
+        const { error } = await supabase
           .from('widget_settings')
-          .insert({
-            ...widgetSettings,
-            client_id: clientId
-          });
+          .insert([{
+            client_id: clientId,
+            header_color: widgetSettings.header_color,
+            header_text_color: widgetSettings.header_text_color,
+            button_color: widgetSettings.button_color,
+            powered_by_text: widgetSettings.powered_by_text,
+            powered_by_color: widgetSettings.powered_by_color,
+            button_size: widgetSettings.button_size,
+            button_position: widgetSettings.button_position
+          }]);
+        
+        settingsError = error;
       }
 
-      alert('Client updated successfully');
-      navigate('/admin');
+      if (settingsError) throw settingsError;
+
+      alert('Changes saved successfully');
+      await loadClientData(); // Reload the data to ensure we have the latest
     } catch (error) {
-      console.error('Error updating client:', error);
-      alert('Error updating client');
+      console.error('Error saving changes:', error);
+      alert('Error saving changes');
     } finally {
       setSaving(false);
     }
@@ -180,85 +211,96 @@ function ClientEdit() {
         ) : (
           <div className={styles.widgetSettings}>
             <div className={styles.settingsPanel}>
-              <div className={styles.settingsGroup}>
-                <h3>Header Settings</h3>
-                <div className={styles.formGroup}>
-                  <label>Header Background Color</label>
-                  <input
-                    type="color"
-                    value={widgetSettings.header_color}
-                    onChange={(e) => handleSettingChange('header_color', e.target.value)}
-                  />
+              <form onSubmit={handleClientUpdate}>
+                <div className={styles.settingsGroup}>
+                  <h3>Header Settings</h3>
+                  <div className={styles.formGroup}>
+                    <label>Header Background Color</label>
+                    <input
+                      type="color"
+                      value={widgetSettings.header_color || '#60a5fa'}
+                      onChange={(e) => handleSettingChange('header_color', e.target.value)}
+                    />
+                  </div>
+                  <div className={styles.formGroup}>
+                    <label>Header Text Color</label>
+                    <input
+                      type="color"
+                      value={widgetSettings.header_text_color || '#ffffff'}
+                      onChange={(e) => handleSettingChange('header_text_color', e.target.value)}
+                    />
+                  </div>
                 </div>
-                <div className={styles.formGroup}>
-                  <label>Header Text Color</label>
-                  <input
-                    type="color"
-                    value={widgetSettings.header_text_color}
-                    onChange={(e) => handleSettingChange('header_text_color', e.target.value)}
-                  />
-                </div>
-              </div>
 
-              <div className={styles.settingsGroup}>
-                <h3>Button Settings</h3>
-                <div className={styles.formGroup}>
-                  <label>Button Color</label>
-                  <input
-                    type="color"
-                    value={widgetSettings.button_color}
-                    onChange={(e) => handleSettingChange('button_color', e.target.value)}
-                  />
+                <div className={styles.settingsGroup}>
+                  <h3>Button Settings</h3>
+                  <div className={styles.formGroup}>
+                    <label>Button Color</label>
+                    <input
+                      type="color"
+                      value={widgetSettings.button_color || '#2563eb'}
+                      onChange={(e) => handleSettingChange('button_color', e.target.value)}
+                    />
+                  </div>
+                  <div className={styles.formGroup}>
+                    <label>Button Size</label>
+                    <select
+                      value={widgetSettings.button_size || '64px'}
+                      onChange={(e) => handleSettingChange('button_size', e.target.value)}
+                    >
+                      <option value="48px">Small</option>
+                      <option value="64px">Medium</option>
+                      <option value="80px">Large</option>
+                    </select>
+                  </div>
                 </div>
-                <div className={styles.formGroup}>
-                  <label>Button Size</label>
-                  <select
-                    value={widgetSettings.button_size}
-                    onChange={(e) => handleSettingChange('button_size', e.target.value)}
+
+                <div className={styles.settingsGroup}>
+                  <h3>Footer Settings</h3>
+                  <div className={styles.formGroup}>
+                    <label>Powered By Text</label>
+                    <input
+                      type="text"
+                      value={widgetSettings.powered_by_text || ''}
+                      onChange={(e) => handleSettingChange('powered_by_text', e.target.value)}
+                      placeholder="Powered by Accessibility Widget"
+                    />
+                  </div>
+                  <div className={styles.formGroup}>
+                    <label>Powered By Color</label>
+                    <input
+                      type="color"
+                      value={widgetSettings.powered_by_color || '#64748b'}
+                      onChange={(e) => handleSettingChange('powered_by_color', e.target.value)}
+                    />
+                  </div>
+                </div>
+
+                <div className={styles.formActions}>
+                  <button 
+                    type="submit"
+                    className={styles.saveButton}
+                    disabled={saving}
                   >
-                    <option value="48px">Small</option>
-                    <option value="64px">Medium</option>
-                    <option value="80px">Large</option>
-                  </select>
+                    {saving ? 'Saving...' : 'Save Changes'}
+                  </button>
                 </div>
-              </div>
-
-              <div className={styles.settingsGroup}>
-                <h3>Footer Settings</h3>
-                <div className={styles.formGroup}>
-                  <label>Powered By Text</label>
-                  <input
-                    type="text"
-                    value={widgetSettings.powered_by_text}
-                    onChange={(e) => handleSettingChange('powered_by_text', e.target.value)}
-                  />
-                </div>
-                <div className={styles.formGroup}>
-                  <label>Powered By Color</label>
-                  <input
-                    type="color"
-                    value={widgetSettings.powered_by_color}
-                    onChange={(e) => handleSettingChange('powered_by_color', e.target.value)}
-                  />
-                </div>
-              </div>
-
-              <div className={styles.formActions}>
-                <button 
-                  onClick={handleClientUpdate}
-                  className={styles.saveButton}
-                  disabled={saving}
-                >
-                  {saving ? 'Saving...' : 'Save Changes'}
-                </button>
-              </div>
+              </form>
             </div>
 
             <div className={styles.previewPanel}>
               <h3>Widget Preview</h3>
               <div className={styles.previewContainer}>
                 <AccessibilityWidget
-                  settings={widgetSettings}
+                  settings={{
+                    headerColor: widgetSettings.header_color,
+                    headerTextColor: widgetSettings.header_text_color,
+                    buttonColor: widgetSettings.button_color,
+                    poweredByText: widgetSettings.powered_by_text,
+                    poweredByColor: widgetSettings.powered_by_color,
+                    buttonSize: widgetSettings.button_size,
+                    buttonPosition: widgetSettings.button_position
+                  }}
                   isPreview={true}
                 />
               </div>
