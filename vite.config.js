@@ -5,45 +5,36 @@ export default defineConfig({
   plugins: [react()],
   server: {
     port: 5173,
-    middleware: [
-      async function widgetSettingsMiddleware(req, res, next) {
-        if (req.url.startsWith('/api/widget-settings')) {
-          // Set CORS headers
-          res.setHeader('Access-Control-Allow-Origin', '*');
-          res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
-          res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
-          res.setHeader('Content-Type', 'application/json');
-
-          // Handle OPTIONS request
-          if (req.method === 'OPTIONS') {
-            res.statusCode = 204;
-            res.end();
-            return;
+    historyApiFallback: true,
+    proxy: {
+      '/api/widget-settings': {
+        target: 'http://localhost:5173',
+        changeOrigin: true,
+        rewrite: (path) => {
+          const clientKey = path.split('/').pop();
+          // Get settings from localStorage based on client key
+          const settings = JSON.parse(localStorage.getItem('widgetSettings') || '{}');
+          const clients = JSON.parse(localStorage.getItem('clients') || '[]');
+          const client = clients.find(c => c.scriptKey === clientKey);
+          
+          if (!client || client.status !== 'active') {
+            return JSON.stringify({
+              error: 'Invalid or inactive client key'
+            });
           }
-
-          // Get client key from URL
-          const clientKey = new URL(req.url, 'http://localhost').searchParams.get('clientKey');
-          if (!clientKey) {
-            res.statusCode = 400;
-            res.end(JSON.stringify({ error: 'Client key is required' }));
-            return;
-          }
-
-          // Sample settings response
-          const settings = {
-            header_color: '#60a5fa',
-            header_text_color: '#ffffff',
-            button_color: '#2563eb',
-            button_size: '64px',
-            powered_by_text: 'Powered by Accessibility Widget',
-            powered_by_color: '#64748b'
-          };
-
-          res.end(JSON.stringify(settings));
-          return;
+          
+          return JSON.stringify({
+            headerColor: settings.headerColor || '#60a5fa',
+            headerTextColor: settings.headerTextColor || '#1e293b',
+            buttonColor: settings.buttonColor || '#2563eb',
+            poweredByText: settings.poweredByText || 'Powered by Accessibility Widget',
+            poweredByColor: settings.poweredByColor || '#64748b'
+          });
         }
-        next();
       }
-    ]
+    }
+  },
+  preview: {
+    port: 5173
   }
 });

@@ -67,142 +67,10 @@
           </div>
         </div>
         <div class="widget-footer">
-          ${settings.poweredByText || 'Powered by Accessibility Widget'}
+          ${settings.powered_by_text || 'Powered by Accessibility Widget'}
         </div>
       </div>
     `;
-  }
-
-  function addStyles(settings) {
-    const styles = document.createElement('style');
-    styles.textContent = `
-      #accessibility-widget-container {
-        position: fixed;
-        bottom: 20px;
-        right: 20px;
-        z-index: 99999;
-        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      }
-
-      .widget-toggle button {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        width: ${settings.buttonSize || '64px'};
-        height: ${settings.buttonSize || '64px'};
-        border-radius: 50%;
-        border: none;
-        cursor: pointer;
-        background-color: ${settings.buttonColor} !important;
-        color: white !important;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
-        transition: transform 0.2s ease;
-        padding: 0;
-      }
-
-      .widget-toggle .widget-icon {
-        width: 32px;
-        height: 32px;
-        color: white !important;
-      }
-
-      .widget-toggle button:hover {
-        transform: scale(1.1);
-      }
-
-      .widget-panel {
-        position: absolute;
-        bottom: calc(100% + 16px);
-        right: 0;
-        width: 320px;
-        background: white;
-        border-radius: 12px;
-        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
-        display: none;
-        max-height: 80vh;
-        overflow-y: auto;
-      }
-
-      .widget-panel.open {
-        display: block;
-      }
-
-      .widget-header {
-        padding: 16px;
-        background: ${settings.headerColor} !important;
-      }
-
-      .widget-header h3 {
-        margin: 0;
-        font-size: 16px;
-        font-weight: 500;
-        color: ${settings.headerTextColor} !important;
-      }
-
-      .widget-body {
-        padding: 16px;
-      }
-
-      .feature-grid {
-        display: grid;
-        grid-template-columns: repeat(2, 1fr);
-        gap: 8px;
-      }
-
-      .feature-button {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        gap: 8px;
-        padding: 12px;
-        background: #f8fafc;
-        border: 1px solid #e2e8f0;
-        border-radius: 8px;
-        cursor: pointer;
-        transition: all 0.2s ease;
-        width: 100%;
-        min-height: 80px;
-      }
-
-      .feature-button:hover {
-        background: #f1f5f9;
-        border-color: #cbd5e1;
-      }
-
-      .feature-button.active {
-        background: #e0e7ff;
-        border-color: #818cf8;
-        color: #4f46e5;
-      }
-
-      .feature-icon {
-        font-size: 24px;
-        line-height: 1;
-      }
-
-      .feature-text {
-        font-size: 12px;
-        text-align: center;
-        line-height: 1.2;
-        color: #475569;
-        margin: 0;
-        padding: 0;
-      }
-
-      .widget-footer {
-        padding: 12px;
-        text-align: center;
-        font-size: 12px;
-        border-top: 1px solid #e2e8f0;
-        color: ${settings.poweredByColor} !important;
-        position: sticky;
-        bottom: 0;
-        background: white;
-        z-index: 1;
-      }
-    `;
-    document.head.appendChild(styles);
   }
 
   function handleFeatureToggle(feature, isActive) {
@@ -293,6 +161,138 @@
     }
   }
 
+  function addStyles(settings) {
+    const styles = document.createElement('style');
+    styles.textContent = `
+      #accessibility-widget-container {
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        z-index: 99999;
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      }
+
+      .widget-toggle button {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: ${settings.button_size || '64px'};
+        height: ${settings.button_size || '64px'};
+        border-radius: 50%;
+        border: none;
+        cursor: pointer;
+        background-color: ${settings.button_color || '#2563eb'};
+        color: white;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+        transition: transform 0.2s ease;
+        padding: 0;
+      }
+
+      .widget-toggle .widget-icon {
+        width: 32px;
+        height: 32px;
+        color: white;
+      }
+
+      .widget-toggle button:hover {
+        transform: scale(1.1);
+      }
+
+      .widget-panel {
+        position: absolute;
+        bottom: calc(100% + 16px);
+        right: 0;
+        width: 320px;
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+        display: none;
+        max-height: 80vh;
+        overflow-y: auto;
+      }
+
+      .widget-panel.open {
+        display: block;
+      }
+
+      .widget-header {
+        padding: 16px;
+        background: ${settings.header_color || '#60a5fa'};
+      }
+
+      .widget-header h3 {
+        margin: 0;
+        font-size: 16px;
+        font-weight: 500;
+        color: ${settings.header_text_color || '#ffffff'} !important;
+      }
+
+      .widget-body {
+        padding: 16px;
+      }
+
+      .feature-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 8px;
+      }
+
+      .feature-button {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        padding: 12px;
+        background: #f8fafc;
+        border: 1px solid #e2e8f0;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        width: 100%;
+        min-height: 80px;
+      }
+
+      .feature-button:hover {
+        background: #f1f5f9;
+        border-color: #cbd5e1;
+      }
+
+      .feature-button.active {
+        background: #e0e7ff;
+        border-color: #818cf8;
+        color: #4f46e5;
+      }
+
+      .feature-icon {
+        font-size: 24px;
+        line-height: 1;
+      }
+
+      .feature-text {
+        font-size: 12px;
+        text-align: center;
+        line-height: 1.2;
+        color: #475569;
+        margin: 0;
+        padding: 0;
+      }
+
+      .widget-footer {
+        padding: 12px;
+        text-align: center;
+        font-size: 12px;
+        border-top: 1px solid #e2e8f0;
+        color: ${settings.powered_by_color || '#64748b'};
+        position: sticky;
+        bottom: 0;
+        background: white;
+        z-index: 1;
+      }
+    `;
+    document.head.appendChild(styles);
+  }
+
   function addEventListeners(container) {
     const toggle = container.querySelector('.widget-toggle button');
     const panel = container.querySelector('.widget-panel');
@@ -330,20 +330,34 @@
         }
       }
 
+      const supabaseUrl = currentScript?.getAttribute('data-supabase-url');
+      const supabaseKey = currentScript?.getAttribute('data-supabase-key');
       const clientKey = currentScript?.getAttribute('data-client-key');
-      if (!clientKey) {
-        console.error('Missing client key for accessibility widget');
+
+      if (!supabaseUrl || !supabaseKey || !clientKey) {
+        console.error('Missing required configuration for accessibility widget');
         return;
       }
 
-      // Get settings from localStorage
-      const savedSettings = localStorage.getItem('widgetSettings');
-      if (savedSettings) {
-        const settings = JSON.parse(savedSettings);
+      const response = await fetch(`${supabaseUrl}/rest/v1/global_widget_settings?select=*`, {
+        headers: {
+          'apikey': supabaseKey,
+          'Authorization': `Bearer ${supabaseKey}`
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to load widget settings');
+      }
+
+      const settings = await response.json();
+      if (settings && settings.length > 0) {
+        globalSettings = settings[0];
+        console.log('Loaded settings:', globalSettings);
         const container = document.createElement('div');
         container.id = 'accessibility-widget-container';
-        container.innerHTML = createWidgetHTML(settings);
-        addStyles(settings);
+        container.innerHTML = createWidgetHTML(globalSettings);
+        addStyles(globalSettings);
         document.body.appendChild(container);
         addEventListeners(container);
       }
