@@ -212,18 +212,20 @@ function WidgetCustomization() {
       <div className={styles.previewPanel}>
         <h2>Widget Preview</h2>
         <div className={styles.previewContainer}>
-          <AccessibilityWidget
-            settings={{
-              headerColor: widgetSettings.header_color,
-              headerTextColor: widgetSettings.header_text_color,
-              buttonColor: widgetSettings.button_color,
-              poweredByText: widgetSettings.powered_by_text,
-              poweredByColor: widgetSettings.powered_by_color,
-              buttonSize: widgetSettings.button_size,
-              buttonPosition: widgetSettings.button_position
-            }}
-            isPreview={true}
-          />
+          <div className={styles.widgetPreviewWrapper}>
+            <AccessibilityWidget
+              settings={{
+                headerColor: widgetSettings.header_color,
+                headerTextColor: widgetSettings.header_text_color,
+                buttonColor: widgetSettings.button_color,
+                poweredByText: widgetSettings.powered_by_text,
+                poweredByColor: widgetSettings.powered_by_color,
+                buttonSize: widgetSettings.button_size,
+                buttonPosition: widgetSettings.button_position
+              }}
+              isPreview={true}
+            />
+          </div>
         </div>
       </div>
     </div>

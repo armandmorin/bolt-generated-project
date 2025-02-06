@@ -181,9 +181,16 @@
   background: #f8fafc;
   border: 1px solid var(--border-color);
   border-radius: 8px;
-  padding: 2rem;
-  min-height: 400px;
+  min-height: 500px;
   position: relative;
+  overflow: hidden;
+}
+
+.widgetPreviewWrapper {
+  position: absolute;
+  bottom: 20px;
+  right: 20px;
+  z-index: 100;
 }
 
 @keyframes spin {
