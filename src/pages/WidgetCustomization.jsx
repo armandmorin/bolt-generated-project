@@ -1,10 +1,10 @@
-import * as React from 'react';
+import React, { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
 import AccessibilityWidget from '../components/AccessibilityWidget';
 import styles from '../styles/widgetCustomization.module.css';
 
 function WidgetCustomization() {
-  const [widgetSettings, setWidgetSettings] = React.useState({
+  const [widgetSettings, setWidgetSettings] = useState({
     header_color: '',
     header_text_color: '',
     button_color: '',
@@ -14,11 +14,15 @@ function WidgetCustomization() {
     button_position: 'bottom-right'
   });
   
-  const [activeTab, setActiveTab] = React.useState('header');
-  const [saving, setSaving] = React.useState(false);
+  const [activeTab, setActiveTab] = useState('header');
+  const [saving, setSaving] = useState(false);
 
-  React.useEffect(() => {
-    async function loadSettings() {
+  useEffect(() => {
+    loadSettings();
+  }, []);
+
+  async function loadSettings() {
+    try {
       const { data, error } = await supabase
         .from('global_widget_settings')
         .select('*')
@@ -36,17 +40,10 @@ function WidgetCustomization() {
           ...data[0]
         }));
       }
+    } catch (error) {
+      console.error('Error loading settings:', error);
     }
-
-    loadSettings();
-  }, []);
-
-  const handleSettingChange = (setting, value) => {
-    setWidgetSettings(prev => ({
-      ...prev,
-      [setting]: value
-    }));
-  };
+  }
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -84,13 +81,19 @@ function WidgetCustomization() {
       }
 
       alert('Settings saved successfully!');
-      window.location.reload();
     } catch (error) {
       console.error('Save error:', error);
       alert(`Failed to save settings: ${error.message}`);
     } finally {
       setSaving(false);
     }
+  };
+
+  const handleSettingChange = (setting, value) => {
+    setWidgetSettings(prev => ({
+      ...prev,
+      [setting]: value
+    }));
   };
 
   return (
@@ -134,12 +137,13 @@ function WidgetCustomization() {
 
           <div className={styles.tabContent}>
             {activeTab === 'header' && (
-              <>
+              <div className={styles.settingsGroup}>
+                <h3>Header Settings</h3>
                 <div className={styles.formGroup}>
                   <label>Header Background Color</label>
                   <input
                     type="color"
-                    value={widgetSettings.header_color || '#ffffff'}
+                    value={widgetSettings.header_color || '#60a5fa'}
                     onChange={(e) => handleSettingChange('header_color', e.target.value)}
                   />
                 </div>
@@ -147,15 +151,16 @@ function WidgetCustomization() {
                   <label>Header Text Color</label>
                   <input
                     type="color"
-                    value={widgetSettings.header_text_color || '#000000'}
+                    value={widgetSettings.header_text_color || '#ffffff'}
                     onChange={(e) => handleSettingChange('header_text_color', e.target.value)}
                   />
                 </div>
-              </>
+              </div>
             )}
 
             {activeTab === 'button' && (
-              <>
+              <div className={styles.settingsGroup}>
+                <h3>Button Settings</h3>
                 <div className={styles.formGroup}>
                   <label>Button Color</label>
                   <input
@@ -175,41 +180,30 @@ function WidgetCustomization() {
                     <option value="80px">Large</option>
                   </select>
                 </div>
-                <div className={styles.formGroup}>
-                  <label>Button Position</label>
-                  <select
-                    value={widgetSettings.button_position || 'bottom-right'}
-                    onChange={(e) => handleSettingChange('button_position', e.target.value)}
-                  >
-                    <option value="bottom-right">Bottom Right</option>
-                    <option value="bottom-left">Bottom Left</option>
-                    <option value="top-right">Top Right</option>
-                    <option value="top-left">Top Left</option>
-                  </select>
-                </div>
-              </>
+              </div>
             )}
 
             {activeTab === 'footer' && (
-              <>
+              <div className={styles.settingsGroup}>
+                <h3>Footer Settings</h3>
                 <div className={styles.formGroup}>
                   <label>Powered By Text</label>
                   <input
                     type="text"
                     value={widgetSettings.powered_by_text || ''}
                     onChange={(e) => handleSettingChange('powered_by_text', e.target.value)}
-                    placeholder="Enter powered by text..."
+                    placeholder="Powered by Accessibility Widget"
                   />
                 </div>
                 <div className={styles.formGroup}>
-                  <label>Powered By Text Color</label>
+                  <label>Powered By Color</label>
                   <input
                     type="color"
                     value={widgetSettings.powered_by_color || '#64748b'}
                     onChange={(e) => handleSettingChange('powered_by_color', e.target.value)}
                   />
                 </div>
-              </>
+              </div>
             )}
           </div>
         </form>
@@ -218,20 +212,18 @@ function WidgetCustomization() {
       <div className={styles.previewPanel}>
         <h2>Widget Preview</h2>
         <div className={styles.previewContainer}>
-          <div className={styles.widgetPreviewWrapper}>
-            <AccessibilityWidget
-              settings={{
-                headerColor: widgetSettings.header_color,
-                headerTextColor: widgetSettings.header_text_color,
-                buttonColor: widgetSettings.button_color,
-                poweredByText: widgetSettings.powered_by_text,
-                poweredByColor: widgetSettings.powered_by_color,
-                buttonSize: widgetSettings.button_size,
-                buttonPosition: widgetSettings.button_position
-              }}
-              isPreview={true}
-            />
-          </div>
+          <AccessibilityWidget
+            settings={{
+              headerColor: widgetSettings.header_color,
+              headerTextColor: widgetSettings.header_text_color,
+              buttonColor: widgetSettings.button_color,
+              poweredByText: widgetSettings.powered_by_text,
+              poweredByColor: widgetSettings.powered_by_color,
+              buttonSize: widgetSettings.button_size,
+              buttonPosition: widgetSettings.button_position
+            }}
+            isPreview={true}
+          />
         </div>
       </div>
     </div>
