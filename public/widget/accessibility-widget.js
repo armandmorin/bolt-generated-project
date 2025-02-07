@@ -1,112 +1,5 @@
 (function() {
-  // Internal Supabase configuration
-  const SUPABASE_URL = 'https://hkurtvvrgwlgpbyfbmup.supabase.co';
-  const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhrdXJ0dnZyZ3dsZ3BieWZibXVwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Mzc1NTkyOTksImV4cCI6MjA1MzEzNTI5OX0.T8kS-k8XIcTzAHiX7NWQQtJ6Nkf7OFOsUYsIFAiL37o';
-
   let globalSettings = null;
-
-  function getDefaultSettings() {
-    return {
-      header_color: '#60a5fa',
-      header_text_color: '#ffffff',
-      button_color: '#2563eb',
-      powered_by_text: 'Powered by Accessibility Widget',
-      powered_by_color: '#64748b',
-      button_size: '64px',
-      button_position: 'bottom-right'
-    };
-  }
-
-  async function getGlobalSettings() {
-    try {
-      const response = await fetch(
-        `${SUPABASE_URL}/rest/v1/global_widget_settings?select=*&limit=1`,
-        {
-          headers: {
-            'apikey': SUPABASE_KEY,
-            'Authorization': `Bearer ${SUPABASE_KEY}`,
-            'Content-Type': 'application/json',
-            'Accept': 'application/json'
-          }
-        }
-      );
-
-      if (!response.ok) {
-        throw new Error('Failed to fetch global settings');
-      }
-
-      const data = await response.json();
-      if (data && data.length > 0) {
-        console.log('Using global settings');
-        return data[0];
-      }
-
-      console.log('No global settings found, using defaults');
-      return getDefaultSettings();
-    } catch (error) {
-      console.error('Error fetching global settings:', error);
-      return getDefaultSettings();
-    }
-  }
-
-  async function getClientSettings(clientKey) {
-    try {
-      // First, get the client data
-      const clientResponse = await fetch(
-        `${SUPABASE_URL}/rest/v1/clients?select=id&client_key=eq.${encodeURIComponent(clientKey)}`,
-        {
-          headers: {
-            'apikey': SUPABASE_KEY,
-            'Authorization': `Bearer ${SUPABASE_KEY}`,
-            'Content-Type': 'application/json',
-            'Accept': 'application/json'
-          }
-        }
-      );
-
-      if (!clientResponse.ok) {
-        throw new Error('Failed to fetch client');
-      }
-
-      const clientData = await clientResponse.json();
-      if (!clientData || clientData.length === 0) {
-        console.log('Client not found, using global settings');
-        return getGlobalSettings();
-      }
-
-      const clientId = clientData[0].id;
-
-      // Then get client-specific settings
-      const settingsResponse = await fetch(
-        `${SUPABASE_URL}/rest/v1/widget_settings?select=*&client_id=eq.${encodeURIComponent(clientId)}`,
-        {
-          headers: {
-            'apikey': SUPABASE_KEY,
-            'Authorization': `Bearer ${SUPABASE_KEY}`,
-            'Content-Type': 'application/json',
-            'Accept': 'application/json'
-          }
-        }
-      );
-
-      if (!settingsResponse.ok) {
-        throw new Error('Failed to fetch client settings');
-      }
-
-      const settingsData = await settingsResponse.json();
-      
-      if (settingsData && settingsData.length > 0) {
-        console.log('Using client-specific settings');
-        return settingsData[0];
-      }
-
-      console.log('No client settings found, using global settings');
-      return getGlobalSettings();
-    } catch (error) {
-      console.error('Error in getClientSettings:', error);
-      return getGlobalSettings();
-    }
-  }
 
   function createWidgetHTML(settings) {
     return `
@@ -178,6 +71,94 @@
         </div>
       </div>
     `;
+  }
+
+  function handleFeatureToggle(feature, isActive) {
+    switch (feature) {
+      case 'readableFont':
+        document.body.style.fontFamily = isActive ? 'Arial, sans-serif' : '';
+        break;
+      case 'highContrast':
+        document.body.style.filter = isActive ? 'contrast(150%)' : '';
+        break;
+      case 'largeText':
+        document.body.style.fontSize = isActive ? '120%' : '';
+        break;
+      case 'highlightLinks':
+        document.querySelectorAll('a').forEach(link => {
+          link.style.backgroundColor = isActive ? '#ffeb3b' : '';
+          link.style.color = isActive ? '#000000' : '';
+        });
+        break;
+      case 'textToSpeech':
+        if (isActive) {
+          document.addEventListener('click', handleTextToSpeech);
+        } else {
+          document.removeEventListener('click', handleTextToSpeech);
+          window.speechSynthesis?.cancel();
+        }
+        break;
+      case 'dyslexiaFont':
+        document.body.style.fontFamily = isActive ? 'OpenDyslexic, Arial, sans-serif' : '';
+        break;
+      case 'cursorHighlight':
+        document.body.style.cursor = isActive ? 'url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'32\' height=\'32\' viewBox=\'0 0 24 24\'%3E%3Ccircle cx=\'12\' cy=\'12\' r=\'10\' fill=\'%23ffeb3b\' opacity=\'0.5\'/%3E%3C/svg%3E") 16 16, auto' : '';
+        break;
+      case 'invertColors':
+        document.body.style.filter = isActive ? 'invert(100%)' : '';
+        break;
+      case 'reducedMotion':
+        document.body.style.setProperty('--reduced-motion', isActive ? 'reduce' : 'no-preference');
+        break;
+      case 'focusMode':
+        if (isActive) {
+          document.body.style.maxWidth = '800px';
+          document.body.style.margin = '0 auto';
+          document.body.style.padding = '20px';
+          document.body.style.backgroundColor = '#f8f9fa';
+        } else {
+          document.body.style.maxWidth = '';
+          document.body.style.margin = '';
+          document.body.style.padding = '';
+          document.body.style.backgroundColor = '';
+        }
+        break;
+      case 'readingGuide':
+        if (isActive) {
+          const guide = document.createElement('div');
+          guide.id = 'reading-guide';
+          guide.style.position = 'fixed';
+          guide.style.height = '40px';
+          guide.style.width = '100%';
+          guide.style.backgroundColor = 'rgba(255, 255, 0, 0.2)';
+          guide.style.pointerEvents = 'none';
+          guide.style.zIndex = '9999';
+          document.body.appendChild(guide);
+          document.addEventListener('mousemove', moveReadingGuide);
+        } else {
+          document.getElementById('reading-guide')?.remove();
+          document.removeEventListener('mousemove', moveReadingGuide);
+        }
+        break;
+      case 'monochrome':
+        document.body.style.filter = isActive ? 'grayscale(100%)' : '';
+        break;
+    }
+  }
+
+  function handleTextToSpeech(e) {
+    if (e.target.textContent && window.speechSynthesis) {
+      window.speechSynthesis.cancel();
+      const utterance = new SpeechSynthesisUtterance(e.target.textContent);
+      window.speechSynthesis.speak(utterance);
+    }
+  }
+
+  function moveReadingGuide(e) {
+    const guide = document.getElementById('reading-guide');
+    if (guide) {
+      guide.style.top = `${e.clientY - 20}px`;
+    }
   }
 
   function addStyles(settings) {
@@ -312,94 +293,6 @@
     document.head.appendChild(styles);
   }
 
-  function handleFeatureToggle(feature, isActive) {
-    switch (feature) {
-      case 'readableFont':
-        document.body.style.fontFamily = isActive ? 'Arial, sans-serif' : '';
-        break;
-      case 'highContrast':
-        document.body.style.filter = isActive ? 'contrast(150%)' : '';
-        break;
-      case 'largeText':
-        document.body.style.fontSize = isActive ? '120%' : '';
-        break;
-      case 'highlightLinks':
-        document.querySelectorAll('a').forEach(link => {
-          link.style.backgroundColor = isActive ? '#ffeb3b' : '';
-          link.style.color = isActive ? '#000000' : '';
-        });
-        break;
-      case 'textToSpeech':
-        if (isActive) {
-          document.addEventListener('click', handleTextToSpeech);
-        } else {
-          document.removeEventListener('click', handleTextToSpeech);
-          window.speechSynthesis?.cancel();
-        }
-        break;
-      case 'dyslexiaFont':
-        document.body.style.fontFamily = isActive ? 'OpenDyslexic, Arial, sans-serif' : '';
-        break;
-      case 'cursorHighlight':
-        document.body.style.cursor = isActive ? 'url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'32\' height=\'32\' viewBox=\'0 0 24 24\'%3E%3Ccircle cx=\'12\' cy=\'12\' r=\'10\' fill=\'%23ffeb3b\' opacity=\'0.5\'/%3E%3C/svg%3E") 16 16, auto' : '';
-        break;
-      case 'invertColors':
-        document.body.style.filter = isActive ? 'invert(100%)' : '';
-        break;
-      case 'reducedMotion':
-        document.body.style.setProperty('--reduced-motion', isActive ? 'reduce' : 'no-preference');
-        break;
-      case 'focusMode':
-        if (isActive) {
-          document.body.style.maxWidth = '800px';
-          document.body.style.margin = '0 auto';
-          document.body.style.padding = '20px';
-          document.body.style.backgroundColor = '#f8f9fa';
-        } else {
-          document.body.style.maxWidth = '';
-          document.body.style.margin = '';
-          document.body.style.padding = '';
-          document.body.style.backgroundColor = '';
-        }
-        break;
-      case 'readingGuide':
-        if (isActive) {
-          const guide = document.createElement('div');
-          guide.id = 'reading-guide';
-          guide.style.position = 'fixed';
-          guide.style.height = '40px';
-          guide.style.width = '100%';
-          guide.style.backgroundColor = 'rgba(255, 255, 0, 0.2)';
-          guide.style.pointerEvents = 'none';
-          guide.style.zIndex = '9999';
-          document.body.appendChild(guide);
-          document.addEventListener('mousemove', moveReadingGuide);
-        } else {
-          document.getElementById('reading-guide')?.remove();
-          document.removeEventListener('mousemove', moveReadingGuide);
-        }
-        break;
-      case 'monochrome':
-        document.body.style.filter = isActive ? 'grayscale(100%)' : '';
-        break;
-    }
-  }
-
-  function handleTextToSpeech(e) {
-    if (e.target.textContent && window.speechSynthesis) {
-      window.speechSynthesis.cancel();
-      const utterance = new SpeechSynthesisUtterance(e.target.textContent);
-      window.speechSynthesis.speak(utterance);
-    }
-  }
-
-  function moveReadingGuide(e) {
-    const guide = document.getElementById('reading-guide');
-    if (guide) {
-      guide.style.top = `${e.clientY - 20}px`;
-    }
-  }
-
   function addEventListeners(container) {
     const toggle = container.querySelector('.widget-toggle button');
     const panel = container.querySelector('.widget-panel');
@@ -437,21 +330,30 @@
         }
       }
 
+      const supabaseUrl = currentScript?.getAttribute('data-supabase-url');
+      const supabaseKey = currentScript?.getAttribute('data-supabase-key');
       const clientKey = currentScript?.getAttribute('data-client-key');
 
-      if (!clientKey) {
-        console.error('Missing required client key for accessibility widget');
+      if (!supabaseUrl || !supabaseKey || !clientKey) {
+        console.error('Missing required configuration for accessibility widget');
         return;
       }
 
-      console.log('Initializing widget for client key:', clientKey);
-      
-      // Get client-specific or global settings
-      const settings = await getClientSettings(clientKey);
-      
-      if (settings) {
-        globalSettings = settings;
-        console.log('Applied settings:', globalSettings);
+      const response = await fetch(`${supabaseUrl}/rest/v1/global_widget_settings?select=*`, {
+        headers: {
+          'apikey': supabaseKey,
+          'Authorization': `Bearer ${supabaseKey}`
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to load widget settings');
+      }
+
+      const settings = await response.json();
+      if (settings && settings.length > 0) {
+        globalSettings = settings[0];
+        console.log('Loaded settings:', globalSettings);
         const container = document.createElement('div');
         container.id = 'accessibility-widget-container';
         container.innerHTML = createWidgetHTML(globalSettings);

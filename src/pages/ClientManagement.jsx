@@ -1,11 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import WidgetCodeSnippet from '../components/WidgetCodeSnippet';
 import styles from '../styles/client.module.css';
 
 function ClientManagement() {
-  const navigate = useNavigate();
   const [clients, setClients] = useState([]);
   const [newClient, setNewClient] = useState({
     name: '',
@@ -16,6 +14,7 @@ function ClientManagement() {
   const [showCodeModal, setShowCodeModal] = useState(false);
   const [selectedClientCode, setSelectedClientCode] = useState('');
 
+  // Load clients from Supabase
   useEffect(() => {
     loadClients();
   }, []);
@@ -60,6 +59,7 @@ function ClientManagement() {
       status: 'active'
     };
 
+    // Add to Supabase
     const { error } = await supabase
       .from('clients')
       .insert([newClientData]);
@@ -70,8 +70,10 @@ function ClientManagement() {
       return;
     }
 
+    // Reload clients
     await loadClients();
     
+    // Reset form
     setNewClient({
       name: '',
       website: '',
@@ -98,10 +100,6 @@ function ClientManagement() {
   const showClientCode = (client) => {
     setSelectedClientCode(client.client_key);
     setShowCodeModal(true);
-  };
-
-  const handleEditClient = (clientId) => {
-    navigate(`/client-edit/${clientId}`);
   };
 
   const filteredClients = clients.filter(client =>
@@ -195,12 +193,6 @@ function ClientManagement() {
                 </td>
                 <td>
                   <div className={styles.actionButtons}>
-                    <button
-                      className={styles.editButton}
-                      onClick={() => handleEditClient(client.id)}
-                    >
-                      Edit
-                    </button>
                     <button
                       className={styles.codeButton}
                       onClick={() => showClientCode(client)}

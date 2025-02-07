@@ -1,28 +1,25 @@
--- Create widget_settings table
-CREATE TABLE IF NOT EXISTS widget_settings (
+-- Create clients table if it doesn't exist
+CREATE TABLE IF NOT EXISTS clients (
     id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-    client_id UUID REFERENCES clients(id),
-    header_color VARCHAR,
-    header_text_color VARCHAR,
-    button_color VARCHAR,
-    powered_by_text VARCHAR,
-    powered_by_color VARCHAR,
-    button_size VARCHAR,
-    button_position VARCHAR,
+    name VARCHAR NOT NULL,
+    website VARCHAR NOT NULL,
+    contact_email VARCHAR NOT NULL,
+    client_key VARCHAR NOT NULL UNIQUE,
+    status VARCHAR NOT NULL DEFAULT 'active',
     created_at TIMESTAMPTZ DEFAULT NOW(),
     updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
 -- Enable RLS
-ALTER TABLE widget_settings ENABLE ROW LEVEL SECURITY;
+ALTER TABLE clients ENABLE ROW LEVEL SECURITY;
 
--- Create policy for widget_settings table
-CREATE POLICY "Enable all operations for all users" ON widget_settings
+-- Create policy for clients table
+CREATE POLICY "Enable all operations for all users" ON clients
     FOR ALL
     USING (true)
     WITH CHECK (true);
 
 -- Grant necessary permissions
-GRANT ALL ON widget_settings TO anon;
-GRANT ALL ON widget_settings TO authenticated;
-GRANT ALL ON widget_settings TO service_role;
+GRANT ALL ON clients TO anon;
+GRANT ALL ON clients TO authenticated;
+GRANT ALL ON clients TO service_role;
