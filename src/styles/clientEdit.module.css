@@ -143,6 +143,14 @@
   background: white;
 }
 
+/* Add this new class for the widget preview wrapper */
+.widgetPreviewWrapper {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  z-index: 9999;
+}
+
 .formActions {
   margin-top: 2rem;
   display: flex;
