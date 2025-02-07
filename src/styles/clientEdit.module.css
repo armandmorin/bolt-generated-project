@@ -13,8 +13,9 @@
 
 .header h2 {
   margin: 0;
-  color: var(--text-color);
-  font-size: 1.5rem;
+  font-size: 2.5rem;
+  color: #1e293b;
+  font-weight: bold;
 }
 
 .backButton {
@@ -33,25 +34,30 @@
 
 .tabs {
   display: flex;
-  gap: 1rem;
+  gap: 2rem;
   margin-bottom: 2rem;
-  border-bottom: 1px solid var(--border-color);
+  border-bottom: 1px solid #e2e8f0;
 }
 
 .tab {
-  padding: 0.75rem 1.5rem;
+  padding: 1rem 0;
   background: none;
   border: none;
-  border-bottom: 2px solid transparent;
+  font-size: 1.25rem;
+  color: #64748b;
   cursor: pointer;
-  font-size: 1rem;
-  color: var(--text-color);
   transition: all 0.2s ease;
+  position: relative;
+  border-bottom: 2px solid transparent;
+}
+
+.tab:hover {
+  color: #4763E4;
 }
 
 .tab.active {
-  color: var(--primary-color);
-  border-bottom-color: var(--primary-color);
+  color: #4763E4;
+  border-bottom: 2px solid #4763E4;
 }
 
 .content {
@@ -150,19 +156,19 @@
 }
 
 .saveButton {
-  padding: 0.75rem 1.5rem;
-  background-color: var(--primary-color);
+  padding: 1rem 2rem;
+  background-color: #4763E4;
   color: white;
   border: none;
-  border-radius: 6px;
-  font-size: 1rem;
+  border-radius: 0.5rem;
+  font-size: 1.25rem;
   font-weight: 500;
   cursor: pointer;
   transition: all 0.2s ease;
 }
 
 .saveButton:hover:not(:disabled) {
-  background-color: #1d4ed8;
+  background-color: #3651d3;
 }
 
 .saveButton:disabled {
