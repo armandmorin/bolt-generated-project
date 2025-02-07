@@ -284,20 +284,18 @@ function ClientEdit() {
             <div className={styles.previewPanel}>
               <h3>Widget Preview</h3>
               <div className={styles.previewContainer}>
-                <div className={styles.widgetPreviewWrapper}>
-                  <AccessibilityWidget
-                    settings={{
-                      headerColor: widgetSettings.header_color,
-                      headerTextColor: widgetSettings.header_text_color,
-                      buttonColor: widgetSettings.button_color,
-                      poweredByText: widgetSettings.powered_by_text,
-                      poweredByColor: widgetSettings.powered_by_color,
-                      buttonSize: widgetSettings.button_size,
-                      buttonPosition: widgetSettings.button_position
-                    }}
-                    isPreview={true}
-                  />
-                </div>
+                <AccessibilityWidget
+                  settings={{
+                    headerColor: widgetSettings.header_color,
+                    headerTextColor: widgetSettings.header_text_color,
+                    buttonColor: widgetSettings.button_color,
+                    poweredByText: widgetSettings.powered_by_text,
+                    poweredByColor: widgetSettings.powered_by_color,
+                    buttonSize: widgetSettings.button_size,
+                    buttonPosition: widgetSettings.button_position
+                  }}
+                  isPreview={true}
+                />
               </div>
             </div>
           </div>

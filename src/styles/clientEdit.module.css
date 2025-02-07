@@ -112,10 +112,6 @@
 
 .settingsGroup {
   margin-bottom: 2rem;
-  background: white;
-  padding: 1.5rem;
-  border-radius: 6px;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
 }
 
 .settingsGroup h3 {
@@ -129,6 +125,7 @@
   padding: 1.5rem;
   border-radius: 8px;
   position: relative;
+  min-height: 500px;
 }
 
 .previewPanel h3 {
@@ -140,18 +137,10 @@
 .previewContainer {
   position: relative;
   height: 100%;
-  min-height: 500px;
+  min-height: 400px;
   border: 1px solid var(--border-color);
   border-radius: 6px;
   background: white;
-  overflow: hidden;
-}
-
-.widgetPreviewWrapper {
-  position: absolute;
-  bottom: 20px;
-  right: 20px;
-  z-index: 100;
 }
 
 .formActions {
@@ -185,10 +174,6 @@
   .widgetSettings {
     grid-template-columns: 1fr;
   }
-  
-  .previewPanel {
-    min-height: 400px;
-  }
 }
 
 @media (max-width: 768px) {
@@ -200,9 +185,5 @@
     flex-direction: column;
     gap: 1rem;
     align-items: flex-start;
-  }
-  
-  .content {
-    padding: 1rem;
   }
 }
