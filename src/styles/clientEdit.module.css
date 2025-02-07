@@ -1,5 +1,5 @@
 .clientEdit {
-  max-width: 1200px;
+  max-width: 1400px;
   margin: 0 auto;
   padding: 2rem;
 }
@@ -129,7 +129,9 @@
 }
 
 .previewPanel h3 {
+  margin: 0 0 1rem 0;
   font-size: 1.1rem;
+  color: var(--text-color);
 }
 
 .previewContainer {
