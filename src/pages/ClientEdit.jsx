@@ -288,7 +288,7 @@ function ClientEdit() {
                   <AccessibilityWidget
                     settings={{
                       headerColor: widgetSettings.header_color,
-                      headerTextColor: widgetSettings.header_text_color,
+                      headerTextColor: widgetSettings.header_text_color || '#ffffff',
                       buttonColor: widgetSettings.button_color,
                       poweredByText: widgetSettings.powered_by_text,
                       poweredByColor: widgetSettings.powered_by_color,
