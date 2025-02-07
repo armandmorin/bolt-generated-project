@@ -129,9 +129,7 @@
 }
 
 .previewPanel h3 {
-  margin: 0 0 1rem 0;
-  font-size: 1.1rem;
-  color: var(--text-color);
+  margin: 0;
 }
 
 .previewContainer {
@@ -143,7 +141,6 @@
   background: white;
 }
 
-/* Add this new class for the widget preview wrapper */
 .widgetPreviewWrapper {
   position: fixed;
   bottom: 20px;
