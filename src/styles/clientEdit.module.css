@@ -105,9 +105,11 @@
 }
 
 .settingsPanel {
-  background: #f8fafc;
-  padding: 1.5rem;
-  border-radius: 8px;
+  background: white;
+  padding: 2rem;
+  border-radius: 0.75rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  height: fit-content;
 }
 
 .settingsGroup {
