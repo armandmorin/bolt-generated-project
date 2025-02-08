@@ -8,15 +8,17 @@ import TeamMembers from './TeamMembers';
 import ImageUpload from '../components/ImageUpload';
 import styles from '../styles/admin.module.css';
 
+const DEFAULT_SETTINGS = {
+  logo: '',
+  primary_color: '#2563eb',
+  secondary_color: '#ffffff'
+};
+
 const AdminDashboard = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('branding');
-  const [brandSettings, setBrandSettings] = useState({
-    logo: '',
-    primary_color: '#2563eb',
-    secondary_color: '#ffffff'
-  });
+  const [brandSettings, setBrandSettings] = useState(DEFAULT_SETTINGS);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
@@ -28,24 +30,41 @@ const AdminDashboard = () => {
   const loadBrandSettings = async () => {
     try {
       setLoading(true);
-      const { data, error } = await supabase
+      
+      // Try to get existing settings
+      let { data, error } = await supabase
         .from('brand_settings')
         .select('*')
-        .single();
+        .limit(1);
 
-      if (error) {
-        throw error;
+      if (error) throw error;
+
+      // If no settings exist, create default settings
+      if (!data || data.length === 0) {
+        const { data: newData, error: insertError } = await supabase
+          .from('brand_settings')
+          .insert([DEFAULT_SETTINGS])
+          .select()
+          .single();
+
+        if (insertError) throw insertError;
+        
+        data = [newData];
       }
 
-      if (data) {
-        setBrandSettings(data);
+      // Set the settings
+      if (data && data[0]) {
+        setBrandSettings(data[0]);
         // Apply the loaded colors
-        document.documentElement.style.setProperty('--primary-color', data.primary_color);
-        document.documentElement.style.setProperty('--secondary-color', data.secondary_color);
+        document.documentElement.style.setProperty('--primary-color', data[0].primary_color);
+        document.documentElement.style.setProperty('--secondary-color', data[0].secondary_color);
       }
     } catch (error) {
       console.error('Error loading brand settings:', error);
-      alert('Error loading brand settings');
+      // Don't alert the error, just use default settings
+      setBrandSettings(DEFAULT_SETTINGS);
+      document.documentElement.style.setProperty('--primary-color', DEFAULT_SETTINGS.primary_color);
+      document.documentElement.style.setProperty('--secondary-color', DEFAULT_SETTINGS.secondary_color);
     } finally {
       setLoading(false);
     }
@@ -79,9 +98,7 @@ const AdminDashboard = () => {
           updated_at: new Date().toISOString()
         });
 
-      if (error) {
-        throw error;
-      }
+      if (error) throw error;
 
       // Apply the updated colors
       document.documentElement.style.setProperty('--primary-color', brandSettings.primary_color);
@@ -98,7 +115,7 @@ const AdminDashboard = () => {
   };
 
   if (loading) {
-    return <div>Loading...</div>;
+    return <div className={styles.loading}>Loading...</div>;
   }
 
   return (
