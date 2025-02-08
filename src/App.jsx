@@ -7,6 +7,7 @@ import SuperAdminLogin from './pages/SuperAdminLogin';
 import SuperAdminDashboard from './pages/SuperAdminDashboard';
 import AdminDashboard from './pages/AdminDashboard';
 import ClientDashboard from './pages/ClientDashboard';
+import ClientEdit from './pages/ClientEdit';
 import SupabaseTest from './components/SupabaseTest';
 import './styles/global.css';
 
@@ -74,6 +75,14 @@ function App() {
             element={
               <ProtectedRoute>
                 <ClientDashboard />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/client-edit/:clientId"
+            element={
+              <ProtectedRoute>
+                <ClientEdit />
               </ProtectedRoute>
             }
           />
