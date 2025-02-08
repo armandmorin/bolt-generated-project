@@ -1,6 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useNavigate, Link, useLocation } from 'react-router-dom';
-import { sessionManager } from '../utils/sessionManager';
 import styles from '../styles/modules/login.module.css';
 
 const Login = () => {
@@ -10,51 +9,16 @@ const Login = () => {
   const location = useLocation();
   const brandSettings = JSON.parse(localStorage.getItem('brandSettings') || '{}');
 
-  useEffect(() => {
-    // Check if user is already logged in
-    if (sessionManager.isLoggedIn()) {
-      const user = sessionManager.getSession();
-      navigateBasedOnRole(user.role);
-    }
-  }, []);
-
   // Check if we're trying to access the test page
   if (location.pathname === '/test') {
     return null; // Don't render login for test route
   }
 
-  const navigateBasedOnRole = (role) => {
-    switch (role) {
-      case 'superadmin':
-        navigate('/super-admin');
-        break;
-      case 'admin':
-        navigate('/admin');
-        break;
-      case 'client':
-        navigate('/client');
-        break;
-      default:
-        navigate('/');
-    }
-  };
-
   const handleLogin = async (e) => {
     e.preventDefault();
-    
-    // In a real application, you would validate credentials with your backend
-    const userData = {
-      email,
-      role: 'admin',
-      loginTime: new Date().toISOString()
-    };
-
-    // Create session
-    sessionManager.createSession(userData);
     localStorage.setItem('userRole', 'admin');
-
-    // Navigate based on role
-    navigateBasedOnRole('admin');
+    localStorage.setItem('user', JSON.stringify({ email, role: 'admin' }));
+    navigate('/admin');
   };
 
   return (
