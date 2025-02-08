@@ -53,10 +53,6 @@
   transition: background-color 0.2s ease;
 }
 
-.navLink:hover {
-  background-color: var(--primary-color);
-}
-
 .navGroup {
   display: flex;
   align-items: center;
