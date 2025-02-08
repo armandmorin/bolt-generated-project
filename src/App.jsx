@@ -1,5 +1,6 @@
 import React from 'react';
 import { Routes, Route, useLocation, Navigate } from 'react-router-dom';
+import { sessionManager } from './utils/sessionManager';
 import Header from './components/Header';
 import Login from './pages/Login';
 import AdminRegistration from './pages/AdminRegistration';
@@ -13,8 +14,8 @@ import './styles/global.css';
 
 // Protected Route component
 const ProtectedRoute = ({ children }) => {
-  const userRole = localStorage.getItem('userRole');
   const location = useLocation();
+  const isAuthenticated = sessionManager.isLoggedIn();
 
   // List of routes that don't require authentication
   const publicRoutes = ['/', '/register', '/super-admin-login', '/test'];
@@ -25,7 +26,7 @@ const ProtectedRoute = ({ children }) => {
   }
 
   // If not authenticated and trying to access a protected route, redirect to login
-  if (!userRole) {
+  if (!isAuthenticated) {
     return <Navigate to="/" replace />;
   }
 

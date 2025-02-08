@@ -1,14 +1,15 @@
 import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { sessionManager } from '../utils/sessionManager';
 import styles from '../styles/header.module.css';
 
 const Header = ({ logo, primaryColor }) => {
   const navigate = useNavigate();
-  const userRole = localStorage.getItem('userRole');
+  const user = sessionManager.getSession();
+  const userRole = user?.role;
 
   const handleLogout = () => {
-    localStorage.removeItem('userRole');
-    localStorage.removeItem('user');
+    sessionManager.clearSession();
     navigate('/');
   };
 

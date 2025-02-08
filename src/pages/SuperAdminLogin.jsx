@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
+import { sessionManager } from '../utils/sessionManager';
 import styles from '../styles/modules/login.module.css';
 
 const SuperAdminLogin = () => {
@@ -8,11 +9,29 @@ const SuperAdminLogin = () => {
   const navigate = useNavigate();
   const brandSettings = JSON.parse(localStorage.getItem('brandSettings') || '{}');
 
+  useEffect(() => {
+    // Check if user is already logged in
+    if (sessionManager.isLoggedIn()) {
+      const user = sessionManager.getSession();
+      if (user.role === 'superadmin') {
+        navigate('/super-admin');
+      }
+    }
+  }, []);
+
   const handleLogin = async (e) => {
     e.preventDefault();
     if (email === 'armandmorin@gmail.com' && password === '1armand') {
+      const userData = {
+        email,
+        role: 'superadmin',
+        loginTime: new Date().toISOString()
+      };
+
+      // Create session
+      sessionManager.createSession(userData);
       localStorage.setItem('userRole', 'superadmin');
-      localStorage.setItem('user', JSON.stringify({ email, role: 'superadmin' }));
+      
       navigate('/super-admin');
     } else {
       alert('Invalid credentials');
