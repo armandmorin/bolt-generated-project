@@ -55,7 +55,7 @@
 }
 
 .navLink:hover {
-  background-color: rgba(255, 255, 255, 0.1);
+  background-color: var(--primary-color);
 }
 
 .navGroup {
@@ -86,6 +86,42 @@
 }
 
 .logoutButton:hover {
-  background-color: rgba(255, 255, 255, 0.2);
+  background-color: var(--primary-color);
   transform: translateY(-1px);
+}
+
+@media (max-width: 768px) {
+  .mainHeader {
+    padding: 1rem;
+  }
+
+  .headerContent {
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .mainNav {
+    width: 100%;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .navLinks {
+    width: 100%;
+    flex-direction: column;
+  }
+
+  .navGroup {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .navLink {
+    width: 100%;
+    text-align: center;
+  }
+
+  .logo {
+    max-width: 200px;
+  }
 }

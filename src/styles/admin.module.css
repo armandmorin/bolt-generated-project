@@ -1,269 +1,181 @@
-/* Main Layout */
-    .adminDashboard,
-    .superAdminDashboard {
-      max-width: 1200px;
-      margin: 0 auto;
-      padding: 2rem;
-    }
+.adminDashboard {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem;
+}
 
-    /* Tabs */
-    .tabs {
-      display: flex;
-      gap: 1rem;
-      margin-bottom: 2rem;
-      border-bottom: 1px solid var(--border-color);
-      padding-bottom: 0.5rem;
-    }
+.tabs {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 2rem;
+  border-bottom: 1px solid var(--border-color);
+  padding-bottom: 0.5rem;
+}
 
-    .tabButton {
-      background: none;
-      border: none;
-      padding: 0.75rem 1.5rem;
-      font-size: 1rem;
-      color: var(--text-color);
-      cursor: pointer;
-      position: relative;
-      transition: all 0.2s ease;
-    }
+.tabButton {
+  background: none;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  font-size: 1rem;
+  color: var(--text-color);
+  position: relative;
+  transition: all 0.2s ease;
+}
 
-    .tabButton::after {
-      content: '';
-      position: absolute;
-      bottom: -0.5rem;
-      left: 0;
-      width: 100%;
-      height: 2px;
-      background-color: transparent;
-      transition: all 0.2s ease;
-    }
+.tabButton::after {
+  content: '';
+  position: absolute;
+  bottom: -0.5rem;
+  left: 0;
+  width: 100%;
+  height: 2px;
+  background-color: transparent;
+  transition: all 0.2s ease;
+}
 
-    .tabButton:hover {
-      color: var(--primary-color);
-    }
+.tabButton:hover {
+  color: var(--primary-color);
+}
 
-    .tabButton.active {
-      color: var(--primary-color);
-      font-weight: 500;
-    }
+.tabButton.active {
+  color: var(--primary-color);
+  font-weight: 500;
+}
 
-    .tabButton.active::after {
-      background-color: var(--primary-color);
-    }
+.tabButton.active::after {
+  background-color: var(--primary-color);
+}
 
-    /* Content Area */
-    .content {
-      background: var(--secondary-color);
-      border-radius: 12px;
-      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-      overflow: hidden;
-    }
+.content {
+  background: var(--secondary-color);
+  border-radius: 12px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+}
 
-    /* Form Container */
-    .formContainer {
-      padding: 2rem;
-    }
+.formContainer {
+  padding: 2rem;
+}
 
-    .formContainer h2 {
-      margin: 0 0 1.5rem 0;
-      color: var(--text-color);
-      font-size: 1.5rem;
-    }
+.formContainer h2 {
+  margin: 0 0 1.5rem 0;
+  color: var(--text-color);
+  font-size: 1.5rem;
+}
 
-    .description {
-      color: #64748b;
-      margin-bottom: 1.5rem;
-    }
+.description {
+  color: #64748b;
+  margin-bottom: 1.5rem;
+}
 
-    .hint {
-      display: block;
-      font-size: 0.875rem;
-      color: #64748b;
-      margin-top: 0.5rem;
-    }
+.hint {
+  display: block;
+  font-size: 0.875rem;
+  color: #64748b;
+  margin-top: 0.5rem;
+}
 
-    /* Form Elements */
-    .formGroup {
-      margin-bottom: 1.5rem;
-    }
+.formGroup {
+  margin-bottom: 1.5rem;
+}
 
-    .formGroup label {
-      display: block;
-      margin-bottom: 0.5rem;
-      font-weight: 500;
-      color: var(--text-color);
-    }
+.formGroup label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: 500;
+  color: var(--text-color);
+}
 
-    .formGroup input,
-    .formGroup select,
-    .formGroup textarea {
-      width: 100%;
-      padding: 0.75rem;
-      border: 1px solid var(--border-color);
-      border-radius: 6px;
-      font-size: 1rem;
-      transition: all 0.2s ease;
-    }
+.formGroup input,
+.formGroup select,
+.formGroup textarea {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  font-size: 1rem;
+  transition: all 0.2s ease;
+}
 
-    .formGroup input:focus,
-    .formGroup select:focus,
-    .formGroup textarea:focus {
-      border-color: var(--primary-color);
-      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
-      outline: none;
-    }
+.formGroup input:focus,
+.formGroup select:focus,
+.formGroup textarea:focus {
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+  outline: none;
+}
 
-    .formGroup input[type="color"] {
-      height: 50px;
-      padding: 0.25rem;
-      cursor: pointer;
-    }
+.formGroup input[type="color"] {
+  height: 50px;
+  padding: 0.25rem;
+  cursor: pointer;
+}
 
-    .colorGroup {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 1rem;
-    }
+.colorGroup {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+}
 
-    /* Buttons */
-    .formActions {
-      display: flex;
-      justify-content: flex-end;
-      margin-top: 2rem;
-    }
+.formActions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 2rem;
+}
 
-    .saveButton,
-    .primaryButton,
-    .addButton {
-      padding: 0.75rem 1.5rem;
-      background-color: var(--primary-color);
-      color: white;
-      border: none;
-      border-radius: 6px;
-      font-size: 1rem;
-      font-weight: 500;
-      cursor: pointer;
-      transition: all 0.2s ease;
-    }
+.saveButton,
+.primaryButton,
+.addButton {
+  padding: 0.75rem 1.5rem;
+  background-color: var(--primary-color);
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
 
-    .saveButton:hover,
-    .primaryButton:hover,
-    .addButton:hover {
-      background-color: #1d4ed8;
-      transform: translateY(-1px);
-    }
+.saveButton:hover:not(:disabled),
+.primaryButton:hover:not(:disabled),
+.addButton:hover:not(:disabled) {
+  background-color: var(--primary-color);
+  transform: translateY(-1px);
+}
 
-    /* Admin Management */
-    .adminSection {
-      padding: 2rem;
-    }
+.saveButton:disabled,
+.primaryButton:disabled,
+.addButton:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
 
-    .addAdminSection {
-      margin-bottom: 2rem;
-      padding-bottom: 2rem;
-      border-bottom: 1px solid var(--border-color);
-    }
+.loading {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 200px;
+  font-size: 1.1rem;
+  color: var(--text-color);
+}
 
-    .addAdminForm {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 1.5rem;
-    }
+@media (max-width: 768px) {
+  .adminDashboard {
+    padding: 1rem;
+  }
 
-    .addButton {
-      grid-column: span 2;
-    }
+  .colorGroup {
+    grid-template-columns: 1fr;
+  }
 
-    /* Tables */
-    .adminTable {
-      width: 100%;
-      border-collapse: separate;
-      border-spacing: 0;
-      margin-top: 1rem;
-    }
+  .tabs {
+    flex-wrap: wrap;
+  }
 
-    .adminTable th,
-    .adminTable td {
-      padding: 1rem;
-      text-align: left;
-      border-bottom: 1px solid var(--border-color);
-    }
-
-    .adminTable th {
-      background-color: var(--primary-color);
-      color: white;
-      font-weight: 500;
-    }
-
-    .adminTable tr:hover {
-      background-color: rgba(0, 0, 0, 0.02);
-    }
-
-    /* Status Indicators */
-    .status {
-      padding: 0.25rem 0.5rem;
-      border-radius: 4px;
-      font-size: 0.875rem;
-    }
-
-    .statusActive {
-      background-color: #dcfce7;
-      color: #16a34a;
-    }
-
-    .statusInactive {
-      background-color: #fee2e2;
-      color: #dc2626;
-    }
-
-    /* Action Buttons */
-    .removeButton {
-      padding: 0.5rem 1rem;
-      background-color: #ef4444;
-      color: white;
-      border: none;
-      border-radius: 4px;
-      cursor: pointer;
-      font-size: 0.875rem;
-      transition: all 0.2s ease;
-    }
-
-    .removeButton:hover {
-      background-color: #dc2626;
-      transform: translateY(-1px);
-    }
-
-    .actionButtons {
-      display: flex;
-      gap: 0.5rem;
-      justify-content: flex-end;
-    }
-
-    /* Responsive Design */
-    @media (max-width: 768px) {
-      .adminDashboard,
-      .superAdminDashboard {
-        padding: 1rem;
-      }
-
-      .addAdminForm {
-        grid-template-columns: 1fr;
-      }
-
-      .addButton {
-        grid-column: 1;
-      }
-
-      .colorGroup {
-        grid-template-columns: 1fr;
-      }
-
-      .tabs {
-        flex-wrap: wrap;
-      }
-
-      .tabButton {
-        flex: 1 1 auto;
-        text-align: center;
-        padding: 0.5rem;
-      }
-    }
+  .tabButton {
+    flex: 1 1 auto;
+    text-align: center;
+    padding: 0.5rem;
+  }
+}

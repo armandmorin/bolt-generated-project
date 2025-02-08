@@ -78,7 +78,7 @@
 }
 
 .addButton:hover {
-  background-color: #1d4ed8;
+  background-color: var(--primary-color);
   transform: translateY(-1px);
 }
 
@@ -153,7 +153,7 @@
 }
 
 .editButton:hover {
-  background-color: #2563eb;
+  background-color: var(--primary-color);
   transform: translateY(-1px);
 }
 
@@ -169,7 +169,7 @@
 }
 
 .codeButton:hover {
-  background-color: #1d4ed8;
+  background-color: var(--primary-color);
   transform: translateY(-1px);
 }
 
@@ -239,7 +239,7 @@
 }
 
 .closeButton:hover {
-  background-color: #cbd5e1;
+  background-color: var(--primary-color);
   transform: translateY(-1px);
 }
 

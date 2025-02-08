@@ -28,8 +28,23 @@ body {
   line-height: 1.5;
 }
 
-button, input, select, textarea {
+button {
   font-family: var(--font-family);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+/* Global button hover styles */
+button:hover:not(:disabled),
+.button:hover:not(:disabled) {
+  background-color: var(--primary-color) !important;
+  color: white !important;
+}
+
+/* Exception for status buttons that should keep their specific colors */
+.statusButton:hover:not(:disabled) {
+  background-color: inherit !important;
+  color: inherit !important;
 }
 
 .app-container {
@@ -51,8 +66,6 @@ a {
   text-decoration: none;
 }
 
-button {
-  cursor: pointer;
+input, select, textarea {
+  font-family: var(--font-family);
 }
-
-/* Add any additional global styles here */

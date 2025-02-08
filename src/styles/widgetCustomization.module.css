@@ -63,12 +63,12 @@
 }
 
 .tab:hover {
-  color: #2563eb;
+  color: var(--primary-color);
 }
 
 .tab.active {
-  color: #2563eb;
-  border-bottom-color: #2563eb;
+  color: var(--primary-color);
+  border-bottom-color: var(--primary-color);
 }
 
 .tabContent {
@@ -104,14 +104,14 @@
 
 .formGroup input:focus,
 .formGroup select:focus {
-  border-color: #2563eb;
+  border-color: var(--primary-color);
   outline: none;
   box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
 }
 
 .saveButton {
   padding: 0.75rem 1.5rem;
-  background-color: #2563eb;
+  background-color: var(--primary-color);
   color: white;
   border: none;
   border-radius: 0.5rem;
@@ -122,7 +122,7 @@
 }
 
 .saveButton:hover:not(:disabled) {
-  background-color: #1d4ed8;
+  background-color: var(--primary-color);
   transform: translateY(-1px);
 }
 
