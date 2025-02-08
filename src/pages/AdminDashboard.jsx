@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import ClientManagement from './ClientManagement';
 import WidgetCustomization from './WidgetCustomization';
 import ProfileSettings from './ProfileSettings';
@@ -7,6 +8,8 @@ import ImageUpload from '../components/ImageUpload';
 import styles from '../styles/admin.module.css';
 
 const AdminDashboard = () => {
+  const location = useLocation();
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('branding');
   const [brandSettings, setBrandSettings] = useState({
     logo: '',
@@ -14,25 +17,23 @@ const AdminDashboard = () => {
     secondaryColor: '#ffffff'
   });
 
-  // Load saved brand settings when component mounts
+  // Get initial tab from URL hash or default to 'branding'
   useEffect(() => {
-    const savedSettings = localStorage.getItem('brandSettings');
-    if (savedSettings) {
-      try {
-        const parsedSettings = JSON.parse(savedSettings);
-        setBrandSettings(parsedSettings);
-      } catch (error) {
-        console.error('Error parsing saved brand settings:', error);
-      }
+    const hash = location.hash.replace('#', '');
+    if (hash) {
+      setActiveTab(hash);
     }
-  }, []);
+  }, [location.hash]);
+
+  const handleTabChange = (tab) => {
+    setActiveTab(tab);
+    navigate(`#${tab}`);
+  };
 
   const handleBrandUpdate = (e) => {
     e.preventDefault();
     localStorage.setItem('brandSettings', JSON.stringify(brandSettings));
     alert('Brand settings updated successfully!');
-    // Force a page reload to update the header with new settings
-    window.location.reload();
   };
 
   return (
@@ -40,31 +41,31 @@ const AdminDashboard = () => {
       <div className={styles.tabs}>
         <button
           className={`${styles.tabButton} ${activeTab === 'branding' ? styles.active : ''}`}
-          onClick={() => setActiveTab('branding')}
+          onClick={() => handleTabChange('branding')}
         >
           Website Branding
         </button>
         <button
           className={`${styles.tabButton} ${activeTab === 'widget' ? styles.active : ''}`}
-          onClick={() => setActiveTab('widget')}
+          onClick={() => handleTabChange('widget')}
         >
           Widget Preview
         </button>
         <button
           className={`${styles.tabButton} ${activeTab === 'clients' ? styles.active : ''}`}
-          onClick={() => setActiveTab('clients')}
+          onClick={() => handleTabChange('clients')}
         >
           Client Management
         </button>
         <button
           className={`${styles.tabButton} ${activeTab === 'team' ? styles.active : ''}`}
-          onClick={() => setActiveTab('team')}
+          onClick={() => handleTabChange('team')}
         >
           Team Members
         </button>
         <button
           className={`${styles.tabButton} ${activeTab === 'profile' ? styles.active : ''}`}
-          onClick={() => setActiveTab('profile')}
+          onClick={() => handleTabChange('profile')}
         >
           Profile
         </button>
