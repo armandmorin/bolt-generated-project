@@ -12,7 +12,7 @@ const DEFAULT_SETTINGS = {
   logo: '',
   header_color: '#2563eb',
   primary_color: '#2563eb',
-  secondary_color: '#ffffff'
+  secondary_color: '#ffffff'  // keeping the database field name the same
 };
 
 const AdminDashboard = () => {
@@ -190,7 +190,7 @@ const AdminDashboard = () => {
                 </div>
 
                 <div className={styles.formGroup}>
-                  <label>Secondary Color</label>
+                  <label>Content Background Color</label>
                   <input
                     type="color"
                     value={brandSettings.secondary_color}
