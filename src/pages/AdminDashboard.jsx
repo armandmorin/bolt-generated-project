@@ -10,6 +10,7 @@ import styles from '../styles/admin.module.css';
 
 const DEFAULT_SETTINGS = {
   logo: '',
+  header_color: '#2563eb',
   primary_color: '#2563eb',
   secondary_color: '#ffffff'
 };
@@ -22,7 +23,6 @@ const AdminDashboard = () => {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
-  // Load brand settings from Supabase on component mount
   useEffect(() => {
     loadBrandSettings();
   }, []);
@@ -31,7 +31,6 @@ const AdminDashboard = () => {
     try {
       setLoading(true);
       
-      // Try to get existing settings
       let { data, error } = await supabase
         .from('brand_settings')
         .select('*')
@@ -39,7 +38,6 @@ const AdminDashboard = () => {
 
       if (error) throw error;
 
-      // If no settings exist, create default settings
       if (!data || data.length === 0) {
         const { data: newData, error: insertError } = await supabase
           .from('brand_settings')
@@ -52,25 +50,25 @@ const AdminDashboard = () => {
         data = [newData];
       }
 
-      // Set the settings
       if (data && data[0]) {
         setBrandSettings(data[0]);
-        // Apply the loaded colors
-        document.documentElement.style.setProperty('--primary-color', data[0].primary_color);
-        document.documentElement.style.setProperty('--secondary-color', data[0].secondary_color);
+        applyColors(data[0]);
       }
     } catch (error) {
       console.error('Error loading brand settings:', error);
-      // Don't alert the error, just use default settings
       setBrandSettings(DEFAULT_SETTINGS);
-      document.documentElement.style.setProperty('--primary-color', DEFAULT_SETTINGS.primary_color);
-      document.documentElement.style.setProperty('--secondary-color', DEFAULT_SETTINGS.secondary_color);
+      applyColors(DEFAULT_SETTINGS);
     } finally {
       setLoading(false);
     }
   };
 
-  // Get initial tab from URL hash or default to 'branding'
+  const applyColors = (settings) => {
+    document.documentElement.style.setProperty('--header-color', settings.header_color);
+    document.documentElement.style.setProperty('--primary-color', settings.primary_color);
+    document.documentElement.style.setProperty('--secondary-color', settings.secondary_color);
+  };
+
   useEffect(() => {
     const hash = location.hash.replace('#', '');
     if (hash) {
@@ -91,8 +89,9 @@ const AdminDashboard = () => {
       const { error } = await supabase
         .from('brand_settings')
         .upsert({
-          id: brandSettings.id, // Will be undefined for first insert
+          id: brandSettings.id,
           logo: brandSettings.logo,
+          header_color: brandSettings.header_color,
           primary_color: brandSettings.primary_color,
           secondary_color: brandSettings.secondary_color,
           updated_at: new Date().toISOString()
@@ -100,12 +99,9 @@ const AdminDashboard = () => {
 
       if (error) throw error;
 
-      // Apply the updated colors
-      document.documentElement.style.setProperty('--primary-color', brandSettings.primary_color);
-      document.documentElement.style.setProperty('--secondary-color', brandSettings.secondary_color);
-
+      applyColors(brandSettings);
       alert('Brand settings updated successfully!');
-      await loadBrandSettings(); // Reload settings to get the latest from database
+      await loadBrandSettings();
     } catch (error) {
       console.error('Error saving brand settings:', error);
       alert('Error saving brand settings');
@@ -169,6 +165,18 @@ const AdminDashboard = () => {
               />
 
               <div className={styles.colorGroup}>
+                <div className={styles.formGroup}>
+                  <label>Header Color</label>
+                  <input
+                    type="color"
+                    value={brandSettings.header_color}
+                    onChange={(e) => setBrandSettings(prev => ({
+                      ...prev,
+                      header_color: e.target.value
+                    }))}
+                  />
+                </div>
+
                 <div className={styles.formGroup}>
                   <label>Primary Color</label>
                   <input
