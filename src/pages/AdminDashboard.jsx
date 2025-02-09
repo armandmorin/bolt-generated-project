@@ -12,7 +12,8 @@ const AdminDashboard = () => {
   const [brandSettings, setBrandSettings] = useState({
     logo: '',
     primary_color: '#2563eb',
-    secondary_color: '#ffffff'
+    secondary_color: '#ffffff',
+    header_color: '#2563eb'
   });
   const [saving, setSaving] = useState(false);
 
@@ -24,7 +25,8 @@ const AdminDashboard = () => {
   useEffect(() => {
     document.documentElement.style.setProperty('--primary-color', brandSettings.primary_color);
     document.documentElement.style.setProperty('--secondary-color', brandSettings.secondary_color);
-  }, [brandSettings.primary_color, brandSettings.secondary_color]);
+    document.documentElement.style.setProperty('--header-color', brandSettings.header_color);
+  }, [brandSettings.primary_color, brandSettings.secondary_color, brandSettings.header_color]);
 
   const loadBrandSettings = async () => {
     try {
@@ -41,7 +43,8 @@ const AdminDashboard = () => {
         setBrandSettings({
           logo: data.logo || '',
           primary_color: data.primary_color || '#2563eb',
-          secondary_color: data.secondary_color || '#ffffff'
+          secondary_color: data.secondary_color || '#ffffff',
+          header_color: data.header_color || '#2563eb'
         });
       }
     } catch (error) {
@@ -68,6 +71,7 @@ const AdminDashboard = () => {
             logo: brandSettings.logo,
             primary_color: brandSettings.primary_color,
             secondary_color: brandSettings.secondary_color,
+            header_color: brandSettings.header_color,
             updated_at: new Date().toISOString()
           })
           .eq('id', existingSettings.id);
@@ -79,7 +83,8 @@ const AdminDashboard = () => {
           .insert([{
             logo: brandSettings.logo,
             primary_color: brandSettings.primary_color,
-            secondary_color: brandSettings.secondary_color
+            secondary_color: brandSettings.secondary_color,
+            header_color: brandSettings.header_color
           }]);
         error = insertError;
       }
@@ -149,6 +154,18 @@ const AdminDashboard = () => {
               />
 
               <div className={styles.colorGroup}>
+                <div className={styles.formGroup}>
+                  <label>Header Color</label>
+                  <input
+                    type="color"
+                    value={brandSettings.header_color}
+                    onChange={(e) => setBrandSettings(prev => ({
+                      ...prev,
+                      header_color: e.target.value
+                    }))}
+                  />
+                </div>
+
                 <div className={styles.formGroup}>
                   <label>Primary Color</label>
                   <input

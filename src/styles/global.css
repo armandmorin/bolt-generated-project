@@ -1,6 +1,7 @@
 :root {
   --primary-color: #2563eb;
   --secondary-color: #ffffff;
+  --header-color: #2563eb;
   --text-color: #1e293b;
   --background-color: #f8fafc;
   --border-color: #e2e8f0;
@@ -52,7 +53,7 @@ button[type="submit"],
 /* Header Styles */
 .mainHeader,
 .header {
-  background-color: var(--primary-color);
+  background-color: var(--header-color);
   color: var(--secondary-color);
 }
 
