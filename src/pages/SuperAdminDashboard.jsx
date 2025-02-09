@@ -18,10 +18,8 @@ const SuperAdminDashboard = () => {
     logo: '',
     header_color: '#2563eb',
     primary_color: '#2563eb',
-    button_color: '#2563eb'
-  });
-  const [domain, setDomain] = useState(() => {
-    return localStorage.getItem('widgetDomain') || '';
+    button_color: '#2563eb',
+    widget_domain: ''
   });
 
   useEffect(() => {
@@ -49,6 +47,8 @@ const SuperAdminDashboard = () => {
       }
     } catch (error) {
       console.error('Error loading branding settings:', error);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -60,13 +60,38 @@ const SuperAdminDashboard = () => {
     }));
   };
 
+  const handleDomainSave = async (e) => {
+    e.preventDefault();
+    setSaving(true);
+
+    try {
+      const { error } = await supabase
+        .from('brand_settings')
+        .upsert({
+          id: globalBranding.id,
+          widget_domain: globalBranding.widget_domain,
+          updated_at: new Date().toISOString()
+        });
+
+      if (error) throw error;
+
+      alert('Domain settings updated successfully!');
+      await loadBrandingSettings();
+    } catch (error) {
+      console.error('Error saving domain settings:', error);
+      alert('Error saving domain settings');
+    } finally {
+      setSaving(false);
+    }
+  };
+
   const saveBrandingSettings = async () => {
     try {
       setSaving(true);
       const { error } = await supabase
         .from('brand_settings')
         .upsert({
-          id: globalBranding.id, // Will be undefined for first insert
+          id: globalBranding.id,
           logo: globalBranding.logo,
           header_color: globalBranding.header_color,
           primary_color: globalBranding.primary_color,
@@ -76,13 +101,12 @@ const SuperAdminDashboard = () => {
 
       if (error) throw error;
 
-      // Apply the colors immediately
       document.documentElement.style.setProperty('--header-color', globalBranding.header_color);
       document.documentElement.style.setProperty('--primary-color', globalBranding.primary_color);
       document.documentElement.style.setProperty('--button-color', globalBranding.button_color);
 
       alert('Global branding settings updated successfully!');
-      await loadBrandingSettings(); // Reload to get the latest from database
+      await loadBrandingSettings();
     } catch (error) {
       console.error('Error saving branding settings:', error);
       alert('Error saving branding settings');
@@ -96,71 +120,49 @@ const SuperAdminDashboard = () => {
   return (
     <div className={styles.contentWidth}>
       <div className={styles.superAdminDashboard}>
-        {/* ... other tab buttons ... */}
-        
+        <div className={styles.tabs}>
+          {/* ... tab buttons ... */}
+        </div>
+
         <div className={styles.content}>
-          {activeTab === 'branding' && (
+          {/* ... branding tab content ... */}
+
+          {activeTab === 'domain' && (
             <div className={styles.formContainer}>
-              <h2>Global Branding Settings</h2>
-              <div className={styles.brandingForm}>
-                <ImageUpload
-                  currentImage={globalBranding.logo}
-                  onImageUpload={(imageData) => {
-                    setGlobalBranding(prev => ({
-                      ...prev,
-                      logo: imageData
-                    }));
-                  }}
-                  label="Default Logo"
-                />
-
-                <div className={styles.colorGroup}>
-                  <div className={styles.formGroup}>
-                    <label>Header Color</label>
-                    <input
-                      type="color"
-                      name="header_color"
-                      value={globalBranding.header_color}
-                      onChange={handleBrandingChange}
-                    />
-                  </div>
-
-                  <div className={styles.formGroup}>
-                    <label>Primary Color</label>
-                    <input
-                      type="color"
-                      name="primary_color"
-                      value={globalBranding.primary_color}
-                      onChange={handleBrandingChange}
-                    />
-                  </div>
-
-                  <div className={styles.formGroup}>
-                    <label>Button Color</label>
-                    <input
-                      type="color"
-                      name="button_color"
-                      value={globalBranding.button_color}
-                      onChange={handleBrandingChange}
-                    />
-                  </div>
+              <h2>Widget Domain Configuration</h2>
+              <p className={styles.description}>
+                Set the domain where the accessibility widget will be hosted. 
+                This domain will be used in the installation code provided to clients.
+              </p>
+              <form onSubmit={handleDomainSave}>
+                <div className={styles.formGroup}>
+                  <label>Widget Domain</label>
+                  <input
+                    type="url"
+                    name="widget_domain"
+                    value={globalBranding.widget_domain || ''}
+                    onChange={handleBrandingChange}
+                    placeholder="https://widget.yourdomain.com"
+                    required
+                  />
+                  <span className={styles.hint}>
+                    Example: https://widget.yourdomain.com or https://yourdomain.com/widget
+                  </span>
                 </div>
-
                 <div className={styles.formActions}>
                   <button 
-                    type="button" 
+                    type="submit" 
                     className={styles.saveButton}
-                    onClick={saveBrandingSettings}
                     disabled={saving}
                   >
-                    {saving ? 'Saving...' : 'Save Branding Settings'}
+                    {saving ? 'Saving...' : 'Save Domain'}
                   </button>
                 </div>
-              </div>
+              </form>
             </div>
           )}
-          
-          {/* ... other tab content ... */}
+
+          {/* ... admin tab content ... */}
         </div>
       </div>
     </div>
