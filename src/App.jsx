@@ -13,7 +13,7 @@ import './styles/global.css';
 
 // Protected Route component
 const ProtectedRoute = ({ children }) => {
-  const userRole = localStorage.getItem('userRole');
+  const userRole = sessionStorage.getItem('userRole');
   const location = useLocation();
 
   // List of routes that don't require authentication
@@ -34,17 +34,12 @@ const ProtectedRoute = ({ children }) => {
 
 function App() {
   const location = useLocation();
-  const brandSettings = JSON.parse(localStorage.getItem('brandSettings')) || {
-    logo: '',
-    primaryColor: '#2563eb'
-  };
-
   const publicRoutes = ['/', '/register', '/super-admin-login', '/test'];
   const hideHeader = publicRoutes.includes(location.pathname);
 
   return (
     <div className="app-container">
-      {!hideHeader && <Header logo={brandSettings.logo} primaryColor={brandSettings.primaryColor} />}
+      {!hideHeader && <Header />}
       <main className="main-content">
         <Routes>
           {/* Public Routes */}

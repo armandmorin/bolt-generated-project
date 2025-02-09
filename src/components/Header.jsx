@@ -1,15 +1,27 @@
 import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { supabase } from '../lib/supabase';
 import styles from '../styles/header.module.css';
 
-const Header = ({ logo, primaryColor }) => {
+const Header = () => {
   const navigate = useNavigate();
-  const userRole = localStorage.getItem('userRole');
+  const userRole = sessionStorage.getItem('userRole');
 
-  const handleLogout = () => {
-    localStorage.removeItem('userRole');
-    localStorage.removeItem('user');
-    navigate('/');
+  const handleLogout = async () => {
+    try {
+      // Sign out from Supabase
+      const { error } = await supabase.auth.signOut();
+      if (error) throw error;
+
+      // Clear session storage
+      sessionStorage.removeItem('userRole');
+      sessionStorage.removeItem('user');
+      
+      navigate('/');
+    } catch (error) {
+      console.error('Logout error:', error);
+      alert('Error during logout');
+    }
   };
 
   const getNavLinks = () => {
@@ -31,21 +43,12 @@ const Header = ({ logo, primaryColor }) => {
   };
 
   return (
-    <header 
-      className={styles.mainHeader}
-      style={{ backgroundColor: primaryColor }}
-    >
+    <header className={styles.mainHeader}>
       <div className={styles.headerContent}>
         <div className={styles.logoContainer}>
-          {logo ? (
-            <Link to={userRole === 'superadmin' ? '/super-admin' : '/admin'}>
-              <img src={logo} alt="Logo" className={styles.logo} />
-            </Link>
-          ) : (
-            <span className={styles.logoText}>
-              {userRole === 'superadmin' ? 'Super Admin' : 'Admin Dashboard'}
-            </span>
-          )}
+          <span className={styles.logoText}>
+            {userRole === 'superadmin' ? 'Super Admin' : 'Admin Dashboard'}
+          </span>
         </div>
 
         <nav className={styles.mainNav}>
