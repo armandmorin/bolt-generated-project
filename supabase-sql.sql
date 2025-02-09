@@ -1,28 +1,22 @@
--- Update the admin profile with the specific user ID
-UPDATE admin_profiles 
-SET role = 'admin'
-WHERE id = '4c562315-ae53-4581-8aa1-1bb574c302e6';
+-- Enable storage if not already enabled
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
--- Ensure brand settings exist for this user
-INSERT INTO brand_settings (
-    admin_id,
-    primary_color,
-    secondary_color,
-    header_color
-)
-VALUES (
-    '4c562315-ae53-4581-8aa1-1bb574c302e6',
-    '#2563eb',
-    '#ffffff',
-    '#2563eb'
-)
-ON CONFLICT (admin_id) 
-DO UPDATE SET
-    primary_color = EXCLUDED.primary_color,
-    secondary_color = EXCLUDED.secondary_color,
-    header_color = EXCLUDED.header_color;
+-- Create a storage bucket for brand assets if it doesn't exist
+INSERT INTO storage.buckets (id, name, public)
+VALUES ('brand-assets', 'brand-assets', true)
+ON CONFLICT (id) DO NOTHING;
 
--- Verify the user's email is confirmed
-UPDATE auth.users
-SET email_confirmed_at = NOW()
-WHERE id = '4c562315-ae53-4581-8aa1-1bb574c302e6';
+-- Create a policy to allow public access to the bucket
+CREATE POLICY "Give public access to brand-assets" ON storage.objects
+    FOR SELECT
+    USING (bucket_id = 'brand-assets');
+
+-- Create a policy to allow authenticated users to upload to the bucket
+CREATE POLICY "Allow authenticated uploads to brand-assets" ON storage.objects
+    FOR INSERT
+    WITH CHECK (bucket_id = 'brand-assets');
+
+-- Create a policy to allow authenticated users to update their uploads
+CREATE POLICY "Allow authenticated updates to brand-assets" ON storage.objects
+    FOR UPDATE
+    USING (bucket_id = 'brand-assets');

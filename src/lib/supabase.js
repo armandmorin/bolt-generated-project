@@ -5,33 +5,11 @@ const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS
 
 export const supabase = createClient(supabaseUrl, supabaseKey, {
   auth: {
-    persistSession: true,
-    autoRefreshToken: true,
-    detectSessionInUrl: true
+    persistSession: false
   },
-  db: {
-    schema: 'public'
+  realtime: {
+    params: {
+      eventsPerSecond: 10
+    }
   }
 });
-
-export const getCurrentUser = async () => {
-  try {
-    const { data: { user }, error } = await supabase.auth.getUser();
-    if (error) throw error;
-    return user;
-  } catch (error) {
-    console.error('Error getting current user:', error);
-    return null;
-  }
-};
-
-export const getCurrentSession = async () => {
-  try {
-    const { data: { session }, error } = await supabase.auth.getSession();
-    if (error) throw error;
-    return session;
-  } catch (error) {
-    console.error('Error getting session:', error);
-    return null;
-  }
-};

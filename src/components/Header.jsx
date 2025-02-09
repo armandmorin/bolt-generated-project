@@ -1,70 +1,64 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
-import { useBrand } from '../contexts/BrandContext';
 import styles from '../styles/header.module.css';
 
 const Header = () => {
   const navigate = useNavigate();
-  const { brandSettings } = useBrand();
-  const [adminProfile, setAdminProfile] = useState(null);
+  const userRole = localStorage.getItem('userRole');
+  const [brandSettings, setBrandSettings] = useState({
+    logo: '',
+    header_color: '#2563eb'
+  });
 
   useEffect(() => {
-    loadAdminProfile();
+    loadBrandSettings();
   }, []);
 
-  const loadAdminProfile = async () => {
+  const loadBrandSettings = async () => {
     try {
-      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-      
-      if (sessionError) throw sessionError;
-      
-      if (!session) {
-        navigate('/');
-        return;
+      const { data, error } = await supabase
+        .from('brand_settings')
+        .select('logo, header_color')
+        .single();
+
+      if (error) {
+        throw error;
       }
 
-      // Get admin profile
-      const { data: profileData, error: profileError } = await supabase
-        .from('admin_profiles')
-        .select('*')
-        .eq('id', session.user.id)
-        .maybeSingle();
-
-      if (profileError && profileError.code !== 'PGRST116') throw profileError;
-
-      if (profileData) {
-        setAdminProfile(profileData);
+      if (data) {
+        setBrandSettings({
+          logo: data.logo || '',
+          header_color: data.header_color || '#2563eb'
+        });
       }
     } catch (error) {
-      console.error('Error loading admin profile:', error);
-      navigate('/');
+      console.error('Error loading brand settings:', error);
     }
   };
 
-  const handleLogout = async () => {
-    try {
-      const { error } = await supabase.auth.signOut();
-      if (error) throw error;
-      navigate('/');
-    } catch (error) {
-      console.error('Error signing out:', error);
-    }
+  const handleLogout = () => {
+    localStorage.removeItem('userRole');
+    localStorage.removeItem('user');
+    navigate('/');
   };
 
   const getNavLinks = () => {
-    if (adminProfile?.role === 'superadmin') {
+    if (userRole === 'superadmin') {
       return (
         <>
           <Link to="/super-admin" className={styles.navLink}>Dashboard</Link>
         </>
       );
     }
-    return (
-      <>
-        <Link to="/admin" className={styles.navLink}>Dashboard</Link>
-      </>
-    );
+    if (userRole === 'admin') {
+      return (
+        <>
+          <Link to="/admin" className={styles.navLink}>Dashboard</Link>
+        </>
+      );
+    }
+    return null;
   };
 
   return (
@@ -72,7 +66,7 @@ const Header = () => {
       <div className={styles.headerContent}>
         <div className={styles.logoContainer}>
           {brandSettings.logo ? (
-            <Link to={adminProfile?.role === 'superadmin' ? '/super-admin' : '/admin'}>
+            <Link to={userRole === 'superadmin' ? '/super-admin' : '/admin'}>
               <img 
                 src={brandSettings.logo} 
                 alt="Logo" 
@@ -85,7 +79,7 @@ const Header = () => {
             </Link>
           ) : (
             <span className={styles.logoText}>
-              {adminProfile?.role === 'superadmin' ? 'Super Admin' : 'Admin Dashboard'}
+              {userRole === 'superadmin' ? 'Super Admin' : 'Admin Dashboard'}
             </span>
           )}
         </div>
@@ -96,11 +90,9 @@ const Header = () => {
           </div>
           
           <div className={styles.navGroup}>
-            {adminProfile && (
-              <span className={styles.userRole}>
-                {adminProfile.name || adminProfile.email}
-              </span>
-            )}
+            <span className={styles.userRole}>
+              {userRole === 'superadmin' ? 'Super Admin' : 'Admin'}
+            </span>
             <button 
               onClick={handleLogout}
               className={styles.logoutButton}
