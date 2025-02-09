@@ -1,21 +1,44 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
+import { supabase } from '../lib/supabase';
 import styles from '../styles/modules/login.module.css';
 
 const SuperAdminLogin = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
   const navigate = useNavigate();
-  const brandSettings = JSON.parse(localStorage.getItem('brandSettings') || '{}');
+  const brandSettings = JSON.parse(localStorage.getItem('brandSettings')) || {};
 
   const handleLogin = async (e) => {
     e.preventDefault();
-    if (email === 'armandmorin@gmail.com' && password === '1armand') {
-      localStorage.setItem('userRole', 'superadmin');
-      localStorage.setItem('user', JSON.stringify({ email, role: 'superadmin' }));
-      navigate('/super-admin');
-    } else {
-      alert('Invalid credentials');
+    setError('');
+
+    try {
+      // Check credentials against the database
+      const { data, error } = await supabase
+        .from('users')
+        .select('*')
+        .eq('email', email)
+        .eq('password', password)
+        .eq('role', 'superadmin')
+        .single();
+
+      if (error) throw error;
+
+      if (data) {
+        localStorage.setItem('userRole', 'superadmin');
+        localStorage.setItem('user', JSON.stringify({ 
+          email: data.email, 
+          role: data.role 
+        }));
+        navigate('/super-admin');
+      } else {
+        setError('Invalid credentials');
+      }
+    } catch (error) {
+      console.error('Login error:', error);
+      setError('Invalid credentials');
     }
   };
 
@@ -31,6 +54,12 @@ const SuperAdminLogin = () => {
         )}
 
         <form onSubmit={handleLogin}>
+          {error && (
+            <div className={styles.errorMessage}>
+              {error}
+            </div>
+          )}
+          
           <div className={styles.formGroup}>
             <label>Email</label>
             <input
