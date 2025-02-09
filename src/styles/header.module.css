@@ -33,4 +33,79 @@
   font-weight: 500;
 }
 
-/* Rest of the styles remain the same */
+.mainNav {
+  display: flex;
+  align-items: center;
+  gap: 2rem;
+}
+
+.navLinks {
+  display: flex;
+  gap: 1.5rem;
+  align-items: center;
+}
+
+.navLink {
+  color: var(--secondary-color);
+  text-decoration: none;
+  font-weight: 500;
+  font-size: 16px;
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+}
+
+.navLink:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+  text-decoration: none;
+}
+
+.navGroup {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.userRole {
+  color: var(--secondary-color);
+  font-weight: 500;
+  font-size: 16px;
+  background: rgba(255, 255, 255, 0.1);
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+}
+
+.logoutButton {
+  padding: 0.5rem 1rem;
+  background-color: var(--primary-color);
+  color: var(--secondary-color);
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 16px;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.logoutButton:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+  transform: translateY(-1px);
+}
+
+@media (max-width: 768px) {
+  .mainHeader {
+    padding: 1rem;
+  }
+
+  .mainNav {
+    gap: 1rem;
+  }
+
+  .navLinks {
+    display: none;
+  }
+
+  .userRole {
+    display: none;
+  }
+}
