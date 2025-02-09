@@ -1,116 +1,91 @@
 .mainHeader {
-  padding: 1rem 2rem;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  position: sticky;
-  top: 0;
-  z-index: 1000;
-  background-color: var(--header-color);
-}
+      padding: 1rem 2rem;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+      background-color: var(--primary-color);
+    }
 
-.headerContent {
-  max-width: 1200px;
-  margin: 0 auto;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
+    .headerContent {
+      max-width: 1200px;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
 
-.logoContainer {
-  display: flex;
-  align-items: center;
-}
+    .logoContainer {
+      display: flex;
+      align-items: center;
+    }
 
-.logo {
-  max-width: 250px;
-  height: auto;
-  object-fit: contain;
-}
+    .logo {
+      max-width: 150px;
+      height: auto;
+      max-height: 40px;
+      object-fit: contain;
+    }
 
-.logoText {
-  color: white;
-  font-size: 1.25rem;
-  font-weight: 500;
-}
+    .logoText {
+      color: white;
+      font-size: 1.25rem;
+      font-weight: 500;
+    }
 
-.mainNav {
-  display: flex;
-  align-items: center;
-  gap: 2rem;
-  color: var(--primary-color);
-}
+    .mainNav {
+      display: flex;
+      align-items: center;
+      gap: 2rem;
+    }
 
-.navLinks {
-  display: flex;
-  gap: 1.5rem;
-  align-items: center;
-}
+    .navLinks {
+      display: flex;
+      gap: 1.5rem;
+      align-items: center;
+    }
 
-.navLink {
-  color: var(--primary-color);
-  text-decoration: none;
-  font-weight: 500;
-  font-size: 16px;
-  padding: 0.5rem 1rem;
-  border-radius: 4px;
-  transition: background-color 0.2s ease;
-}
+    .navLink {
+      color: white;
+      text-decoration: none;
+      font-weight: 500;
+      padding: 0.5rem 1rem;
+      border-radius: 4px;
+      transition: background-color 0.2s ease;
+    }
 
-.navGroup {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-}
+    .navLink:hover {
+      background-color: rgba(255, 255, 255, 0.1);
+    }
 
-.logoutButton {
-  padding: 0.5rem 1rem;
-  background-color: rgba(255, 255, 255, 0.1);
-  color: var(--primary-color);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 16px;
-  font-weight: 500;
-  transition: all 0.2s ease;
-}
+    .navGroup {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
 
-.logoutButton:hover {
-  background-color: var(--primary-color);
-  color: white;
-  transform: translateY(-1px);
-}
+    .userRole {
+      color: white;
+      font-weight: 500;
+      font-size: 0.875rem;
+      background: rgba(255, 255, 255, 0.1);
+      padding: 0.5rem 1rem;
+      border-radius: 4px;
+    }
 
-@media (max-width: 768px) {
-  .mainHeader {
-    padding: 1rem;
-  }
+    .logoutButton {
+      padding: 0.5rem 1rem;
+      background-color: rgba(255, 255, 255, 0.1);
+      color: white;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 0.875rem;
+      font-weight: 500;
+      transition: all 0.2s ease;
+    }
 
-  .headerContent {
-    flex-direction: column;
-    gap: 1rem;
-  }
-
-  .mainNav {
-    width: 100%;
-    flex-direction: column;
-    gap: 1rem;
-  }
-
-  .navLinks {
-    width: 100%;
-    flex-direction: column;
-  }
-
-  .navGroup {
-    width: 100%;
-    justify-content: center;
-  }
-
-  .navLink {
-    width: 100%;
-    text-align: center;
-  }
-
-  .logo {
-    max-width: 200px;
-  }
-}
+    .logoutButton:hover {
+      background-color: rgba(255, 255, 255, 0.2);
+      transform: translateY(-1px);
+    }

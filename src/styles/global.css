@@ -1,71 +1,44 @@
 :root {
-  --header-color: #2563eb;
-  --primary-color: #2563eb;
-  --secondary-color: #ffffff;
-  --text-color: #1e293b;
-  --background-color: #f8fafc;
-  --border-color: #e2e8f0;
-  --font-family: Arial, -apple-system, BlinkMacSystemFont, sans-serif;
-}
+      --primary-color: #2563eb;
+      --secondary-color: #ffffff;
+      --text-color: #1e293b;
+      --background-color: #f8fafc;
+      --border-color: #e2e8f0;
+    }
 
-* {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
-}
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
 
-html {
-  font-family: var(--font-family);
-}
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen,
+        Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      background-color: var(--background-color);
+      color: var(--text-color);
+      line-height: 1.5;
+    }
 
-body {
-  margin: 0;
-  font-family: var(--font-family);
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  background-color: var(--background-color);
-  color: var(--text-color);
-  line-height: 1.5;
-}
+    .app-container {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
 
-button {
-  font-family: var(--font-family);
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
+    .main-content {
+      flex: 1;
+    }
 
-/* Global button hover styles */
-button:hover:not(:disabled),
-.button:hover:not(:disabled) {
-  background-color: var(--primary-color) !important;
-  color: white !important;
-}
+    button {
+      font-family: inherit;
+    }
 
-/* Exception for status buttons that should keep their specific colors */
-.statusButton:hover:not(:disabled) {
-  background-color: inherit !important;
-  color: inherit !important;
-}
+    input {
+      font-family: inherit;
+    }
 
-.app-container {
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-}
-
-.main-content {
-  flex: 1;
-}
-
-h1, h2, h3, h4, h5, h6 {
-  font-family: var(--font-family);
-}
-
-a {
-  color: inherit;
-  text-decoration: none;
-}
-
-input, select, textarea {
-  font-family: var(--font-family);
-}
+    /* Add any additional global styles here */

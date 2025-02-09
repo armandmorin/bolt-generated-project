@@ -54,6 +54,9 @@ const Header = ({ logo, primaryColor }) => {
           </div>
           
           <div className={styles.navGroup}>
+            <span className={styles.userRole}>
+              {userRole === 'superadmin' ? 'Super Admin' : 'Admin'}
+            </span>
             <button 
               onClick={handleLogout}
               className={styles.logoutButton}
