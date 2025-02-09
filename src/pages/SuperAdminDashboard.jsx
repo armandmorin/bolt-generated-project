@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
+import { supabase } from '../lib/supabase';
 import ImageUpload from '../components/ImageUpload';
 import styles from '../styles/admin.module.css';
 
 const SuperAdminDashboard = () => {
   const [activeTab, setActiveTab] = useState('branding');
   const [admins, setAdmins] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [newAdmin, setNewAdmin] = useState({
     name: '',
     email: '',
@@ -20,17 +22,49 @@ const SuperAdminDashboard = () => {
     return localStorage.getItem('widgetDomain') || '';
   });
 
+  // Load admins from Supabase
   useEffect(() => {
-    const savedAdmins = localStorage.getItem('admins');
-    if (savedAdmins) {
-      setAdmins(JSON.parse(savedAdmins));
-    }
-
-    const savedBranding = localStorage.getItem('globalBranding');
-    if (savedBranding) {
-      setGlobalBranding(JSON.parse(savedBranding));
-    }
+    loadAdmins();
+    loadBrandingSettings();
   }, []);
+
+  const loadAdmins = async () => {
+    try {
+      setLoading(true);
+      const { data, error } = await supabase
+        .from('users')
+        .select('*')
+        .eq('role', 'admin');
+
+      if (error) {
+        throw error;
+      }
+
+      if (data) {
+        setAdmins(data);
+      }
+    } catch (error) {
+      console.error('Error loading admins:', error);
+      alert('Error loading admins');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const loadBrandingSettings = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('brand_settings')
+        .select('*')
+        .single();
+
+      if (!error && data) {
+        setGlobalBranding(data);
+      }
+    } catch (error) {
+      console.error('Error loading branding settings:', error);
+    }
+  };
 
   const handleDomainSave = (e) => {
     e.preventDefault();
@@ -46,14 +80,26 @@ const SuperAdminDashboard = () => {
     }));
   };
 
-  const saveBrandingSettings = () => {
-    localStorage.setItem('globalBranding', JSON.stringify(globalBranding));
-    localStorage.setItem('brandSettings', JSON.stringify({
-      logo: globalBranding.logo,
-      primaryColor: globalBranding.headerColor,
-      buttonColor: globalBranding.buttonColor
-    }));
-    alert('Global branding settings updated successfully!');
+  const saveBrandingSettings = async () => {
+    try {
+      const { error } = await supabase
+        .from('brand_settings')
+        .upsert({
+          id: globalBranding.id,
+          logo: globalBranding.logo,
+          header_color: globalBranding.headerColor,
+          button_color: globalBranding.buttonColor,
+          updated_at: new Date().toISOString()
+        });
+
+      if (error) throw error;
+
+      alert('Global branding settings updated successfully!');
+      await loadBrandingSettings();
+    } catch (error) {
+      console.error('Error saving branding settings:', error);
+      alert('Error saving branding settings');
+    }
   };
 
   const handleInputChange = (e) => {
@@ -64,24 +110,51 @@ const SuperAdminDashboard = () => {
     }));
   };
 
-  const addAdmin = (e) => {
+  const addAdmin = async (e) => {
     e.preventDefault();
-    const updatedAdmins = [...admins, {
-      ...newAdmin,
-      id: Date.now(),
-      clients: [],
-      dateCreated: new Date().toISOString()
-    }];
-    setAdmins(updatedAdmins);
-    localStorage.setItem('admins', JSON.stringify(updatedAdmins));
-    setNewAdmin({ name: '', email: '', password: '', company: '' });
+    try {
+      const { error } = await supabase
+        .from('users')
+        .insert([{
+          name: newAdmin.name,
+          email: newAdmin.email,
+          password: newAdmin.password, // Note: In production, password should be hashed
+          company: newAdmin.company,
+          role: 'admin',
+          created_at: new Date().toISOString()
+        }]);
+
+      if (error) throw error;
+
+      alert('Admin added successfully!');
+      setNewAdmin({ name: '', email: '', password: '', company: '' });
+      await loadAdmins();
+    } catch (error) {
+      console.error('Error adding admin:', error);
+      alert('Error adding admin');
+    }
   };
 
-  const removeAdmin = (adminId) => {
-    const updatedAdmins = admins.filter(admin => admin.id !== adminId);
-    setAdmins(updatedAdmins);
-    localStorage.setItem('admins', JSON.stringify(updatedAdmins));
+  const removeAdmin = async (adminId) => {
+    try {
+      const { error } = await supabase
+        .from('users')
+        .delete()
+        .eq('id', adminId);
+
+      if (error) throw error;
+
+      alert('Admin removed successfully!');
+      await loadAdmins();
+    } catch (error) {
+      console.error('Error removing admin:', error);
+      alert('Error removing admin');
+    }
   };
+
+  if (loading) {
+    return <div className={styles.loading}>Loading...</div>;
+  }
 
   return (
     <div className={styles.contentWidth}>
@@ -251,7 +324,6 @@ const SuperAdminDashboard = () => {
                       <th>Name</th>
                       <th>Email</th>
                       <th>Company</th>
-                      <th>Clients</th>
                       <th>Date Created</th>
                       <th>Actions</th>
                     </tr>
@@ -262,8 +334,7 @@ const SuperAdminDashboard = () => {
                         <td>{admin.name}</td>
                         <td>{admin.email}</td>
                         <td>{admin.company}</td>
-                        <td>{admin.clients.length}</td>
-                        <td>{new Date(admin.dateCreated).toLocaleDateString()}</td>
+                        <td>{new Date(admin.created_at).toLocaleDateString()}</td>
                         <td>
                           <button
                             className={styles.removeButton}
