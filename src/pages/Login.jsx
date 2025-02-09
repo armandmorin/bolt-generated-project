@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate, Link, useLocation } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import styles from '../styles/modules/login.module.css';
 
@@ -8,12 +8,6 @@ const Login = () => {
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
-  const location = useLocation();
-
-  // Check if we're trying to access the test page
-  if (location.pathname === '/test') {
-    return null; // Don't render login for test route
-  }
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -21,26 +15,39 @@ const Login = () => {
 
     try {
       // Sign in with Supabase Auth
-      const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
+      const { data: { user }, error: authError } = await supabase.auth.signInWithPassword({
         email,
         password
       });
 
       if (authError) throw authError;
 
-      // Get user profile data
-      const { data: profileData, error: profileError } = await supabase
-        .from('admin_profiles')
-        .select('*')
-        .eq('id', authData.user.id)
-        .single();
+      if (user) {
+        // Create admin profile if it doesn't exist
+        const { error: profileError } = await supabase
+          .from('admin_profiles')
+          .upsert({ 
+            id: user.id,
+            email: user.email,
+            updated_at: new Date().toISOString()
+          });
 
-      if (profileError) throw profileError;
+        if (profileError) throw profileError;
 
-      if (profileData) {
+        // Create default brand settings if they don't exist
+        const { error: settingsError } = await supabase
+          .from('brand_settings')
+          .upsert({ 
+            admin_id: user.id,
+            primary_color: '#2563eb',
+            secondary_color: '#ffffff',
+            header_color: '#2563eb',
+            updated_at: new Date().toISOString()
+          });
+
+        if (settingsError) throw settingsError;
+
         navigate('/admin');
-      } else {
-        throw new Error('Admin profile not found');
       }
     } catch (error) {
       console.error('Error logging in:', error);

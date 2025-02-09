@@ -33,7 +33,7 @@ const Header = () => {
         .from('admin_profiles')
         .select('*')
         .eq('id', session.user.id)
-        .single();
+        .maybeSingle();
 
       if (profileError && profileError.code !== 'PGRST116') throw profileError;
 
@@ -42,28 +42,40 @@ const Header = () => {
       }
 
       // Load brand settings
-      const { data, error } = await supabase
+      const { data: settingsData, error: settingsError } = await supabase
         .from('brand_settings')
         .select('*')
         .eq('admin_id', session.user.id)
         .maybeSingle();
 
-      if (error && error.code !== 'PGRST116') {
-        throw error;
+      if (settingsError && settingsError.code !== 'PGRST116') {
+        throw settingsError;
       }
 
-      if (data) {
+      if (settingsData) {
         setBrandSettings({
-          logo: data.logo || '',
-          header_color: data.header_color || '#2563eb',
-          primary_color: data.primary_color || '#2563eb',
-          secondary_color: data.secondary_color || '#ffffff'
+          logo: settingsData.logo || '',
+          header_color: settingsData.header_color || '#2563eb',
+          primary_color: settingsData.primary_color || '#2563eb',
+          secondary_color: settingsData.secondary_color || '#ffffff'
         });
 
         // Set CSS variables
-        document.documentElement.style.setProperty('--header-color', data.header_color || '#2563eb');
-        document.documentElement.style.setProperty('--primary-color', data.primary_color || '#2563eb');
-        document.documentElement.style.setProperty('--secondary-color', data.secondary_color || '#ffffff');
+        document.documentElement.style.setProperty('--header-color', settingsData.header_color || '#2563eb');
+        document.documentElement.style.setProperty('--primary-color', settingsData.primary_color || '#2563eb');
+        document.documentElement.style.setProperty('--secondary-color', settingsData.secondary_color || '#ffffff');
+      } else {
+        // Create default settings if none exist
+        const { error: createError } = await supabase
+          .from('brand_settings')
+          .insert([{
+            admin_id: session.user.id,
+            primary_color: '#2563eb',
+            secondary_color: '#ffffff',
+            header_color: '#2563eb'
+          }]);
+
+        if (createError) throw createError;
       }
     } catch (error) {
       console.error('Error loading admin data:', error);
@@ -92,27 +104,12 @@ const Header = () => {
     }
   };
 
-  const getNavLinks = () => {
-    if (adminProfile?.role === 'superadmin') {
-      return (
-        <>
-          <Link to="/super-admin" className={styles.navLink}>Dashboard</Link>
-        </>
-      );
-    }
-    return (
-      <>
-        <Link to="/admin" className={styles.navLink}>Dashboard</Link>
-      </>
-    );
-  };
-
   return (
     <header className={styles.mainHeader}>
       <div className={styles.headerContent}>
         <div className={styles.logoContainer}>
           {brandSettings.logo ? (
-            <Link to={adminProfile?.role === 'superadmin' ? '/super-admin' : '/admin'}>
+            <Link to="/admin">
               <img 
                 src={brandSettings.logo} 
                 alt="Logo" 
@@ -125,14 +122,14 @@ const Header = () => {
             </Link>
           ) : (
             <span className={styles.logoText}>
-              {adminProfile?.role === 'superadmin' ? 'Super Admin' : 'Admin Dashboard'}
+              Admin Dashboard
             </span>
           )}
         </div>
 
         <nav className={styles.mainNav}>
           <div className={styles.navLinks}>
-            {getNavLinks()}
+            <Link to="/admin" className={styles.navLink}>Dashboard</Link>
           </div>
           
           <div className={styles.navGroup}>
