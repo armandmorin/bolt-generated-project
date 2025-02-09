@@ -49,6 +49,7 @@
   color: var(--primary-color);
   text-decoration: none;
   font-weight: 500;
+  font-size: 14px;
   padding: 0.5rem 1rem;
   border-radius: 4px;
   transition: background-color 0.2s ease;
@@ -58,15 +59,6 @@
   display: flex;
   align-items: center;
   gap: 1rem;
-}
-
-.userRole {
-  color: var(--primary-color);
-  font-weight: 500;
-  font-size: 0.875rem;
-  background: rgba(255, 255, 255, 0.1);
-  padding: 0.5rem 1rem;
-  border-radius: 4px;
 }
 
 .logoutButton {
