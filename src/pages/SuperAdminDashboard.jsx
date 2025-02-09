@@ -15,16 +15,17 @@ const SuperAdminDashboard = () => {
   });
   const [globalBranding, setGlobalBranding] = useState({
     logo: '',
-    header_color: '#2563eb',
-    button_color: '#2563eb'
+    headerColor: '#2563eb',
+    buttonColor: '#2563eb'
   });
-  const [domain, setDomain] = useState('');
+  const [domain, setDomain] = useState(() => {
+    return localStorage.getItem('widgetDomain') || '';
+  });
 
-  // Load initial data
+  // Load admins from Supabase
   useEffect(() => {
     loadAdmins();
     loadBrandingSettings();
-    loadDomainSettings();
   }, []);
 
   const loadAdmins = async () => {
@@ -35,8 +36,13 @@ const SuperAdminDashboard = () => {
         .select('*')
         .eq('role', 'admin');
 
-      if (error) throw error;
-      setAdmins(data || []);
+      if (error) {
+        throw error;
+      }
+
+      if (data) {
+        setAdmins(data);
+      }
     } catch (error) {
       console.error('Error loading admins:', error);
       alert('Error loading admins');
@@ -60,37 +66,10 @@ const SuperAdminDashboard = () => {
     }
   };
 
-  const loadDomainSettings = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('domain_settings')
-        .select('*')
-        .single();
-
-      if (!error && data) {
-        setDomain(data.domain_url || '');
-      }
-    } catch (error) {
-      console.error('Error loading domain settings:', error);
-    }
-  };
-
-  const handleDomainSave = async (e) => {
+  const handleDomainSave = (e) => {
     e.preventDefault();
-    try {
-      const { error } = await supabase
-        .from('domain_settings')
-        .upsert({ 
-          domain_url: domain,
-          updated_at: new Date().toISOString()
-        });
-
-      if (error) throw error;
-      alert('Domain settings updated successfully!');
-    } catch (error) {
-      console.error('Error saving domain settings:', error);
-      alert('Error saving domain settings');
-    }
+    localStorage.setItem('widgetDomain', domain);
+    alert('Domain settings updated successfully!');
   };
 
   const handleBrandingChange = (e) => {
@@ -108,12 +87,13 @@ const SuperAdminDashboard = () => {
         .upsert({
           id: globalBranding.id,
           logo: globalBranding.logo,
-          header_color: globalBranding.header_color,
-          button_color: globalBranding.button_color,
+          header_color: globalBranding.headerColor,
+          button_color: globalBranding.buttonColor,
           updated_at: new Date().toISOString()
         });
 
       if (error) throw error;
+
       alert('Global branding settings updated successfully!');
       await loadBrandingSettings();
     } catch (error) {
@@ -221,8 +201,8 @@ const SuperAdminDashboard = () => {
                     <label>Header Color</label>
                     <input
                       type="color"
-                      name="header_color"
-                      value={globalBranding.header_color}
+                      name="headerColor"
+                      value={globalBranding.headerColor}
                       onChange={handleBrandingChange}
                     />
                   </div>
@@ -231,8 +211,8 @@ const SuperAdminDashboard = () => {
                     <label>Button Color</label>
                     <input
                       type="color"
-                      name="button_color"
-                      value={globalBranding.button_color}
+                      name="buttonColor"
+                      value={globalBranding.buttonColor}
                       onChange={handleBrandingChange}
                     />
                   </div>
