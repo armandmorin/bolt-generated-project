@@ -16,70 +16,71 @@ const Login = () => {
     setError('');
 
     try {
+      // Sign in with Supabase Auth
       const { data, error: signInError } = await supabase.auth.signInWithPassword({
-        email,
-        password
+        email: email.toLowerCase().trim(),
+        password: password.trim()
       });
 
-      if (signInError) throw signInError;
+      if (signInError) {
+        console.error('Sign in error:', signInError);
+        throw new Error('Invalid login credentials. Please check your email and password.');
+      }
 
-      if (data?.user) {
-        // Check if admin profile exists
-        const { data: profileData, error: profileError } = await supabase
-          .from('admin_profiles')
-          .select('*')
-          .eq('id', data.user.id)
-          .single();
+      if (!data?.user) {
+        throw new Error('No user data received');
+      }
 
-        if (profileError && profileError.code !== 'PGRST116') {
-          throw profileError;
-        }
+      // Get admin profile
+      const { data: profileData, error: profileError } = await supabase
+        .from('admin_profiles')
+        .select('*')
+        .eq('id', data.user.id)
+        .single();
 
-        // If no profile exists, create one
-        if (!profileData) {
-          const { error: createError } = await supabase
-            .from('admin_profiles')
-            .insert([
-              {
-                id: data.user.id,
-                email: data.user.email,
-                role: 'admin'
-              }
-            ]);
+      if (profileError) {
+        console.error('Profile error:', profileError);
+        throw new Error('Error loading user profile');
+      }
 
-          if (createError) throw createError;
-        }
+      if (!profileData) {
+        throw new Error('Admin profile not found');
+      }
 
-        // Check if brand settings exist
-        const { data: settingsData, error: settingsError } = await supabase
+      // Check brand settings and create if they don't exist
+      const { data: settingsData, error: settingsError } = await supabase
+        .from('brand_settings')
+        .select('*')
+        .eq('admin_id', data.user.id)
+        .single();
+
+      if (settingsError && settingsError.code !== 'PGRST116') {
+        console.error('Settings error:', settingsError);
+      }
+
+      if (!settingsData) {
+        // Create default settings
+        const { error: createError } = await supabase
           .from('brand_settings')
-          .select('*')
-          .eq('admin_id', data.user.id)
-          .single();
+          .insert([
+            {
+              admin_id: data.user.id,
+              primary_color: '#2563eb',
+              secondary_color: '#ffffff',
+              header_color: '#2563eb'
+            }
+          ]);
 
-        if (settingsError && settingsError.code !== 'PGRST116') {
-          throw settingsError;
+        if (createError) {
+          console.error('Create settings error:', createError);
         }
+      }
 
-        // If no settings exist, create default settings
-        if (!settingsData) {
-          const { error: createSettingsError } = await supabase
-            .from('brand_settings')
-            .insert([
-              {
-                admin_id: data.user.id,
-                primary_color: '#2563eb',
-                secondary_color: '#ffffff',
-                header_color: '#2563eb'
-              }
-            ]);
-
-          if (createSettingsError) throw createSettingsError;
-        }
-
-        // Navigate to appropriate dashboard
-        const role = profileData?.role || 'admin';
-        navigate(role === 'superadmin' ? '/super-admin' : '/admin');
+      // Navigate based on role
+      if (profileData.role === 'superadmin') {
+        navigate('/super-admin');
+      } else {
+        navigate('/admin');
       }
     } catch (error) {
       console.error('Login error:', error);
