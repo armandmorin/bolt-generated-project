@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import ClientManagement from './ClientManagement';
 import WidgetCustomization from './WidgetCustomization';
@@ -8,6 +9,7 @@ import ImageUpload from '../components/ImageUpload';
 import styles from '../styles/admin.module.css';
 
 const AdminDashboard = () => {
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('branding');
   const [brandSettings, setBrandSettings] = useState({
     logo: '',
@@ -18,34 +20,38 @@ const AdminDashboard = () => {
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
+    checkSession();
     loadBrandSettings();
   }, []);
 
-  // Update CSS variables when brand settings change
-  useEffect(() => {
-    document.documentElement.style.setProperty('--primary-color', brandSettings.primary_color);
-    document.documentElement.style.setProperty('--secondary-color', brandSettings.secondary_color);
-    document.documentElement.style.setProperty('--header-color', brandSettings.header_color);
-  }, [brandSettings.primary_color, brandSettings.secondary_color, brandSettings.header_color]);
+  const checkSession = async () => {
+    const { data: { session }, error } = await supabase.auth.getSession();
+    if (error || !session) {
+      navigate('/');
+    }
+  };
 
   const loadBrandSettings = async () => {
     try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) return;
+
       const { data, error } = await supabase
         .from('brand_settings')
         .select('*')
+        .eq('admin_id', session.user.id)
         .single();
 
-      if (error) {
+      if (error && error.code !== 'PGRST116') {
         throw error;
       }
 
       if (data) {
-        setBrandSettings({
-          logo: data.logo || '',
-          primary_color: data.primary_color || '#2563eb',
-          secondary_color: data.secondary_color || '#ffffff',
-          header_color: data.header_color || '#2563eb'
-        });
+        setBrandSettings(data);
+        // Set CSS variables for this admin's branding
+        document.documentElement.style.setProperty('--header-color', data.header_color);
+        document.documentElement.style.setProperty('--primary-color', data.primary_color);
+        document.documentElement.style.setProperty('--secondary-color', data.secondary_color);
       }
     } catch (error) {
       console.error('Error loading brand settings:', error);
@@ -54,12 +60,15 @@ const AdminDashboard = () => {
 
   const uploadLogo = async (base64Image) => {
     try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) return null;
+
       // Convert base64 to blob
       const base64Response = await fetch(base64Image);
       const blob = await base64Response.blob();
 
       // Create file name
-      const fileName = `logo-${Date.now()}.${blob.type.split('/')[1]}`;
+      const fileName = `logo-${session.user.id}-${Date.now()}.${blob.type.split('/')[1]}`;
       const filePath = `logos/${fileName}`;
 
       // Upload to Supabase Storage
@@ -89,6 +98,12 @@ const AdminDashboard = () => {
     setSaving(true);
 
     try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        navigate('/');
+        return;
+      }
+
       let logoUrl = brandSettings.logo;
 
       // If there's a new logo (base64), upload it
@@ -99,6 +114,7 @@ const AdminDashboard = () => {
       const { data: existingSettings } = await supabase
         .from('brand_settings')
         .select('id')
+        .eq('admin_id', session.user.id)
         .single();
 
       let error;
@@ -113,13 +129,14 @@ const AdminDashboard = () => {
             header_color: brandSettings.header_color,
             updated_at: new Date().toISOString()
           })
-          .eq('id', existingSettings.id);
+          .eq('admin_id', session.user.id);
         error = updateError;
       } else {
         // Insert new settings
         const { error: insertError } = await supabase
           .from('brand_settings')
           .insert([{
+            admin_id: session.user.id,
             logo: logoUrl,
             primary_color: brandSettings.primary_color,
             secondary_color: brandSettings.secondary_color,
@@ -128,9 +145,7 @@ const AdminDashboard = () => {
         error = insertError;
       }
 
-      if (error) {
-        throw error;
-      }
+      if (error) throw error;
 
       alert('Brand settings updated successfully!');
       await loadBrandSettings();

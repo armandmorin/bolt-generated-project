@@ -5,60 +5,71 @@ import styles from '../styles/header.module.css';
 
 const Header = () => {
   const navigate = useNavigate();
-  const userRole = localStorage.getItem('userRole');
+  const [adminProfile, setAdminProfile] = useState(null);
   const [brandSettings, setBrandSettings] = useState({
     logo: '',
-    header_color: '#2563eb'
+    header_color: '#2563eb',
+    primary_color: '#2563eb',
+    secondary_color: '#ffffff'
   });
 
   useEffect(() => {
-    loadBrandSettings();
+    loadAdminData();
   }, []);
 
-  const loadBrandSettings = async () => {
+  const loadAdminData = async () => {
     try {
-      const { data, error } = await supabase
-        .from('brand_settings')
-        .select('logo, header_color')
+      // Get current session
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+      
+      if (sessionError) throw sessionError;
+      
+      if (!session) {
+        navigate('/');
+        return;
+      }
+
+      // Get admin profile
+      const { data: profileData, error: profileError } = await supabase
+        .from('admin_profiles')
+        .select('*')
+        .eq('id', session.user.id)
         .single();
 
-      if (error) {
-        throw error;
-      }
+      if (profileError) throw profileError;
 
-      if (data) {
-        setBrandSettings({
-          logo: data.logo || '',
-          header_color: data.header_color || '#2563eb'
-        });
+      setAdminProfile(profileData);
+
+      // Load brand settings
+      const { data: brandData, error: brandError } = await supabase
+        .from('brand_settings')
+        .select('*')
+        .eq('admin_id', session.user.id)
+        .single();
+
+      if (brandError && brandError.code !== 'PGRST116') throw brandError;
+
+      if (brandData) {
+        setBrandSettings(brandData);
+        // Set CSS variables for this admin's branding
+        document.documentElement.style.setProperty('--header-color', brandData.header_color);
+        document.documentElement.style.setProperty('--primary-color', brandData.primary_color);
+        document.documentElement.style.setProperty('--secondary-color', brandData.secondary_color);
       }
     } catch (error) {
-      console.error('Error loading brand settings:', error);
+      console.error('Error loading admin data:', error);
+      navigate('/');
     }
   };
 
-  const handleLogout = () => {
-    localStorage.removeItem('userRole');
-    localStorage.removeItem('user');
-    navigate('/');
-  };
-
-  const getNavLinks = () => {
-    if (userRole === 'superadmin') {
-      return (
-        <>
-          <Link to="/super-admin" className={styles.navLink}>Dashboard</Link>
-        </>
-      );
+  const handleLogout = async () => {
+    try {
+      const { error } = await supabase.auth.signOut();
+      if (error) throw error;
+      navigate('/');
+    } catch (error) {
+      console.error('Error signing out:', error);
     }
-    if (userRole === 'admin') {
-      return (
-        <>
-          <Link to="/admin" className={styles.navLink}>Dashboard</Link>
-        </>
-      );
-    }
-    return null;
   };
 
   return (
@@ -66,7 +77,7 @@ const Header = () => {
       <div className={styles.headerContent}>
         <div className={styles.logoContainer}>
           {brandSettings.logo ? (
-            <Link to={userRole === 'superadmin' ? '/super-admin' : '/admin'}>
+            <Link to="/admin">
               <img 
                 src={brandSettings.logo} 
                 alt="Logo" 
@@ -79,20 +90,22 @@ const Header = () => {
             </Link>
           ) : (
             <span className={styles.logoText}>
-              {userRole === 'superadmin' ? 'Super Admin' : 'Admin Dashboard'}
+              Admin Dashboard
             </span>
           )}
         </div>
 
         <nav className={styles.mainNav}>
           <div className={styles.navLinks}>
-            {getNavLinks()}
+            <Link to="/admin" className={styles.navLink}>Dashboard</Link>
           </div>
           
           <div className={styles.navGroup}>
-            <span className={styles.userRole}>
-              {userRole === 'superadmin' ? 'Super Admin' : 'Admin'}
-            </span>
+            {adminProfile && (
+              <span className={styles.userRole}>
+                {adminProfile.name || adminProfile.email}
+              </span>
+            )}
             <button 
               onClick={handleLogout}
               className={styles.logoutButton}
