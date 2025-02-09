@@ -20,38 +20,41 @@ const AdminDashboard = () => {
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
-    checkSession();
-    loadBrandSettings();
+    checkSessionAndLoadSettings();
   }, []);
 
-  const checkSession = async () => {
-    const { data: { session }, error } = await supabase.auth.getSession();
-    if (error || !session) {
-      navigate('/');
-    }
-  };
-
-  const loadBrandSettings = async () => {
+  const checkSessionAndLoadSettings = async () => {
     try {
-      const { data: { session } } = await supabase.auth.getSession();
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+      if (sessionError) throw sessionError;
+      
       if (!session) {
         navigate('/');
         return;
       }
 
-      // First, check if settings exist
-      const { data: existingSettings, error: checkError } = await supabase
+      await loadBrandSettings(session.user.id);
+    } catch (error) {
+      console.error('Session check error:', error);
+      navigate('/');
+    }
+  };
+
+  const loadBrandSettings = async (userId) => {
+    try {
+      // First try to get existing settings
+      const { data: existingSettings, error: fetchError } = await supabase
         .from('brand_settings')
         .select('*')
-        .eq('admin_id', session.user.id)
+        .eq('admin_id', userId)
         .maybeSingle();
 
-      if (checkError && checkError.code !== 'PGRST116') {
-        throw checkError;
+      if (fetchError && fetchError.code !== 'PGRST116') {
+        throw fetchError;
       }
 
       if (existingSettings) {
-        // If settings exist, use them
+        // Use existing settings
         setBrandSettings({
           logo: existingSettings.logo || '',
           primary_color: existingSettings.primary_color || '#2563eb',
@@ -64,9 +67,9 @@ const AdminDashboard = () => {
         document.documentElement.style.setProperty('--primary-color', existingSettings.primary_color || '#2563eb');
         document.documentElement.style.setProperty('--secondary-color', existingSettings.secondary_color || '#ffffff');
       } else {
-        // If no settings exist, create default settings
+        // Create default settings
         const defaultSettings = {
-          admin_id: session.user.id,
+          admin_id: userId,
           logo: '',
           primary_color: '#2563eb',
           secondary_color: '#ffffff',
@@ -115,7 +118,10 @@ const AdminDashboard = () => {
   const uploadLogo = async (base64Image) => {
     try {
       const { data: { session } } = await supabase.auth.getSession();
-      if (!session) return null;
+      if (!session) {
+        navigate('/');
+        return null;
+      }
 
       // Convert base64 to blob
       const base64Response = await fetch(base64Image);
@@ -165,44 +171,22 @@ const AdminDashboard = () => {
         logoUrl = await uploadLogo(brandSettings.logo);
       }
 
-      const { data: existingSettings } = await supabase
+      // Update settings
+      const { error: updateError } = await supabase
         .from('brand_settings')
-        .select('id')
-        .eq('admin_id', session.user.id)
-        .single();
+        .upsert({
+          admin_id: session.user.id,
+          logo: logoUrl,
+          primary_color: brandSettings.primary_color,
+          secondary_color: brandSettings.secondary_color,
+          header_color: brandSettings.header_color,
+          updated_at: new Date().toISOString()
+        });
 
-      let error;
-      if (existingSettings) {
-        // Update existing settings
-        const { error: updateError } = await supabase
-          .from('brand_settings')
-          .update({
-            logo: logoUrl,
-            primary_color: brandSettings.primary_color,
-            secondary_color: brandSettings.secondary_color,
-            header_color: brandSettings.header_color,
-            updated_at: new Date().toISOString()
-          })
-          .eq('admin_id', session.user.id);
-        error = updateError;
-      } else {
-        // Insert new settings
-        const { error: insertError } = await supabase
-          .from('brand_settings')
-          .insert([{
-            admin_id: session.user.id,
-            logo: logoUrl,
-            primary_color: brandSettings.primary_color,
-            secondary_color: brandSettings.secondary_color,
-            header_color: brandSettings.header_color
-          }]);
-        error = insertError;
-      }
-
-      if (error) throw error;
+      if (updateError) throw updateError;
 
       alert('Brand settings updated successfully!');
-      await loadBrandSettings();
+      await loadBrandSettings(session.user.id);
     } catch (error) {
       console.error('Error saving brand settings:', error);
       alert('Error saving brand settings. Please try again.');
