@@ -20,6 +20,12 @@ const AdminDashboard = () => {
     loadBrandSettings();
   }, []);
 
+  // Update CSS variables when brand settings change
+  useEffect(() => {
+    document.documentElement.style.setProperty('--primary-color', brandSettings.primary_color);
+    document.documentElement.style.setProperty('--secondary-color', brandSettings.secondary_color);
+  }, [brandSettings.primary_color, brandSettings.secondary_color]);
+
   const loadBrandSettings = async () => {
     try {
       const { data, error } = await supabase
@@ -48,7 +54,6 @@ const AdminDashboard = () => {
     setSaving(true);
 
     try {
-      // Check if settings already exist
       const { data: existingSettings } = await supabase
         .from('brand_settings')
         .select('id')
@@ -84,7 +89,7 @@ const AdminDashboard = () => {
       }
 
       alert('Brand settings updated successfully!');
-      await loadBrandSettings(); // Reload settings from the database
+      await loadBrandSettings();
     } catch (error) {
       console.error('Error saving brand settings:', error);
       alert('Error saving brand settings. Please try again.');
