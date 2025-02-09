@@ -52,11 +52,50 @@ const AdminDashboard = () => {
     }
   };
 
+  const uploadLogo = async (base64Image) => {
+    try {
+      // Convert base64 to blob
+      const base64Response = await fetch(base64Image);
+      const blob = await base64Response.blob();
+
+      // Create file name
+      const fileName = `logo-${Date.now()}.${blob.type.split('/')[1]}`;
+      const filePath = `logos/${fileName}`;
+
+      // Upload to Supabase Storage
+      const { error: uploadError, data } = await supabase.storage
+        .from('brand-assets')
+        .upload(filePath, blob, {
+          contentType: blob.type,
+          upsert: true
+        });
+
+      if (uploadError) throw uploadError;
+
+      // Get public URL
+      const { data: { publicUrl } } = supabase.storage
+        .from('brand-assets')
+        .getPublicUrl(filePath);
+
+      return publicUrl;
+    } catch (error) {
+      console.error('Error uploading logo:', error);
+      throw error;
+    }
+  };
+
   const handleBrandUpdate = async (e) => {
     e.preventDefault();
     setSaving(true);
 
     try {
+      let logoUrl = brandSettings.logo;
+
+      // If there's a new logo (base64), upload it
+      if (brandSettings.logo && brandSettings.logo.startsWith('data:image')) {
+        logoUrl = await uploadLogo(brandSettings.logo);
+      }
+
       const { data: existingSettings } = await supabase
         .from('brand_settings')
         .select('id')
@@ -68,7 +107,7 @@ const AdminDashboard = () => {
         const { error: updateError } = await supabase
           .from('brand_settings')
           .update({
-            logo: brandSettings.logo,
+            logo: logoUrl,
             primary_color: brandSettings.primary_color,
             secondary_color: brandSettings.secondary_color,
             header_color: brandSettings.header_color,
@@ -81,7 +120,7 @@ const AdminDashboard = () => {
         const { error: insertError } = await supabase
           .from('brand_settings')
           .insert([{
-            logo: brandSettings.logo,
+            logo: logoUrl,
             primary_color: brandSettings.primary_color,
             secondary_color: brandSettings.secondary_color,
             header_color: brandSettings.header_color
