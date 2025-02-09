@@ -1,6 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
+import { useBrand } from '../contexts/BrandContext';
 import ClientManagement from './ClientManagement';
 import WidgetCustomization from './WidgetCustomization';
 import ProfileSettings from './ProfileSettings';
@@ -10,110 +11,9 @@ import styles from '../styles/admin.module.css';
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
+  const { brandSettings, updateBrandSettings } = useBrand();
   const [activeTab, setActiveTab] = useState('branding');
-  const [brandSettings, setBrandSettings] = useState({
-    logo: '',
-    primary_color: '#2563eb',
-    secondary_color: '#ffffff',
-    header_color: '#2563eb'
-  });
   const [saving, setSaving] = useState(false);
-
-  useEffect(() => {
-    checkSessionAndLoadSettings();
-  }, []);
-
-  const checkSessionAndLoadSettings = async () => {
-    try {
-      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-      if (sessionError) throw sessionError;
-      
-      if (!session) {
-        navigate('/');
-        return;
-      }
-
-      await loadBrandSettings(session.user.id);
-    } catch (error) {
-      console.error('Session check error:', error);
-      navigate('/');
-    }
-  };
-
-  const loadBrandSettings = async (userId) => {
-    try {
-      // First try to get existing settings
-      const { data: existingSettings, error: fetchError } = await supabase
-        .from('brand_settings')
-        .select('*')
-        .eq('admin_id', userId)
-        .maybeSingle();
-
-      if (fetchError && fetchError.code !== 'PGRST116') {
-        throw fetchError;
-      }
-
-      if (existingSettings) {
-        // Use existing settings
-        setBrandSettings({
-          logo: existingSettings.logo || '',
-          primary_color: existingSettings.primary_color || '#2563eb',
-          secondary_color: existingSettings.secondary_color || '#ffffff',
-          header_color: existingSettings.header_color || '#2563eb'
-        });
-
-        // Set CSS variables
-        document.documentElement.style.setProperty('--header-color', existingSettings.header_color || '#2563eb');
-        document.documentElement.style.setProperty('--primary-color', existingSettings.primary_color || '#2563eb');
-        document.documentElement.style.setProperty('--secondary-color', existingSettings.secondary_color || '#ffffff');
-      } else {
-        // Create default settings
-        const defaultSettings = {
-          admin_id: userId,
-          logo: '',
-          primary_color: '#2563eb',
-          secondary_color: '#ffffff',
-          header_color: '#2563eb'
-        };
-
-        const { data: newSettings, error: insertError } = await supabase
-          .from('brand_settings')
-          .insert([defaultSettings])
-          .select()
-          .single();
-
-        if (insertError) throw insertError;
-
-        if (newSettings) {
-          setBrandSettings({
-            logo: newSettings.logo || '',
-            primary_color: newSettings.primary_color,
-            secondary_color: newSettings.secondary_color,
-            header_color: newSettings.header_color
-          });
-
-          // Set CSS variables
-          document.documentElement.style.setProperty('--header-color', newSettings.header_color);
-          document.documentElement.style.setProperty('--primary-color', newSettings.primary_color);
-          document.documentElement.style.setProperty('--secondary-color', newSettings.secondary_color);
-        }
-      }
-    } catch (error) {
-      console.error('Error loading brand settings:', error);
-      // Use defaults if there's an error
-      setBrandSettings({
-        logo: '',
-        primary_color: '#2563eb',
-        secondary_color: '#ffffff',
-        header_color: '#2563eb'
-      });
-
-      // Set default CSS variables
-      document.documentElement.style.setProperty('--header-color', '#2563eb');
-      document.documentElement.style.setProperty('--primary-color', '#2563eb');
-      document.documentElement.style.setProperty('--secondary-color', '#ffffff');
-    }
-  };
 
   const uploadLogo = async (base64Image) => {
     try {
@@ -158,12 +58,6 @@ const AdminDashboard = () => {
     setSaving(true);
 
     try {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) {
-        navigate('/');
-        return;
-      }
-
       let logoUrl = brandSettings.logo;
 
       // If there's a new logo (base64), upload it
@@ -171,22 +65,12 @@ const AdminDashboard = () => {
         logoUrl = await uploadLogo(brandSettings.logo);
       }
 
-      // Update settings
-      const { error: updateError } = await supabase
-        .from('brand_settings')
-        .upsert({
-          admin_id: session.user.id,
-          logo: logoUrl,
-          primary_color: brandSettings.primary_color,
-          secondary_color: brandSettings.secondary_color,
-          header_color: brandSettings.header_color,
-          updated_at: new Date().toISOString()
-        });
-
-      if (updateError) throw updateError;
+      await updateBrandSettings({
+        ...brandSettings,
+        logo: logoUrl
+      });
 
       alert('Brand settings updated successfully!');
-      await loadBrandSettings(session.user.id);
     } catch (error) {
       console.error('Error saving brand settings:', error);
       alert('Error saving brand settings. Please try again.');
@@ -237,10 +121,10 @@ const AdminDashboard = () => {
               <ImageUpload
                 currentImage={brandSettings.logo}
                 onImageUpload={(imageData) => {
-                  setBrandSettings(prev => ({
-                    ...prev,
+                  updateBrandSettings({
+                    ...brandSettings,
                     logo: imageData
-                  }));
+                  });
                 }}
                 label="Company Logo"
               />
@@ -251,10 +135,10 @@ const AdminDashboard = () => {
                   <input
                     type="color"
                     value={brandSettings.header_color}
-                    onChange={(e) => setBrandSettings(prev => ({
-                      ...prev,
+                    onChange={(e) => updateBrandSettings({
+                      ...brandSettings,
                       header_color: e.target.value
-                    }))}
+                    })}
                   />
                 </div>
 
@@ -263,10 +147,10 @@ const AdminDashboard = () => {
                   <input
                     type="color"
                     value={brandSettings.primary_color}
-                    onChange={(e) => setBrandSettings(prev => ({
-                      ...prev,
+                    onChange={(e) => updateBrandSettings({
+                      ...brandSettings,
                       primary_color: e.target.value
-                    }))}
+                    })}
                   />
                 </div>
 
@@ -275,10 +159,10 @@ const AdminDashboard = () => {
                   <input
                     type="color"
                     value={brandSettings.secondary_color}
-                    onChange={(e) => setBrandSettings(prev => ({
-                      ...prev,
+                    onChange={(e) => updateBrandSettings({
+                      ...brandSettings,
                       secondary_color: e.target.value
-                    }))}
+                    })}
                   />
                 </div>
               </div>

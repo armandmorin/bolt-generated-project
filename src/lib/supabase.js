@@ -5,11 +5,43 @@ const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS
 
 export const supabase = createClient(supabaseUrl, supabaseKey, {
   auth: {
-    persistSession: false
-  },
-  realtime: {
-    params: {
-      eventsPerSecond: 10
-    }
+    persistSession: true,
+    autoRefreshToken: true,
+    detectSessionInUrl: true
   }
 });
+
+// Helper function to get current session
+export const getCurrentSession = async () => {
+  const { data: { session }, error } = await supabase.auth.getSession();
+  if (error) throw error;
+  return session;
+};
+
+// Helper function to get brand settings
+export const getBrandSettings = async (userId) => {
+  if (!userId) return null;
+  
+  const { data, error } = await supabase
+    .from('brand_settings')
+    .select('*')
+    .eq('admin_id', userId)
+    .maybeSingle();
+
+  if (error && error.code !== 'PGRST116') {
+    throw error;
+  }
+
+  return data || null;
+};
+
+// Helper function to create or update brand settings
+export const upsertBrandSettings = async (settings) => {
+  const { error } = await supabase
+    .from('brand_settings')
+    .upsert(settings)
+    .select()
+    .single();
+
+  if (error) throw error;
+};
