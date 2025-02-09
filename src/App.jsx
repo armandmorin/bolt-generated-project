@@ -35,18 +35,13 @@ const ProtectedRoute = ({ children }) => {
 
 function App() {
   const location = useLocation();
-  const brandSettings = JSON.parse(localStorage.getItem('brandSettings')) || {
-    logo: '',
-    primaryColor: '#2563eb'
-  };
-
   const publicRoutes = ['/', '/register', '/super-admin-login', '/test'];
   const hideHeader = publicRoutes.includes(location.pathname);
 
   return (
     <BrandSettingsProvider>
       <div className="app-container">
-        {!hideHeader && <Header logo={brandSettings.logo} primaryColor={brandSettings.primaryColor} />}
+        {!hideHeader && <Header />}
         <main className="main-content">
           <Routes>
             {/* Public Routes */}

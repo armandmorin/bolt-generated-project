@@ -6,60 +6,53 @@ import styles from '../styles/modules/login.module.css';
 const SuperAdminLogin = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
-  const brandSettings = JSON.parse(localStorage.getItem('brandSettings')) || {};
 
   const handleLogin = async (e) => {
     e.preventDefault();
-    setError('');
+    setLoading(true);
 
     try {
-      // Check credentials against the database
+      // Check super admin credentials
       const { data, error } = await supabase
-        .from('users')
+        .from('super_admin_users')
         .select('*')
         .eq('email', email)
-        .eq('password', password)
-        .eq('role', 'superadmin')
         .single();
 
       if (error) throw error;
 
-      if (data) {
+      if (data && data.password === password) { // In production, use proper password hashing
+        // Create a session in Supabase
+        const { data: sessionData, error: sessionError } = await supabase.auth.signIn({
+          email,
+          password,
+        });
+
+        if (sessionError) throw sessionError;
+
+        // Store minimal user info in localStorage for navigation purposes
         localStorage.setItem('userRole', 'superadmin');
-        localStorage.setItem('user', JSON.stringify({ 
-          email: data.email, 
-          role: data.role 
-        }));
+        
         navigate('/super-admin');
       } else {
-        setError('Invalid credentials');
+        alert('Invalid credentials');
       }
     } catch (error) {
-      console.error('Login error:', error);
-      setError('Invalid credentials');
+      console.error('Error:', error);
+      alert('Login failed. Please try again.');
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
     <div className={styles.loginPage}>
       <div className={styles.loginContainer}>
-        {brandSettings.logo ? (
-          <div className={styles.logoContainer}>
-            <img src={brandSettings.logo} alt="Company Logo" className={styles.logo} />
-          </div>
-        ) : (
-          <h1>Super Admin Login</h1>
-        )}
+        <h1>Super Admin Login</h1>
 
         <form onSubmit={handleLogin}>
-          {error && (
-            <div className={styles.errorMessage}>
-              {error}
-            </div>
-          )}
-          
           <div className={styles.formGroup}>
             <label>Email</label>
             <input
@@ -80,8 +73,12 @@ const SuperAdminLogin = () => {
               required
             />
           </div>
-          <button type="submit" className={styles.loginButton}>
-            Login
+          <button 
+            type="submit" 
+            className={styles.loginButton}
+            disabled={loading}
+          >
+            {loading ? 'Logging in...' : 'Login'}
           </button>
         </form>
 

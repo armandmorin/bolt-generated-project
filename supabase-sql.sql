@@ -1,46 +1,37 @@
--- Drop existing table if needed (be careful with this in production!)
-DROP TABLE IF EXISTS users;
-
--- Create the users table with all required fields
-CREATE TABLE users (
+-- Create admins table
+CREATE TABLE IF NOT EXISTS admins (
     id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
     name VARCHAR NOT NULL,
     email VARCHAR NOT NULL UNIQUE,
-    password VARCHAR NOT NULL,
-    company VARCHAR,
-    role VARCHAR NOT NULL,
+    password VARCHAR NOT NULL, -- In production, use proper password hashing
+    company VARCHAR NOT NULL,
+    role VARCHAR NOT NULL DEFAULT 'admin',
+    clients JSONB DEFAULT '[]'::jsonb,
     created_at TIMESTAMPTZ DEFAULT NOW(),
     updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
 -- Enable RLS
-ALTER TABLE users ENABLE ROW LEVEL SECURITY;
+ALTER TABLE admins ENABLE ROW LEVEL SECURITY;
 
--- Create policy for users table
-DROP POLICY IF EXISTS "Enable all operations for all users" ON users;
-CREATE POLICY "Enable all operations for all users" ON users
-    FOR ALL
-    USING (true)
-    WITH CHECK (true);
+-- Create policies
+CREATE POLICY "Enable read access for all users" ON admins
+    FOR SELECT
+    USING (true);
 
--- Grant permissions
-GRANT ALL ON users TO anon;
-GRANT ALL ON users TO authenticated;
-GRANT ALL ON users TO service_role;
+CREATE POLICY "Enable insert for authenticated users" ON admins
+    FOR INSERT
+    WITH CHECK (auth.role() = 'authenticated');
 
--- Insert the superadmin user with all required fields
-INSERT INTO users (name, email, password, role, company)
-VALUES (
-    'Armand Morin',
-    'armandmorin@gmail.com',
-    '1armand',
-    'superadmin',
-    'Admin Company'
-)
-ON CONFLICT (email) 
-DO UPDATE SET 
-    name = EXCLUDED.name,
-    password = EXCLUDED.password,
-    role = EXCLUDED.role,
-    company = EXCLUDED.company,
-    updated_at = NOW();
+CREATE POLICY "Enable update for authenticated users" ON admins
+    FOR UPDATE
+    USING (auth.role() = 'authenticated');
+
+CREATE POLICY "Enable delete for authenticated users" ON admins
+    FOR DELETE
+    USING (auth.role() = 'authenticated');
+
+-- Grant necessary permissions
+GRANT ALL ON admins TO anon;
+GRANT ALL ON admins TO authenticated;
+GRANT ALL ON admins TO service_role;
