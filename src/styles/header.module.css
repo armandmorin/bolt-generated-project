@@ -22,9 +22,9 @@
 
 .logo {
   max-width: 150px;
-  height: auto;
-  max-height: 40px;
+  height: 40px;
   object-fit: contain;
+  display: block;
 }
 
 .logoText {
@@ -33,78 +33,4 @@
   font-weight: 500;
 }
 
-.mainNav {
-  display: flex;
-  align-items: center;
-  gap: 2rem;
-}
-
-.navLinks {
-  display: flex;
-  gap: 1.5rem;
-  align-items: center;
-}
-
-.navLink {
-  color: var(--secondary-color);
-  text-decoration: none;
-  font-weight: 500;
-  padding: 0.5rem 1rem;
-  border-radius: 4px;
-  transition: background-color 0.2s ease;
-}
-
-.navLink:hover {
-  background-color: rgba(255, 255, 255, 0.1);
-  text-decoration: none;
-}
-
-.navGroup {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-}
-
-.userRole {
-  color: var(--secondary-color);
-  font-weight: 500;
-  font-size: 0.875rem;
-  background: rgba(255, 255, 255, 0.1);
-  padding: 0.5rem 1rem;
-  border-radius: 4px;
-}
-
-.logoutButton {
-  padding: 0.5rem 1rem;
-  background-color: rgba(255, 255, 255, 0.1);
-  color: var(--secondary-color);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 0.875rem;
-  font-weight: 500;
-  transition: all 0.2s ease;
-}
-
-.logoutButton:hover {
-  background-color: rgba(255, 255, 255, 0.2);
-  transform: translateY(-1px);
-}
-
-@media (max-width: 768px) {
-  .mainHeader {
-    padding: 1rem;
-  }
-
-  .mainNav {
-    gap: 1rem;
-  }
-
-  .navLinks {
-    display: none;
-  }
-
-  .userRole {
-    display: none;
-  }
-}
+/* Rest of the styles remain the same */

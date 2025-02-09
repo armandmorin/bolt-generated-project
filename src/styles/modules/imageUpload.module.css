@@ -1,92 +1,98 @@
 .imageUploadContainer {
-      margin-bottom: 1.5rem;
-    }
+  margin-bottom: 1.5rem;
+}
 
-    .label {
-      display: block;
-      margin-bottom: 0.5rem;
-      font-weight: 500;
-      color: var(--text-color);
-    }
+.label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: 500;
+  color: var(--text-color);
+}
 
-    .dropZone {
-      border: 2px dashed var(--border-color);
-      border-radius: 8px;
-      padding: 2rem;
-      text-align: center;
-      cursor: pointer;
-      transition: all 0.2s ease;
-      background: #f8fafc;
-    }
+.dropZone {
+  border: 2px dashed var(--border-color);
+  border-radius: 8px;
+  padding: 2rem;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  background: #f8fafc;
+}
 
-    .dropZone.dragging {
-      border-color: var(--primary-color);
-      background: #f0f9ff;
-    }
+.dropZone.dragging {
+  border-color: var(--primary-color);
+  background: #f0f9ff;
+}
 
-    .uploadIcon {
-      color: #64748b;
-      margin-bottom: 1rem;
-    }
+.uploadIcon {
+  color: #64748b;
+  margin-bottom: 1rem;
+}
 
-    .uploadText {
-      color: #64748b;
-      font-size: 0.875rem;
-      display: flex;
-      flex-direction: column;
-      gap: 0.5rem;
-      align-items: center;
-    }
+.uploadText {
+  color: #64748b;
+  font-size: 0.875rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  align-items: center;
+}
 
-    .uploadButton {
-      color: var(--primary-color);
-      font-weight: 500;
-      cursor: pointer;
-      padding: 0.5rem 1rem;
-      background: white;
-      border: 1px solid var(--primary-color);
-      border-radius: 4px;
-      transition: all 0.2s ease;
-    }
+.uploadButton {
+  color: var(--primary-color);
+  font-weight: 500;
+  cursor: pointer;
+  padding: 0.5rem 1rem;
+  background: white;
+  border: 1px solid var(--primary-color);
+  border-radius: 4px;
+  transition: all 0.2s ease;
+}
 
-    .uploadButton:hover {
-      background: var(--primary-color);
-      color: white;
-    }
+.uploadButton:hover {
+  background: var(--primary-color);
+  color: white;
+}
 
-    .fileInput {
-      display: none;
-    }
+.fileInput {
+  display: none;
+}
 
-    .previewContainer {
-      position: relative;
-    }
+.previewContainer {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  height: 100%;
+}
 
-    .preview {
-      max-width: 200px;
-      max-height: 100px;
-      object-fit: contain;
-    }
+.preview {
+  max-width: 200px;
+  max-height: 100px;
+  object-fit: contain;
+  display: block;
+}
 
-    .removeButton {
-      position: absolute;
-      top: -8px;
-      right: -8px;
-      background: #ef4444;
-      color: white;
-      border: none;
-      border-radius: 50%;
-      width: 24px;
-      height: 24px;
-      font-size: 12px;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      transition: all 0.2s ease;
-    }
+.removeButton {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  background: #ef4444;
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 24px;
+  height: 24px;
+  font-size: 12px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
 
-    .removeButton:hover {
-      background: #dc2626;
-      transform: scale(1.1);
-    }
+.removeButton:hover {
+  background: #dc2626;
+  transform: scale(1.1);
+}

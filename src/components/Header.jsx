@@ -1,10 +1,41 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { supabase } from '../lib/supabase';
 import styles from '../styles/header.module.css';
 
-const Header = ({ logo }) => {
+const Header = () => {
   const navigate = useNavigate();
   const userRole = localStorage.getItem('userRole');
+  const [brandSettings, setBrandSettings] = useState({
+    logo: '',
+    header_color: '#2563eb'
+  });
+
+  useEffect(() => {
+    loadBrandSettings();
+  }, []);
+
+  const loadBrandSettings = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('brand_settings')
+        .select('logo, header_color')
+        .single();
+
+      if (error) {
+        throw error;
+      }
+
+      if (data) {
+        setBrandSettings({
+          logo: data.logo || '',
+          header_color: data.header_color || '#2563eb'
+        });
+      }
+    } catch (error) {
+      console.error('Error loading brand settings:', error);
+    }
+  };
 
   const handleLogout = () => {
     localStorage.removeItem('userRole');
@@ -34,9 +65,17 @@ const Header = ({ logo }) => {
     <header className={styles.mainHeader}>
       <div className={styles.headerContent}>
         <div className={styles.logoContainer}>
-          {logo ? (
+          {brandSettings.logo ? (
             <Link to={userRole === 'superadmin' ? '/super-admin' : '/admin'}>
-              <img src={logo} alt="Logo" className={styles.logo} />
+              <img 
+                src={brandSettings.logo} 
+                alt="Logo" 
+                className={styles.logo}
+                onError={(e) => {
+                  console.error('Error loading logo:', e);
+                  e.target.style.display = 'none';
+                }}
+              />
             </Link>
           ) : (
             <span className={styles.logoText}>
