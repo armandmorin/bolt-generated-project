@@ -39,44 +39,60 @@ const AdminDashboard = () => {
         return;
       }
 
-      const { data, error } = await supabase
+      // First, check if settings exist
+      const { data: existingSettings, error: checkError } = await supabase
         .from('brand_settings')
         .select('*')
         .eq('admin_id', session.user.id)
         .maybeSingle();
 
-      if (error) {
-        throw error;
+      if (checkError && checkError.code !== 'PGRST116') {
+        throw checkError;
       }
 
-      if (data) {
+      if (existingSettings) {
+        // If settings exist, use them
         setBrandSettings({
-          logo: data.logo || '',
-          primary_color: data.primary_color || '#2563eb',
-          secondary_color: data.secondary_color || '#ffffff',
-          header_color: data.header_color || '#2563eb'
+          logo: existingSettings.logo || '',
+          primary_color: existingSettings.primary_color || '#2563eb',
+          secondary_color: existingSettings.secondary_color || '#ffffff',
+          header_color: existingSettings.header_color || '#2563eb'
         });
 
         // Set CSS variables
-        document.documentElement.style.setProperty('--header-color', data.header_color || '#2563eb');
-        document.documentElement.style.setProperty('--primary-color', data.primary_color || '#2563eb');
-        document.documentElement.style.setProperty('--secondary-color', data.secondary_color || '#ffffff');
+        document.documentElement.style.setProperty('--header-color', existingSettings.header_color || '#2563eb');
+        document.documentElement.style.setProperty('--primary-color', existingSettings.primary_color || '#2563eb');
+        document.documentElement.style.setProperty('--secondary-color', existingSettings.secondary_color || '#ffffff');
       } else {
-        // If no settings exist yet, create default settings for this admin
-        const { error: insertError } = await supabase
+        // If no settings exist, create default settings
+        const defaultSettings = {
+          admin_id: session.user.id,
+          logo: '',
+          primary_color: '#2563eb',
+          secondary_color: '#ffffff',
+          header_color: '#2563eb'
+        };
+
+        const { data: newSettings, error: insertError } = await supabase
           .from('brand_settings')
-          .insert([{
-            admin_id: session.user.id,
-            logo: '',
-            primary_color: '#2563eb',
-            secondary_color: '#ffffff',
-            header_color: '#2563eb'
-          }])
+          .insert([defaultSettings])
           .select()
           .single();
 
-        if (insertError) {
-          throw insertError;
+        if (insertError) throw insertError;
+
+        if (newSettings) {
+          setBrandSettings({
+            logo: newSettings.logo || '',
+            primary_color: newSettings.primary_color,
+            secondary_color: newSettings.secondary_color,
+            header_color: newSettings.header_color
+          });
+
+          // Set CSS variables
+          document.documentElement.style.setProperty('--header-color', newSettings.header_color);
+          document.documentElement.style.setProperty('--primary-color', newSettings.primary_color);
+          document.documentElement.style.setProperty('--secondary-color', newSettings.secondary_color);
         }
       }
     } catch (error) {
@@ -88,6 +104,11 @@ const AdminDashboard = () => {
         secondary_color: '#ffffff',
         header_color: '#2563eb'
       });
+
+      // Set default CSS variables
+      document.documentElement.style.setProperty('--header-color', '#2563eb');
+      document.documentElement.style.setProperty('--primary-color', '#2563eb');
+      document.documentElement.style.setProperty('--secondary-color', '#ffffff');
     }
   };
 

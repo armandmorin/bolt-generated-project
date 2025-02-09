@@ -35,9 +35,11 @@ const Header = () => {
         .eq('id', session.user.id)
         .single();
 
-      if (profileError) throw profileError;
+      if (profileError && profileError.code !== 'PGRST116') throw profileError;
 
-      setAdminProfile(profileData);
+      if (profileData) {
+        setAdminProfile(profileData);
+      }
 
       // Load brand settings
       const { data, error } = await supabase
@@ -46,7 +48,7 @@ const Header = () => {
         .eq('admin_id', session.user.id)
         .maybeSingle();
 
-      if (error) {
+      if (error && error.code !== 'PGRST116') {
         throw error;
       }
 
@@ -65,7 +67,18 @@ const Header = () => {
       }
     } catch (error) {
       console.error('Error loading admin data:', error);
-      navigate('/');
+      // Use defaults if there's an error
+      setBrandSettings({
+        logo: '',
+        header_color: '#2563eb',
+        primary_color: '#2563eb',
+        secondary_color: '#ffffff'
+      });
+
+      // Set default CSS variables
+      document.documentElement.style.setProperty('--header-color', '#2563eb');
+      document.documentElement.style.setProperty('--primary-color', '#2563eb');
+      document.documentElement.style.setProperty('--secondary-color', '#ffffff');
     }
   };
 
@@ -79,12 +92,27 @@ const Header = () => {
     }
   };
 
+  const getNavLinks = () => {
+    if (adminProfile?.role === 'superadmin') {
+      return (
+        <>
+          <Link to="/super-admin" className={styles.navLink}>Dashboard</Link>
+        </>
+      );
+    }
+    return (
+      <>
+        <Link to="/admin" className={styles.navLink}>Dashboard</Link>
+      </>
+    );
+  };
+
   return (
     <header className={styles.mainHeader}>
       <div className={styles.headerContent}>
         <div className={styles.logoContainer}>
           {brandSettings.logo ? (
-            <Link to="/admin">
+            <Link to={adminProfile?.role === 'superadmin' ? '/super-admin' : '/admin'}>
               <img 
                 src={brandSettings.logo} 
                 alt="Logo" 
@@ -97,14 +125,14 @@ const Header = () => {
             </Link>
           ) : (
             <span className={styles.logoText}>
-              Admin Dashboard
+              {adminProfile?.role === 'superadmin' ? 'Super Admin' : 'Admin Dashboard'}
             </span>
           )}
         </div>
 
         <nav className={styles.mainNav}>
           <div className={styles.navLinks}>
-            <Link to="/admin" className={styles.navLink}>Dashboard</Link>
+            {getNavLinks()}
           </div>
           
           <div className={styles.navGroup}>
