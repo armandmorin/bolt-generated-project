@@ -8,40 +8,30 @@ export const supabase = createClient(supabaseUrl, supabaseKey, {
     persistSession: true,
     autoRefreshToken: true,
     detectSessionInUrl: true
+  },
+  db: {
+    schema: 'public'
   }
 });
 
-// Helper function to get current session
-export const getCurrentSession = async () => {
-  const { data: { session }, error } = await supabase.auth.getSession();
-  if (error) throw error;
-  return session;
-};
-
-// Helper function to get brand settings
-export const getBrandSettings = async (userId) => {
-  if (!userId) return null;
-  
-  const { data, error } = await supabase
-    .from('brand_settings')
-    .select('*')
-    .eq('admin_id', userId)
-    .maybeSingle();
-
-  if (error && error.code !== 'PGRST116') {
-    throw error;
+export const getCurrentUser = async () => {
+  try {
+    const { data: { user }, error } = await supabase.auth.getUser();
+    if (error) throw error;
+    return user;
+  } catch (error) {
+    console.error('Error getting current user:', error);
+    return null;
   }
-
-  return data || null;
 };
 
-// Helper function to create or update brand settings
-export const upsertBrandSettings = async (settings) => {
-  const { error } = await supabase
-    .from('brand_settings')
-    .upsert(settings)
-    .select()
-    .single();
-
-  if (error) throw error;
+export const getCurrentSession = async () => {
+  try {
+    const { data: { session }, error } = await supabase.auth.getSession();
+    if (error) throw error;
+    return session;
+  } catch (error) {
+    console.error('Error getting session:', error);
+    return null;
+  }
 };

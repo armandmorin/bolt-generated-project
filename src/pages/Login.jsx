@@ -16,7 +16,8 @@ const Login = () => {
     setError('');
 
     try {
-      // Sign in with Supabase Auth
+      console.log('Attempting login with:', { email, password });
+
       const { data, error: signInError } = await supabase.auth.signInWithPassword({
         email: email.toLowerCase().trim(),
         password: password.trim()
@@ -26,6 +27,8 @@ const Login = () => {
         console.error('Sign in error:', signInError);
         throw new Error('Invalid login credentials. Please check your email and password.');
       }
+
+      console.log('Auth response:', data);
 
       if (!data?.user) {
         throw new Error('No user data received');
@@ -38,6 +41,8 @@ const Login = () => {
         .eq('id', data.user.id)
         .single();
 
+      console.log('Profile data:', profileData);
+
       if (profileError) {
         console.error('Profile error:', profileError);
         throw new Error('Error loading user profile');
@@ -45,35 +50,6 @@ const Login = () => {
 
       if (!profileData) {
         throw new Error('Admin profile not found');
-      }
-
-      // Check brand settings and create if they don't exist
-      const { data: settingsData, error: settingsError } = await supabase
-        .from('brand_settings')
-        .select('*')
-        .eq('admin_id', data.user.id)
-        .single();
-
-      if (settingsError && settingsError.code !== 'PGRST116') {
-        console.error('Settings error:', settingsError);
-      }
-
-      if (!settingsData) {
-        // Create default settings
-        const { error: createError } = await supabase
-          .from('brand_settings')
-          .insert([
-            {
-              admin_id: data.user.id,
-              primary_color: '#2563eb',
-              secondary_color: '#ffffff',
-              header_color: '#2563eb'
-            }
-          ]);
-
-        if (createError) {
-          console.error('Create settings error:', createError);
-        }
       }
 
       // Navigate based on role
@@ -84,7 +60,7 @@ const Login = () => {
       }
     } catch (error) {
       console.error('Login error:', error);
-      setError(error.message || 'An error occurred during login');
+      setError(error.message);
     } finally {
       setLoading(false);
     }
