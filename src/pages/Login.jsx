@@ -7,51 +7,83 @@ const Login = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
   const navigate = useNavigate();
 
   const handleLogin = async (e) => {
     e.preventDefault();
     setLoading(true);
+    setError('');
 
     try {
-      // Sign in with Supabase Auth
-      const { data: { user }, error: authError } = await supabase.auth.signInWithPassword({
+      const { data, error: signInError } = await supabase.auth.signInWithPassword({
         email,
         password
       });
 
-      if (authError) throw authError;
+      if (signInError) throw signInError;
 
-      if (user) {
-        // Create admin profile if it doesn't exist
-        const { error: profileError } = await supabase
+      if (data?.user) {
+        // Check if admin profile exists
+        const { data: profileData, error: profileError } = await supabase
           .from('admin_profiles')
-          .upsert({ 
-            id: user.id,
-            email: user.email,
-            updated_at: new Date().toISOString()
-          });
+          .select('*')
+          .eq('id', data.user.id)
+          .single();
 
-        if (profileError) throw profileError;
+        if (profileError && profileError.code !== 'PGRST116') {
+          throw profileError;
+        }
 
-        // Create default brand settings if they don't exist
-        const { error: settingsError } = await supabase
+        // If no profile exists, create one
+        if (!profileData) {
+          const { error: createError } = await supabase
+            .from('admin_profiles')
+            .insert([
+              {
+                id: data.user.id,
+                email: data.user.email,
+                role: 'admin'
+              }
+            ]);
+
+          if (createError) throw createError;
+        }
+
+        // Check if brand settings exist
+        const { data: settingsData, error: settingsError } = await supabase
           .from('brand_settings')
-          .upsert({ 
-            admin_id: user.id,
-            primary_color: '#2563eb',
-            secondary_color: '#ffffff',
-            header_color: '#2563eb',
-            updated_at: new Date().toISOString()
-          });
+          .select('*')
+          .eq('admin_id', data.user.id)
+          .single();
 
-        if (settingsError) throw settingsError;
+        if (settingsError && settingsError.code !== 'PGRST116') {
+          throw settingsError;
+        }
 
-        navigate('/admin');
+        // If no settings exist, create default settings
+        if (!settingsData) {
+          const { error: createSettingsError } = await supabase
+            .from('brand_settings')
+            .insert([
+              {
+                admin_id: data.user.id,
+                primary_color: '#2563eb',
+                secondary_color: '#ffffff',
+                header_color: '#2563eb'
+              }
+            ]);
+
+          if (createSettingsError) throw createSettingsError;
+        }
+
+        // Navigate to appropriate dashboard
+        const role = profileData?.role || 'admin';
+        navigate(role === 'superadmin' ? '/super-admin' : '/admin');
       }
     } catch (error) {
-      console.error('Error logging in:', error);
-      alert('Error logging in. Please check your credentials.');
+      console.error('Login error:', error);
+      setError(error.message || 'An error occurred during login');
     } finally {
       setLoading(false);
     }
@@ -61,6 +93,12 @@ const Login = () => {
     <div className={styles.loginPage}>
       <div className={styles.loginContainer}>
         <h1>Admin Login</h1>
+
+        {error && (
+          <div className={styles.errorMessage}>
+            {error}
+          </div>
+        )}
 
         <form onSubmit={handleLogin}>
           <div className={styles.formGroup}>
