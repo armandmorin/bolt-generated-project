@@ -1,37 +1,30 @@
--- Create users table
-CREATE TABLE IF NOT EXISTS public.users (
+-- Create brand_settings table if it doesn't exist
+CREATE TABLE IF NOT EXISTS public.brand_settings (
     id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-    name VARCHAR NOT NULL,
-    email VARCHAR NOT NULL UNIQUE,
-    password VARCHAR NOT NULL,
-    company VARCHAR,
-    role VARCHAR NOT NULL CHECK (role IN ('superadmin', 'admin', 'client')),
+    logo TEXT,
+    header_color VARCHAR NOT NULL DEFAULT '#2563eb',
+    primary_color VARCHAR NOT NULL DEFAULT '#2563eb',
+    button_color VARCHAR NOT NULL DEFAULT '#2563eb',
     created_at TIMESTAMPTZ DEFAULT NOW(),
     updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
 -- Enable Row Level Security (RLS)
-ALTER TABLE public.users ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.brand_settings ENABLE ROW LEVEL SECURITY;
 
--- Create policy for users table
-CREATE POLICY "Enable all operations for all users" ON public.users
+-- Create policy for brand_settings table
+CREATE POLICY "Enable all operations for all users" ON public.brand_settings
     FOR ALL
     USING (true)
     WITH CHECK (true);
 
 -- Grant necessary permissions
-GRANT ALL ON public.users TO anon;
-GRANT ALL ON public.users TO authenticated;
-GRANT ALL ON public.users TO service_role;
+GRANT ALL ON public.brand_settings TO anon;
+GRANT ALL ON public.brand_settings TO authenticated;
+GRANT ALL ON public.brand_settings TO service_role;
 
--- Create an index on email for faster lookups
-CREATE INDEX users_email_idx ON public.users(email);
-
--- Create an index on role for faster filtering
-CREATE INDEX users_role_idx ON public.users(role);
-
--- Add trigger for updating updated_at timestamp
-CREATE OR REPLACE FUNCTION update_updated_at_column()
+-- Create trigger for updating updated_at
+CREATE OR REPLACE FUNCTION update_brand_settings_updated_at()
 RETURNS TRIGGER AS $$
 BEGIN
     NEW.updated_at = NOW();
@@ -39,12 +32,12 @@ BEGIN
 END;
 $$ language 'plpgsql';
 
-CREATE TRIGGER update_users_updated_at
-    BEFORE UPDATE ON public.users
+CREATE TRIGGER update_brand_settings_updated_at
+    BEFORE UPDATE ON public.brand_settings
     FOR EACH ROW
-    EXECUTE FUNCTION update_updated_at_column();
+    EXECUTE FUNCTION update_brand_settings_updated_at();
 
--- Insert initial superadmin user (password should be hashed in production)
-INSERT INTO public.users (name, email, password, role)
-VALUES ('Super Admin', 'armandmorin@gmail.com', '1armand', 'superadmin')
-ON CONFLICT (email) DO NOTHING;
+-- Insert default settings if none exist
+INSERT INTO public.brand_settings (header_color, primary_color, button_color)
+SELECT '#2563eb', '#2563eb', '#2563eb'
+WHERE NOT EXISTS (SELECT 1 FROM public.brand_settings);
