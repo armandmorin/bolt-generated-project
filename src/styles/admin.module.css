@@ -1,5 +1,134 @@
+.contentWidth {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem;
+  width: 100%;
+}
 
-/* ... keep all existing styles ... */
+.superAdminDashboard {
+  background: var(--secondary-color);
+  border-radius: 12px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+}
+
+.tabs {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 2rem;
+  border-bottom: 1px solid var(--border-color);
+  padding-bottom: 0.5rem;
+}
+
+.tabButton {
+  background: none;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  font-size: 1rem;
+  color: var(--text-color);
+  position: relative;
+  transition: all 0.2s ease;
+}
+
+.tabButton::after {
+  content: '';
+  position: absolute;
+  bottom: -0.5rem;
+  left: 0;
+  width: 100%;
+  height: 2px;
+  background-color: transparent;
+  transition: all 0.2s ease;
+}
+
+.tabButton:hover {
+  color: var(--primary-color);
+}
+
+.tabButton.active {
+  color: var(--primary-color);
+  font-weight: 500;
+}
+
+.tabButton.active::after {
+  background-color: var(--primary-color);
+}
+
+.content {
+  background: var(--secondary-color);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.formContainer {
+  padding: 2rem;
+}
+
+.formContainer h2 {
+  margin: 0 0 1.5rem 0;
+  color: var(--text-color);
+  font-size: 1.5rem;
+}
+
+.description {
+  color: #64748b;
+  margin-bottom: 1.5rem;
+}
+
+.hint {
+  display: block;
+  font-size: 0.875rem;
+  color: #64748b;
+  margin-top: 0.5rem;
+}
+
+.formGroup {
+  margin-bottom: 1.5rem;
+}
+
+.formGroup label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: 500;
+  color: var(--text-color);
+}
+
+.formGroup input,
+.formGroup select,
+.formGroup textarea {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  font-size: 1rem;
+  transition: all 0.2s ease;
+}
+
+.formGroup input:focus,
+.formGroup select:focus,
+.formGroup textarea:focus {
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+  outline: none;
+}
+
+.formGroup input[type="color"] {
+  height: 50px;
+  padding: 0.25rem;
+  cursor: pointer;
+}
+
+.colorGroup {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+}
+
+.formActions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 2rem;
+}
 
 /* Admin Section Styles */
 .adminSection {
@@ -10,6 +139,12 @@
   margin-bottom: 2rem;
   padding-bottom: 2rem;
   border-bottom: 1px solid var(--border-color);
+}
+
+.addAdminSection h2 {
+  margin: 0 0 1.5rem 0;
+  color: var(--text-color);
+  font-size: 1.5rem;
 }
 
 .addAdminForm {
@@ -53,4 +188,98 @@
 
 .adminTable th {
   background-color: var(--primary-color);
-  
+  color: white;
+  font-weight: 500;
+  padding: 1rem;
+}
+
+.adminTable tr:hover {
+  background-color: rgba(0, 0, 0, 0.02);
+}
+
+.removeButton {
+  padding: 0.5rem 1rem;
+  background-color: #ef4444;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.875rem;
+  transition: all 0.2s ease;
+}
+
+.removeButton:hover {
+  background-color: #dc2626;
+  transform: translateY(-1px);
+}
+
+.saveButton,
+.primaryButton,
+.addButton {
+  padding: 0.75rem 1.5rem;
+  background-color: var(--primary-color);
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.saveButton:hover:not(:disabled),
+.primaryButton:hover:not(:disabled),
+.addButton:hover:not(:disabled) {
+  background-color: var(--primary-color);
+  transform: translateY(-1px);
+}
+
+.saveButton:disabled,
+.primaryButton:disabled,
+.addButton:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.loading {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 200px;
+  font-size: 1.1rem;
+  color: var(--text-color);
+}
+
+@media (max-width: 768px) {
+  .contentWidth {
+    padding: 1rem;
+  }
+
+  .colorGroup {
+    grid-template-columns: 1fr;
+  }
+
+  .tabs {
+    flex-wrap: wrap;
+  }
+
+  .tabButton {
+    flex: 1 1 auto;
+    text-align: center;
+    padding: 0.5rem;
+  }
+
+  .addAdminForm {
+    grid-template-columns: 1fr;
+  }
+
+  .addAdminForm .addButton {
+    grid-column: 1;
+  }
+
+  .adminTable {
+    display: block;
+    overflow-x: auto;
+    white-space: nowrap;
+  }
+}
