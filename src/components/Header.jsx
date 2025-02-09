@@ -19,7 +19,6 @@ const Header = () => {
 
   const loadAdminData = async () => {
     try {
-      // Get current session
       const { data: { session }, error: sessionError } = await supabase.auth.getSession();
       
       if (sessionError) throw sessionError;
@@ -41,20 +40,28 @@ const Header = () => {
       setAdminProfile(profileData);
 
       // Load brand settings
-      const { data: brandData, error: brandError } = await supabase
+      const { data, error } = await supabase
         .from('brand_settings')
         .select('*')
         .eq('admin_id', session.user.id)
-        .single();
+        .maybeSingle();
 
-      if (brandError && brandError.code !== 'PGRST116') throw brandError;
+      if (error) {
+        throw error;
+      }
 
-      if (brandData) {
-        setBrandSettings(brandData);
-        // Set CSS variables for this admin's branding
-        document.documentElement.style.setProperty('--header-color', brandData.header_color);
-        document.documentElement.style.setProperty('--primary-color', brandData.primary_color);
-        document.documentElement.style.setProperty('--secondary-color', brandData.secondary_color);
+      if (data) {
+        setBrandSettings({
+          logo: data.logo || '',
+          header_color: data.header_color || '#2563eb',
+          primary_color: data.primary_color || '#2563eb',
+          secondary_color: data.secondary_color || '#ffffff'
+        });
+
+        // Set CSS variables
+        document.documentElement.style.setProperty('--header-color', data.header_color || '#2563eb');
+        document.documentElement.style.setProperty('--primary-color', data.primary_color || '#2563eb');
+        document.documentElement.style.setProperty('--secondary-color', data.secondary_color || '#ffffff');
       }
     } catch (error) {
       console.error('Error loading admin data:', error);

@@ -34,27 +34,60 @@ const AdminDashboard = () => {
   const loadBrandSettings = async () => {
     try {
       const { data: { session } } = await supabase.auth.getSession();
-      if (!session) return;
+      if (!session) {
+        navigate('/');
+        return;
+      }
 
       const { data, error } = await supabase
         .from('brand_settings')
         .select('*')
         .eq('admin_id', session.user.id)
-        .single();
+        .maybeSingle();
 
-      if (error && error.code !== 'PGRST116') {
+      if (error) {
         throw error;
       }
 
       if (data) {
-        setBrandSettings(data);
-        // Set CSS variables for this admin's branding
-        document.documentElement.style.setProperty('--header-color', data.header_color);
-        document.documentElement.style.setProperty('--primary-color', data.primary_color);
-        document.documentElement.style.setProperty('--secondary-color', data.secondary_color);
+        setBrandSettings({
+          logo: data.logo || '',
+          primary_color: data.primary_color || '#2563eb',
+          secondary_color: data.secondary_color || '#ffffff',
+          header_color: data.header_color || '#2563eb'
+        });
+
+        // Set CSS variables
+        document.documentElement.style.setProperty('--header-color', data.header_color || '#2563eb');
+        document.documentElement.style.setProperty('--primary-color', data.primary_color || '#2563eb');
+        document.documentElement.style.setProperty('--secondary-color', data.secondary_color || '#ffffff');
+      } else {
+        // If no settings exist yet, create default settings for this admin
+        const { error: insertError } = await supabase
+          .from('brand_settings')
+          .insert([{
+            admin_id: session.user.id,
+            logo: '',
+            primary_color: '#2563eb',
+            secondary_color: '#ffffff',
+            header_color: '#2563eb'
+          }])
+          .select()
+          .single();
+
+        if (insertError) {
+          throw insertError;
+        }
       }
     } catch (error) {
       console.error('Error loading brand settings:', error);
+      // Use defaults if there's an error
+      setBrandSettings({
+        logo: '',
+        primary_color: '#2563eb',
+        secondary_color: '#ffffff',
+        header_color: '#2563eb'
+      });
     }
   };
 
