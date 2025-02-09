@@ -2,7 +2,7 @@ import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import styles from '../styles/header.module.css';
 
-const Header = ({ logo, primaryColor }) => {
+const Header = ({ logo }) => {
   const navigate = useNavigate();
   const userRole = localStorage.getItem('userRole');
 
@@ -31,10 +31,7 @@ const Header = ({ logo, primaryColor }) => {
   };
 
   return (
-    <header 
-      className={styles.mainHeader}
-      style={{ backgroundColor: primaryColor }}
-    >
+    <header className={styles.mainHeader}>
       <div className={styles.headerContent}>
         <div className={styles.logoContainer}>
           {logo ? (
