@@ -16,33 +16,30 @@ function WidgetCustomization() {
   
   const [activeTab, setActiveTab] = React.useState('header');
   const [saving, setSaving] = React.useState(false);
-  const [loading, setLoading] = React.useState(true);
 
   React.useEffect(() => {
-    loadSettings();
-  }, []);
-
-  async function loadSettings() {
-    try {
-      setLoading(true);
+    async function loadSettings() {
       const { data, error } = await supabase
         .from('global_widget_settings')
         .select('*')
-        .single();
+        .limit(1);
 
-      if (error && error.code !== 'PGRST116') {
-        throw error;
+      if (error) {
+        console.error('Load error:', error);
+        return;
       }
 
-      if (data) {
-        setWidgetSettings(data);
+      if (data && data.length > 0) {
+        console.log('Loaded settings:', data[0]);
+        setWidgetSettings(prev => ({
+          ...prev,
+          ...data[0]
+        }));
       }
-    } catch (error) {
-      console.error('Error loading settings:', error);
-    } finally {
-      setLoading(false);
     }
-  }
+
+    loadSettings();
+  }, []);
 
   const handleSettingChange = (setting, value) => {
     setWidgetSettings(prev => ({
@@ -71,22 +68,23 @@ function WidgetCustomization() {
         button_position: widgetSettings.button_position
       };
 
-      let result;
       if (existingSettings && existingSettings.length > 0) {
-        result = await supabase
+        const { error } = await supabase
           .from('global_widget_settings')
           .update(settingsToSave)
           .eq('id', existingSettings[0].id);
+
+        if (error) throw error;
       } else {
-        result = await supabase
+        const { error } = await supabase
           .from('global_widget_settings')
           .insert([settingsToSave]);
+
+        if (error) throw error;
       }
 
-      if (result.error) throw result.error;
-
       alert('Settings saved successfully!');
-      await loadSettings();
+      window.location.reload();
     } catch (error) {
       console.error('Save error:', error);
       alert(`Failed to save settings: ${error.message}`);
@@ -94,10 +92,6 @@ function WidgetCustomization() {
       setSaving(false);
     }
   };
-
-  if (loading) {
-    return <div>Loading...</div>;
-  }
 
   return (
     <div className={styles.widgetCustomization}>
@@ -222,20 +216,22 @@ function WidgetCustomization() {
       </div>
 
       <div className={styles.previewPanel}>
-        <h3>Widget Preview</h3>
+        <h2>Widget Preview</h2>
         <div className={styles.previewContainer}>
-          <AccessibilityWidget
-            settings={{
-              headerColor: widgetSettings.header_color,
-              headerTextColor: widgetSettings.header_text_color,
-              buttonColor: widgetSettings.button_color,
-              poweredByText: widgetSettings.powered_by_text,
-              poweredByColor: widgetSettings.powered_by_color,
-              buttonSize: widgetSettings.button_size,
-              buttonPosition: widgetSettings.button_position
-            }}
-            isPreview={true}
-          />
+          <div className={styles.widgetPreviewWrapper}>
+            <AccessibilityWidget
+              settings={{
+                headerColor: widgetSettings.header_color,
+                headerTextColor: widgetSettings.header_text_color,
+                buttonColor: widgetSettings.button_color,
+                poweredByText: widgetSettings.powered_by_text,
+                poweredByColor: widgetSettings.powered_by_color,
+                buttonSize: widgetSettings.button_size,
+                buttonPosition: widgetSettings.button_position
+              }}
+              isPreview={true}
+            />
+          </div>
         </div>
       </div>
     </div>

@@ -5,7 +5,7 @@ const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS
 
 export const supabase = createClient(supabaseUrl, supabaseKey, {
   auth: {
-    persistSession: false // Don't persist auth state in localStorage
+    persistSession: false
   },
   realtime: {
     params: {
@@ -13,27 +13,3 @@ export const supabase = createClient(supabaseUrl, supabaseKey, {
     }
   }
 });
-
-// Helper function to check auth status
-export const checkAuth = async () => {
-  try {
-    const { data: { session }, error } = await supabase.auth.getSession();
-    if (error) throw error;
-    return session;
-  } catch (error) {
-    console.error('Auth check error:', error);
-    return null;
-  }
-};
-
-// Helper function to get current user
-export const getCurrentUser = async () => {
-  try {
-    const { data: { user }, error } = await supabase.auth.getUser();
-    if (error) throw error;
-    return user;
-  } catch (error) {
-    console.error('Get user error:', error);
-    return null;
-  }
-};

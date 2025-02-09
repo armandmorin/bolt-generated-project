@@ -7,6 +7,7 @@ const Login = () => {
   const [password, setPassword] = useState('');
   const navigate = useNavigate();
   const location = useLocation();
+  const brandSettings = JSON.parse(localStorage.getItem('brandSettings') || '{}');
 
   // Check if we're trying to access the test page
   if (location.pathname === '/test') {
@@ -15,15 +16,21 @@ const Login = () => {
 
   const handleLogin = async (e) => {
     e.preventDefault();
-    sessionStorage.setItem('userRole', 'admin');
-    sessionStorage.setItem('user', JSON.stringify({ email, role: 'admin' }));
+    localStorage.setItem('userRole', 'admin');
+    localStorage.setItem('user', JSON.stringify({ email, role: 'admin' }));
     navigate('/admin');
   };
 
   return (
     <div className={styles.loginPage}>
       <div className={styles.loginContainer}>
-        <h1>Admin Login</h1>
+        {brandSettings.logo ? (
+          <div className={styles.logoContainer}>
+            <img src={brandSettings.logo} alt="Company Logo" className={styles.logo} />
+          </div>
+        ) : (
+          <h1>Admin Login</h1>
+        )}
 
         <form onSubmit={handleLogin}>
           <div className={styles.formGroup}>

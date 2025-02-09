@@ -6,12 +6,13 @@ const SuperAdminLogin = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const navigate = useNavigate();
+  const brandSettings = JSON.parse(localStorage.getItem('brandSettings') || '{}');
 
   const handleLogin = async (e) => {
     e.preventDefault();
     if (email === 'armandmorin@gmail.com' && password === '1armand') {
-      sessionStorage.setItem('userRole', 'superadmin');
-      sessionStorage.setItem('user', JSON.stringify({ email, role: 'superadmin' }));
+      localStorage.setItem('userRole', 'superadmin');
+      localStorage.setItem('user', JSON.stringify({ email, role: 'superadmin' }));
       navigate('/super-admin');
     } else {
       alert('Invalid credentials');
@@ -21,7 +22,13 @@ const SuperAdminLogin = () => {
   return (
     <div className={styles.loginPage}>
       <div className={styles.loginContainer}>
-        <h1>Super Admin Login</h1>
+        {brandSettings.logo ? (
+          <div className={styles.logoContainer}>
+            <img src={brandSettings.logo} alt="Company Logo" className={styles.logo} />
+          </div>
+        ) : (
+          <h1>Super Admin Login</h1>
+        )}
 
         <form onSubmit={handleLogin}>
           <div className={styles.formGroup}>
