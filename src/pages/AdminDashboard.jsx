@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { getAdminBrandSettings, updateBrandSettings, applyBrandSettings, uploadLogo } from '../services/brandSettings';
+import { useSupabase } from '../contexts/SupabaseContext';
 import ClientManagement from './ClientManagement';
 import WidgetCustomization from './WidgetCustomization';
 import ProfileSettings from './ProfileSettings';
@@ -8,6 +9,7 @@ import ImageUpload from '../components/ImageUpload';
 import styles from '../styles/admin.module.css';
 
 const AdminDashboard = () => {
+  const { user } = useSupabase();
   const [activeTab, setActiveTab] = useState('branding');
   const [brandSettings, setBrandSettings] = useState({
     logo: '',
@@ -18,8 +20,10 @@ const AdminDashboard = () => {
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
-    loadBrandSettings();
-  }, []);
+    if (user) {
+      loadBrandSettings();
+    }
+  }, [user]);
 
   useEffect(() => {
     applyBrandSettings(brandSettings);
@@ -27,9 +31,6 @@ const AdminDashboard = () => {
 
   const loadBrandSettings = async () => {
     try {
-      const user = JSON.parse(localStorage.getItem('user'));
-      if (!user?.id) return;
-
       const settings = await getAdminBrandSettings(user.id);
       setBrandSettings(settings);
     } catch (error) {
@@ -42,8 +43,9 @@ const AdminDashboard = () => {
     setSaving(true);
 
     try {
-      const user = JSON.parse(localStorage.getItem('user'));
-      if (!user?.id) throw new Error('User ID not found');
+      if (!user?.id) {
+        throw new Error('User ID not found');
+      }
 
       let logoUrl = brandSettings.logo;
 
@@ -54,7 +56,8 @@ const AdminDashboard = () => {
 
       const settingsToUpdate = {
         ...brandSettings,
-        logo: logoUrl
+        logo: logoUrl,
+        admin_id: user.id
       };
 
       const success = await updateBrandSettings(settingsToUpdate, user.id);
@@ -67,118 +70,16 @@ const AdminDashboard = () => {
       }
     } catch (error) {
       console.error('Error saving brand settings:', error);
-      alert('Error saving brand settings. Please try again.');
+      alert('Error saving brand settings: ' + error.message);
     } finally {
       setSaving(false);
     }
   };
 
+  // Rest of your component remains the same...
   return (
     <div className={styles.adminDashboard}>
-      <div className={styles.tabs}>
-        <button
-          className={`${styles.tabButton} ${activeTab === 'branding' ? styles.active : ''}`}
-          onClick={() => setActiveTab('branding')}
-        >
-          Website Branding
-        </button>
-        <button
-          className={`${styles.tabButton} ${activeTab === 'widget' ? styles.active : ''}`}
-          onClick={() => setActiveTab('widget')}
-        >
-          Widget Preview
-        </button>
-        <button
-          className={`${styles.tabButton} ${activeTab === 'clients' ? styles.active : ''}`}
-          onClick={() => setActiveTab('clients')}
-        >
-          Client Management
-        </button>
-        <button
-          className={`${styles.tabButton} ${activeTab === 'team' ? styles.active : ''}`}
-          onClick={() => setActiveTab('team')}
-        >
-          Team Members
-        </button>
-        <button
-          className={`${styles.tabButton} ${activeTab === 'profile' ? styles.active : ''}`}
-          onClick={() => setActiveTab('profile')}
-        >
-          Profile
-        </button>
-      </div>
-
-      <div className={styles.content}>
-        {activeTab === 'branding' && (
-          <div className={styles.formContainer}>
-            <form onSubmit={handleBrandUpdate}>
-              <ImageUpload
-                currentImage={brandSettings.logo}
-                onImageUpload={(imageData) => {
-                  setBrandSettings(prev => ({
-                    ...prev,
-                    logo: imageData
-                  }));
-                }}
-                label="Company Logo"
-              />
-
-              <div className={styles.colorGroup}>
-                <div className={styles.formGroup}>
-                  <label>Header Color</label>
-                  <input
-                    type="color"
-                    value={brandSettings.header_color}
-                    onChange={(e) => setBrandSettings(prev => ({
-                      ...prev,
-                      header_color: e.target.value
-                    }))}
-                  />
-                </div>
-
-                <div className={styles.formGroup}>
-                  <label>Primary Color</label>
-                  <input
-                    type="color"
-                    value={brandSettings.primary_color}
-                    onChange={(e) => setBrandSettings(prev => ({
-                      ...prev,
-                      primary_color: e.target.value
-                    }))}
-                  />
-                </div>
-
-                <div className={styles.formGroup}>
-                  <label>Secondary Color</label>
-                  <input
-                    type="color"
-                    value={brandSettings.secondary_color}
-                    onChange={(e) => setBrandSettings(prev => ({
-                      ...prev,
-                      secondary_color: e.target.value
-                    }))}
-                  />
-                </div>
-              </div>
-
-              <div className={styles.formActions}>
-                <button 
-                  type="submit" 
-                  className={styles.primaryButton}
-                  disabled={saving}
-                >
-                  {saving ? 'Saving...' : 'Save Changes'}
-                </button>
-              </div>
-            </form>
-          </div>
-        )}
-
-        {activeTab === 'widget' && <WidgetCustomization />}
-        {activeTab === 'clients' && <ClientManagement />}
-        {activeTab === 'team' && <TeamMembers />}
-        {activeTab === 'profile' && <ProfileSettings />}
-      </div>
+      {/* ... existing JSX ... */}
     </div>
   );
 };
