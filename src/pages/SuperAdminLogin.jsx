@@ -19,6 +19,8 @@ const SuperAdminLogin = () => {
       const user = await loginUser(email, password);
       
       if (user.role === 'superadmin') {
+        // Store user in localStorage
+        localStorage.setItem('user', JSON.stringify(user));
         navigate('/super-admin');
       } else {
         setError('Invalid credentials');

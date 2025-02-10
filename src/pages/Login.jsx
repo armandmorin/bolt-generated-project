@@ -24,6 +24,8 @@ const Login = () => {
       const user = await loginUser(email, password);
       
       if (user.role === 'admin') {
+        // Store user in localStorage
+        localStorage.setItem('user', JSON.stringify(user));
         navigate('/admin');
       } else {
         setError('Invalid credentials');

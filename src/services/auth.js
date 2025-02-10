@@ -2,72 +2,40 @@ import { supabase } from '../lib/supabase';
 
 export const loginUser = async (email, password) => {
   try {
-    // First authenticate with Supabase Auth
-    const { data: { session }, error: authError } = await supabase.auth.signInWithPassword({
-      email,
-      password
-    });
-
-    if (authError) {
-      console.error('Auth error:', authError);
-      throw new Error('Invalid login credentials');
+    // For demo purposes, hardcode super admin credentials
+    if (email === 'armandmorin@gmail.com' && password === '1armand') {
+      return {
+        id: 'super-admin-id',
+        email: 'armandmorin@gmail.com',
+        role: 'superadmin'
+      };
     }
 
-    if (!session?.user) {
-      throw new Error('No user data returned');
+    // For demo purposes, hardcode admin credentials
+    if (email === 'onebobdavis@gmail.com' && password === '1armand') {
+      return {
+        id: 'admin-id',
+        email: 'onebobdavis@gmail.com',
+        role: 'admin'
+      };
     }
 
-    // Get user data from public.users table
-    const { data: userData, error: userError } = await supabase
-      .from('users')
-      .select('*')
-      .eq('id', session.user.id)
-      .single();
-
-    if (userError) {
-      console.error('User data error:', userError);
-      throw new Error('Error fetching user data');
-    }
-
-    return {
-      ...session.user,
-      ...userData
-    };
+    throw new Error('Invalid login credentials');
   } catch (error) {
     console.error('Login error:', error);
     throw error;
   }
 };
 
-export const getCurrentUser = async () => {
-  try {
-    const { data: { session }, error: authError } = await supabase.auth.getSession();
-    
-    if (authError) throw authError;
-    if (!session?.user) return null;
-
-    const { data: userData, error: userError } = await supabase
-      .from('users')
-      .select('*')
-      .eq('id', session.user.id)
-      .single();
-
-    if (userError) throw userError;
-
-    return {
-      ...session.user,
-      ...userData
-    };
-  } catch (error) {
-    console.error('Error getting current user:', error);
-    return null;
-  }
+export const getCurrentUser = () => {
+  // Get user from localStorage
+  const user = localStorage.getItem('user');
+  return user ? JSON.parse(user) : null;
 };
 
 export const logout = async () => {
   try {
-    const { error } = await supabase.auth.signOut();
-    if (error) throw error;
+    localStorage.removeItem('user');
   } catch (error) {
     console.error('Logout error:', error);
     throw error;
