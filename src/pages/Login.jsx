@@ -1,35 +1,50 @@
 import React, { useState } from 'react';
 import { useNavigate, Link, useLocation } from 'react-router-dom';
+import { loginUser } from '../services/auth';
 import styles from '../styles/modules/login.module.css';
 
 const Login = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
   const navigate = useNavigate();
   const location = useLocation();
-  const brandSettings = JSON.parse(localStorage.getItem('brandSettings') || '{}');
 
-  // Check if we're trying to access the test page
   if (location.pathname === '/test') {
-    return null; // Don't render login for test route
+    return null;
   }
 
   const handleLogin = async (e) => {
     e.preventDefault();
-    localStorage.setItem('userRole', 'admin');
-    localStorage.setItem('user', JSON.stringify({ email, role: 'admin' }));
-    navigate('/admin');
+    setLoading(true);
+    setError('');
+
+    try {
+      const user = await loginUser(email, password);
+      
+      if (user.role === 'admin') {
+        navigate('/admin');
+      } else {
+        setError('Invalid credentials');
+      }
+    } catch (error) {
+      console.error('Login error:', error);
+      setError('Invalid credentials');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
     <div className={styles.loginPage}>
       <div className={styles.loginContainer}>
-        {brandSettings.logo ? (
-          <div className={styles.logoContainer}>
-            <img src={brandSettings.logo} alt="Company Logo" className={styles.logo} />
+        <h1>Admin Login</h1>
+
+        {error && (
+          <div className={styles.errorMessage}>
+            {error}
           </div>
-        ) : (
-          <h1>Admin Login</h1>
         )}
 
         <form onSubmit={handleLogin}>
@@ -55,8 +70,12 @@ const Login = () => {
             />
           </div>
 
-          <button type="submit" className={styles.loginButton}>
-            Login
+          <button 
+            type="submit" 
+            className={styles.loginButton}
+            disabled={loading}
+          >
+            {loading ? 'Logging in...' : 'Login'}
           </button>
         </form>
 

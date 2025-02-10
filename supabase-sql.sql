@@ -1,49 +1,39 @@
--- Drop existing brand_settings table if it exists
-DROP TABLE IF EXISTS brand_settings CASCADE;
+-- Drop existing table if needed
+DROP TABLE IF EXISTS users CASCADE;
 
--- Create brand_settings table with admin_id
-CREATE TABLE brand_settings (
+-- Create users table
+CREATE TABLE IF NOT EXISTS users (
     id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-    admin_id UUID,
-    logo TEXT,
-    primary_color VARCHAR(7) NOT NULL DEFAULT '#2563eb',
-    secondary_color VARCHAR(7) NOT NULL DEFAULT '#ffffff',
-    header_color VARCHAR(7) NOT NULL DEFAULT '#2563eb',
-    is_super_admin BOOLEAN DEFAULT false,
+    name VARCHAR NOT NULL,
+    email VARCHAR NOT NULL UNIQUE,
+    role VARCHAR NOT NULL CHECK (role IN ('superadmin', 'admin')),
+    company VARCHAR,
     created_at TIMESTAMPTZ DEFAULT NOW(),
     updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
 -- Enable RLS
-ALTER TABLE brand_settings ENABLE ROW LEVEL SECURITY;
+ALTER TABLE users ENABLE ROW LEVEL SECURITY;
 
--- Drop existing policy if it exists
-DROP POLICY IF EXISTS "Enable all operations for all users" ON brand_settings;
-
--- Create new policy
-CREATE POLICY "Enable all operations for all users" ON brand_settings
+-- Create policy
+CREATE POLICY "Enable all operations for authenticated users" ON users
     FOR ALL
     USING (true)
     WITH CHECK (true);
 
 -- Grant permissions
-GRANT ALL ON brand_settings TO anon;
-GRANT ALL ON brand_settings TO authenticated;
-GRANT ALL ON brand_settings TO service_role;
+GRANT ALL ON users TO anon;
+GRANT ALL ON users TO authenticated;
+GRANT ALL ON users TO service_role;
 
--- Create index for better performance
-CREATE INDEX IF NOT EXISTS idx_brand_settings_admin_id ON brand_settings(admin_id);
-CREATE INDEX IF NOT EXISTS idx_brand_settings_is_super_admin ON brand_settings(is_super_admin);
-
--- Insert default super admin settings
-INSERT INTO brand_settings (
-    is_super_admin,
-    primary_color,
-    secondary_color,
-    header_color
-) VALUES (
-    true,
-    '#2563eb',
-    '#ffffff',
-    '#2563eb'
-) ON CONFLICT DO NOTHING;
+-- Insert super admin and admin users
+INSERT INTO users (name, email, role, company)
+VALUES 
+    ('Armand Morin', 'armandmorin@gmail.com', 'superadmin', 'Super Admin Company'),
+    ('Bob Davis', 'onebobdavis@gmail.com', 'admin', 'Admin Company')
+ON CONFLICT (email) 
+DO UPDATE SET 
+    name = EXCLUDED.name,
+    role = EXCLUDED.role,
+    company = EXCLUDED.company,
+    updated_at = NOW();
