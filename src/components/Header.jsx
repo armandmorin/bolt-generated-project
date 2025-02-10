@@ -1,33 +1,15 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useSupabase } from '../contexts/SupabaseContext';
-import { getBrandSettingsForHeader } from '../services/brandSettings';
 import styles from '../styles/header.module.css';
 
 const Header = () => {
   const navigate = useNavigate();
-  const { user } = useSupabase();
-  const [brandSettings, setBrandSettings] = useState({
-    logo: '',
-    header_color: '#2563eb'
-  });
-
-  useEffect(() => {
-    loadBrandSettings();
-  }, [user]);
-
-  const loadBrandSettings = async () => {
-    try {
-      const settings = await getBrandSettingsForHeader();
-      setBrandSettings(settings);
-    } catch (error) {
-      console.error('Error loading brand settings:', error);
-    }
-  };
+  const { user, setUser } = useSupabase();
 
   const handleLogout = () => {
-    localStorage.removeItem('userRole');
     localStorage.removeItem('user');
+    setUser(null);
     navigate('/');
   };
 
@@ -52,21 +34,12 @@ const Header = () => {
   };
 
   return (
-    <header 
-      className={styles.mainHeader}
-      style={{ backgroundColor: brandSettings.header_color }}
-    >
+    <header className={styles.mainHeader}>
       <div className={styles.headerContent}>
         <div className={styles.logoContainer}>
-          {brandSettings.logo ? (
-            <Link to={user?.role === 'superadmin' ? '/super-admin' : '/admin'}>
-              <img src={brandSettings.logo} alt="Logo" className={styles.logo} />
-            </Link>
-          ) : (
-            <span className={styles.logoText}>
-              {user?.role === 'superadmin' ? 'Super Admin' : 'Admin Dashboard'}
-            </span>
-          )}
+          <span className={styles.logoText}>
+            {user?.role === 'superadmin' ? 'Super Admin' : 'Admin Dashboard'}
+          </span>
         </div>
 
         <nav className={styles.mainNav}>

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate, Link, useLocation } from 'react-router-dom';
-import { loginUser } from '../services/auth';
+import { useSupabase } from '../contexts/SupabaseContext';
 import styles from '../styles/modules/login.module.css';
 
 const Login = () => {
@@ -10,6 +10,7 @@ const Login = () => {
   const [error, setError] = useState('');
   const navigate = useNavigate();
   const location = useLocation();
+  const { setUser } = useSupabase();
 
   if (location.pathname === '/test') {
     return null;
@@ -21,11 +22,19 @@ const Login = () => {
     setError('');
 
     try {
-      const user = await loginUser(email, password);
-      
-      if (user.role === 'admin') {
-        // Store user in localStorage
-        localStorage.setItem('user', JSON.stringify(user));
+      // Hardcoded admin credentials for demo
+      if (email === 'onebobdavis@gmail.com' && password === '1armand') {
+        const userData = {
+          id: 'admin-id',
+          email: 'onebobdavis@gmail.com',
+          role: 'admin',
+          name: 'Admin User'
+        };
+        
+        // Store user data
+        localStorage.setItem('user', JSON.stringify(userData));
+        setUser(userData);
+        
         navigate('/admin');
       } else {
         setError('Invalid credentials');

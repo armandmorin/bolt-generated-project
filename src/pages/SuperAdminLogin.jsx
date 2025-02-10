@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { loginUser } from '../services/auth';
+import { useSupabase } from '../contexts/SupabaseContext';
 import styles from '../styles/modules/login.module.css';
 
 const SuperAdminLogin = () => {
@@ -9,6 +9,7 @@ const SuperAdminLogin = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const navigate = useNavigate();
+  const { setUser } = useSupabase();
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -16,11 +17,19 @@ const SuperAdminLogin = () => {
     setError('');
 
     try {
-      const user = await loginUser(email, password);
-      
-      if (user.role === 'superadmin') {
-        // Store user in localStorage
-        localStorage.setItem('user', JSON.stringify(user));
+      // Hardcoded super admin credentials for demo
+      if (email === 'armandmorin@gmail.com' && password === '1armand') {
+        const userData = {
+          id: 'super-admin-id',
+          email: 'armandmorin@gmail.com',
+          role: 'superadmin',
+          name: 'Super Admin'
+        };
+        
+        // Store user data
+        localStorage.setItem('user', JSON.stringify(userData));
+        setUser(userData);
+        
         navigate('/super-admin');
       } else {
         setError('Invalid credentials');
