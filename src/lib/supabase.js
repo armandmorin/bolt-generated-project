@@ -12,7 +12,7 @@ export const supabase = createClient(supabaseUrl, supabaseKey, {
       'apikey': supabaseKey,
       'Authorization': `Bearer ${supabaseKey}`,
       'Content-Type': 'application/json',
-      'Accept': 'application/json'
+      'Accept': 'application/vnd.pgrst.object+json'
     }
   },
   db: {
@@ -23,21 +23,74 @@ export const supabase = createClient(supabaseUrl, supabaseKey, {
 // Helper function to get brand settings with proper error handling
 export const getBrandSettings = async (adminId) => {
   try {
-    const { data, error } = await supabase
+    // First, check if brand settings exist
+    const { data: existingSettings, error: settingsError } = await supabase
       .from('brand_settings')
       .select('*')
-      .eq('admin_id', adminId)
-      .single();
+      .eq('admin_id', adminId);
 
-    if (error) {
-      console.error('Error fetching brand settings:', error);
-      return null;
+    // If no settings exist, return default settings
+    if (settingsError || !existingSettings || existingSettings.length === 0) {
+      console.warn('No brand settings found, returning default');
+      return {
+        logo: '',
+        primary_color: '#2563eb',
+        secondary_color: '#ffffff',
+        header_color: '#2563eb',
+        admin_id: adminId
+      };
     }
 
-    return data;
+    // Return the first (and should be only) settings record
+    return existingSettings[0];
   } catch (error) {
     console.error('Unexpected error in getBrandSettings:', error);
-    return null;
+    
+    // Return default settings in case of any error
+    return {
+      logo: '',
+      primary_color: '#2563eb',
+      secondary_color: '#ffffff',
+      header_color: '#2563eb',
+      admin_id: adminId
+    };
+  }
+};
+
+export const createDefaultBrandSettings = async (adminId) => {
+  try {
+    const defaultSettings = {
+      admin_id: adminId,
+      logo: '',
+      primary_color: '#2563eb',
+      secondary_color: '#ffffff',
+      header_color: '#2563eb',
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
+    };
+
+    const { data, error } = await supabase
+      .from('brand_settings')
+      .upsert(defaultSettings, { 
+        onConflict: 'admin_id' 
+      })
+      .select();
+
+    if (error) {
+      console.error('Error creating default brand settings:', error);
+      return defaultSettings;
+    }
+
+    return data[0] || defaultSettings;
+  } catch (error) {
+    console.error('Unexpected error creating default brand settings:', error);
+    return {
+      admin_id: adminId,
+      logo: '',
+      primary_color: '#2563eb',
+      secondary_color: '#ffffff',
+      header_color: '#2563eb'
+    };
   }
 };
 

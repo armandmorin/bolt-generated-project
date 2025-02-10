@@ -14,15 +14,7 @@ export const loginUser = async (email, password) => {
       throw new Error('No user data returned');
     }
 
-    // Fetch user data with service role
-    const { data: userData, error: userError } = await supabase.auth.getUser(authData.session.access_token);
-
-    if (userError) {
-      console.error('User data error:', userError);
-      throw new Error('Error fetching user data');
-    }
-
-    // If no user data found, create a fallback user object
+    // Create a base user object
     const userInfo = {
       id: authData.user.id,
       email: authData.user.email,
@@ -30,20 +22,24 @@ export const loginUser = async (email, password) => {
       name: authData.user.email.split('@')[0] // Use email username as name
     };
 
-    // Attempt to fetch additional user details if possible
+    // Attempt to fetch additional user details
     try {
-      const { data: additionalData } = await supabase
+      const { data: userData, error: userError } = await supabase
         .from('users')
         .select('role, name')
         .eq('id', authData.user.id)
         .single();
 
-      if (additionalData) {
-        userInfo.role = additionalData.role || userInfo.role;
-        userInfo.name = additionalData.name || userInfo.name;
+      if (userData) {
+        userInfo.role = userData.role || userInfo.role;
+        userInfo.name = userData.name || userInfo.name;
+      }
+
+      if (userError) {
+        console.warn('Could not fetch additional user details:', userError);
       }
     } catch (additionalError) {
-      console.warn('Could not fetch additional user details:', additionalError);
+      console.warn('Error fetching user details:', additionalError);
     }
 
     return userInfo;
@@ -60,7 +56,7 @@ export const getCurrentUser = async () => {
     if (authError) throw authError;
     if (!user) return null;
 
-    // Create a fallback user object
+    // Create a base user object
     const userInfo = {
       id: user.id,
       email: user.email,
@@ -70,18 +66,22 @@ export const getCurrentUser = async () => {
 
     // Attempt to fetch additional user details
     try {
-      const { data: additionalData } = await supabase
+      const { data: userData, error: userError } = await supabase
         .from('users')
         .select('role, name')
         .eq('id', user.id)
         .single();
 
-      if (additionalData) {
-        userInfo.role = additionalData.role || userInfo.role;
-        userInfo.name = additionalData.name || userInfo.name;
+      if (userData) {
+        userInfo.role = userData.role || userInfo.role;
+        userInfo.name = userData.name || userInfo.name;
+      }
+
+      if (userError) {
+        console.warn('Could not fetch additional user details:', userError);
       }
     } catch (additionalError) {
-      console.warn('Could not fetch additional user details:', additionalError);
+      console.warn('Error fetching user details:', additionalError);
     }
 
     return userInfo;
