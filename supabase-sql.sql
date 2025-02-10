@@ -1,44 +1,22 @@
--- First, drop existing policies
-drop policy if exists "Users can view own brand settings" on public.brand_settings;
-drop policy if exists "Users can insert own brand settings" on public.brand_settings;
-drop policy if exists "Users can update own brand settings" on public.brand_settings;
+-- Drop existing policies if they exist
+DROP POLICY IF EXISTS "Users can view own data" ON public.users;
+DROP POLICY IF EXISTS "Authenticated users can read users" ON public.users;
 
--- Recreate the table with proper constraints
-create table if not exists public.brand_settings (
-  id uuid default uuid_generate_v4() primary key,
-  admin_id uuid references auth.users(id) on delete cascade unique,
-  logo text,
-  primary_color text default '#2563eb',
-  secondary_color text default '#ffffff',
-  header_color text default '#2563eb',
-  created_at timestamp with time zone default timezone('utc'::text, now()) not null,
-  updated_at timestamp with time zone default timezone('utc'::text, now()) not null,
-  constraint unique_admin_settings unique (admin_id)
-);
+-- Enable Row Level Security
+ALTER TABLE public.users ENABLE ROW LEVEL SECURITY;
 
--- Enable RLS
-alter table public.brand_settings enable row level security;
+-- Create policy to allow authenticated users to read their own data
+CREATE POLICY "Users can view own data" 
+ON public.users 
+FOR SELECT 
+USING (auth.uid() = id);
 
--- Create new policies
-create policy "Enable read access for users"
-  on public.brand_settings for select
-  to authenticated
-  using (true);
+-- Create policy to allow admin access
+CREATE POLICY "Authenticated users can read users" 
+ON public.users 
+FOR SELECT 
+TO authenticated 
+USING (true);
 
-create policy "Enable insert for users"
-  on public.brand_settings for insert
-  to authenticated
-  with check (auth.uid() = admin_id);
-
-create policy "Enable update for users"
-  on public.brand_settings for update
-  to authenticated
-  using (auth.uid() = admin_id);
-
--- Grant permissions
-grant usage on schema public to authenticated;
-grant all on public.brand_settings to authenticated;
-grant usage, select on all sequences in schema public to authenticated;
-
--- Create index
-create index if not exists idx_brand_settings_admin_id on public.brand_settings(admin_id);
+-- Grant necessary permissions
+GRANT SELECT ON public.users TO authenticated;
