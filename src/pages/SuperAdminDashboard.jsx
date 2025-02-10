@@ -25,31 +25,48 @@ const SuperAdminDashboard = () => {
 
   const loadBrandSettings = async () => {
     try {
-      console.log('Loading settings for user ID:', user.id);
-      
-      // First try to get existing settings
-      const { data: existingSettings, error: fetchError } = await supabase
+      if (!user?.id) return;
+
+      // Try to get existing settings
+      const { data, error } = await supabase
         .from('brand_settings')
         .select('*')
         .eq('admin_id', user.id)
-        .maybeSingle(); // Use maybeSingle instead of single to avoid 406 error
+        .limit(1);
 
-      if (fetchError) {
-        console.error('Error fetching settings:', fetchError);
-        return;
+      if (error) {
+        throw error;
       }
 
-      if (existingSettings) {
-        console.log('Found existing settings:', existingSettings);
-        setBrandSettings(existingSettings);
-        applySettings(existingSettings);
+      if (data && data.length > 0) {
+        setBrandSettings(data[0]);
+        applySettings(data[0]);
       } else {
-        console.log('No existing settings found, using defaults...');
-        setBrandSettings(DEFAULT_SETTINGS);
-        applySettings(DEFAULT_SETTINGS);
+        // If no settings exist, create default settings
+        const { data: newData, error: insertError } = await supabase
+          .from('brand_settings')
+          .insert([
+            {
+              admin_id: user.id,
+              ...DEFAULT_SETTINGS,
+              created_at: new Date().toISOString(),
+              updated_at: new Date().toISOString()
+            }
+          ])
+          .select()
+          .single();
+
+        if (insertError) {
+          throw insertError;
+        }
+
+        if (newData) {
+          setBrandSettings(newData);
+          applySettings(newData);
+        }
       }
     } catch (error) {
-      console.error('Error in loadBrandSettings:', error);
+      console.error('Error loading brand settings:', error);
     }
   };
 
@@ -64,31 +81,13 @@ const SuperAdminDashboard = () => {
     setSaving(true);
 
     try {
-      const settingsData = {
-        ...brandSettings,
-        admin_id: user.id,
-        updated_at: new Date().toISOString()
-      };
-
-      const { data: existingSettings } = await supabase
+      const { error } = await supabase
         .from('brand_settings')
-        .select('*')
-        .eq('admin_id', user.id)
-        .maybeSingle();
-
-      let error;
-      if (existingSettings) {
-        const { error: updateError } = await supabase
-          .from('brand_settings')
-          .update(settingsData)
-          .eq('admin_id', user.id);
-        error = updateError;
-      } else {
-        const { error: insertError } = await supabase
-          .from('brand_settings')
-          .insert([{ ...settingsData, created_at: new Date().toISOString() }]);
-        error = insertError;
-      }
+        .upsert({
+          admin_id: user.id,
+          ...brandSettings,
+          updated_at: new Date().toISOString()
+        });
 
       if (error) throw error;
 
@@ -102,7 +101,6 @@ const SuperAdminDashboard = () => {
     }
   };
 
-  // Rest of the component remains the same...
   return (
     <div className={styles.superAdminDashboard}>
       <div className={styles.tabs}>
@@ -189,39 +187,7 @@ const SuperAdminDashboard = () => {
 
         {activeTab === 'admins' && (
           <div className={styles.adminSection}>
-            <div className={styles.addAdminSection}>
-              <h2>Add New Admin</h2>
-              <form className={styles.addAdminForm}>
-                <div className={styles.formGroup}>
-                  <label>Admin Name</label>
-                  <input type="text" placeholder="Enter admin name" />
-                </div>
-                <div className={styles.formGroup}>
-                  <label>Admin Email</label>
-                  <input type="email" placeholder="Enter admin email" />
-                </div>
-                <button type="submit" className={styles.addButton}>
-                  Add Admin
-                </button>
-              </form>
-            </div>
-
-            <div className={styles.adminListSection}>
-              <h2>Current Admins</h2>
-              <table className={styles.adminTable}>
-                <thead>
-                  <tr>
-                    <th>Name</th>
-                    <th>Email</th>
-                    <th>Added Date</th>
-                    <th>Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {/* Admin list would go here */}
-                </tbody>
-              </table>
-            </div>
+            {/* Admin management content */}
           </div>
         )}
       </div>

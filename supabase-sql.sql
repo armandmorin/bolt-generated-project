@@ -1,63 +1,40 @@
--- First, revoke all existing permissions
-REVOKE ALL ON public.users FROM anon, authenticated;
-REVOKE ALL ON SCHEMA public FROM anon, authenticated;
+-- Drop existing table if it exists
+drop table if exists public.brand_settings;
 
--- Grant basic schema usage
-GRANT USAGE ON SCHEMA public TO anon, authenticated;
+-- Create the brand_settings table
+create table public.brand_settings (
+  id uuid default uuid_generate_v4() primary key,
+  admin_id uuid references auth.users(id) on delete cascade,
+  logo text,
+  primary_color text default '#2563eb',
+  secondary_color text default '#ffffff',
+  header_color text default '#2563eb',
+  created_at timestamp with time zone default timezone('utc'::text, now()) not null,
+  updated_at timestamp with time zone default timezone('utc'::text, now()) not null
+);
 
--- Drop all existing policies
-DROP POLICY IF EXISTS "Enable read access for authenticated users" ON public.users;
-DROP POLICY IF EXISTS "Enable update for users based on id" ON public.users;
-DROP POLICY IF EXISTS "Enable insert for authenticated users" ON public.users;
-DROP POLICY IF EXISTS "Users can view their own data" ON public.users;
-DROP POLICY IF EXISTS "Users can update their own data" ON public.users;
+-- Create indexes
+create index if not exists brand_settings_admin_id_idx on public.brand_settings(admin_id);
 
--- Disable RLS temporarily
-ALTER TABLE public.users DISABLE ROW LEVEL SECURITY;
+-- Set up RLS policies
+alter table public.brand_settings enable row level security;
 
--- Grant specific permissions
-GRANT SELECT, UPDATE ON public.users TO authenticated;
-GRANT USAGE ON ALL SEQUENCES IN SCHEMA public TO authenticated;
+-- Allow users to read their own settings
+create policy "Users can view own brand settings"
+  on public.brand_settings for select
+  using (auth.uid() = admin_id);
 
--- Create new simplified policies
-CREATE POLICY "Allow users to read own data"
-ON public.users
-FOR SELECT
-TO authenticated
-USING (true);  -- Temporarily allow all reads for debugging
+-- Allow users to insert their own settings
+create policy "Users can insert own brand settings"
+  on public.brand_settings for insert
+  with check (auth.uid() = admin_id);
 
-CREATE POLICY "Allow users to update own data"
-ON public.users
-FOR UPDATE
-TO authenticated
-USING (auth.uid() = id);
+-- Allow users to update their own settings
+create policy "Users can update own brand settings"
+  on public.brand_settings for update
+  using (auth.uid() = admin_id);
 
--- Re-enable RLS
-ALTER TABLE public.users ENABLE ROW LEVEL SECURITY;
-
--- Recreate the users if needed
-TRUNCATE public.users;
-
-INSERT INTO public.users (id, email, role, name)
-SELECT 
-  au.id,
-  au.email,
-  CASE 
-    WHEN au.email = 'armandmorin@gmail.com' THEN 'superadmin'
-    ELSE 'admin'
-  END as role,
-  CASE 
-    WHEN au.email = 'armandmorin@gmail.com' THEN 'Super Admin'
-    ELSE 'Admin User'
-  END as name
-FROM auth.users au
-WHERE au.email IN ('armandmorin@gmail.com', 'onebobdavis@gmail.com')
-ON CONFLICT (id) DO UPDATE
-SET 
-  email = EXCLUDED.email,
-  role = EXCLUDED.role,
-  name = EXCLUDED.name,
-  updated_at = NOW();
-
--- Verify the data
-SELECT * FROM public.users;
+-- Grant necessary permissions
+grant usage on schema public to authenticated;
+grant all on public.brand_settings to authenticated;
+grant usage, select on all sequences in schema public to authenticated;
