@@ -1,109 +1,66 @@
--- Enable required extensions
-CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
-
--- Drop existing tables
+-- Drop existing tables if they exist (be careful with this in production!)
 DROP TABLE IF EXISTS public.brand_settings CASCADE;
 DROP TABLE IF EXISTS public.users CASCADE;
 
+-- Enable UUID extension if not already enabled
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+
 -- Create users table
 CREATE TABLE public.users (
-    id UUID PRIMARY KEY,
-    name VARCHAR NOT NULL,
-    email VARCHAR NOT NULL UNIQUE,
-    role VARCHAR NOT NULL,
-    company VARCHAR,
-    created_at TIMESTAMPTZ DEFAULT NOW(),
-    updated_at TIMESTAMPTZ DEFAULT NOW()
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    email TEXT UNIQUE NOT NULL,
+    role TEXT NOT NULL CHECK (role IN ('superadmin', 'admin')),
+    name TEXT,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc', NOW()),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc', NOW())
 );
 
 -- Create brand_settings table
 CREATE TABLE public.brand_settings (
-    id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     admin_id UUID REFERENCES public.users(id),
     logo TEXT,
-    primary_color VARCHAR(7) NOT NULL DEFAULT '#2563eb',
-    secondary_color VARCHAR(7) NOT NULL DEFAULT '#ffffff',
-    header_color VARCHAR(7) NOT NULL DEFAULT '#2563eb',
-    is_super_admin BOOLEAN DEFAULT false,
-    created_at TIMESTAMPTZ DEFAULT NOW(),
-    updated_at TIMESTAMPTZ DEFAULT NOW(),
-    UNIQUE(admin_id)
+    primary_color TEXT DEFAULT '#2563eb',
+    secondary_color TEXT DEFAULT '#ffffff',
+    header_color TEXT DEFAULT '#2563eb',
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc', NOW()),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc', NOW())
 );
 
--- Enable RLS
+-- Enable Row Level Security (RLS)
 ALTER TABLE public.users ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.brand_settings ENABLE ROW LEVEL SECURITY;
 
--- Create policies for users table
-CREATE POLICY "Enable read access for all users"
-    ON public.users FOR SELECT
-    USING (true);
+-- Drop existing policies if they exist
+DROP POLICY IF EXISTS "Allow public read access" ON public.users;
+DROP POLICY IF EXISTS "Allow individual update" ON public.users;
+DROP POLICY IF EXISTS "Allow read access" ON public.brand_settings;
+DROP POLICY IF EXISTS "Allow individual update" ON public.brand_settings;
 
-CREATE POLICY "Enable update for own user"
-    ON public.users FOR UPDATE
-    USING (auth.uid() = id);
+-- Create policies
+CREATE POLICY "Allow public read access" ON public.users
+    FOR SELECT USING (true);
 
--- Create policies for brand_settings table
-CREATE POLICY "Enable read access for all users"
-    ON public.brand_settings FOR SELECT
-    USING (true);
+CREATE POLICY "Allow individual update" ON public.users
+    FOR UPDATE USING (auth.uid()::text = id::text);
 
-CREATE POLICY "Enable update for own settings"
-    ON public.brand_settings FOR UPDATE
-    USING (auth.uid() = admin_id);
+CREATE POLICY "Allow read access" ON public.brand_settings
+    FOR SELECT USING (true);
 
-CREATE POLICY "Enable insert for authenticated users"
-    ON public.brand_settings FOR INSERT
-    WITH CHECK (auth.uid() = admin_id);
+CREATE POLICY "Allow individual update" ON public.brand_settings
+    FOR UPDATE USING (auth.uid()::text = admin_id::text);
 
--- Grant permissions
+-- Insert initial users (will error if they already exist, which is fine)
+INSERT INTO public.users (email, role, name)
+VALUES 
+    ('armandmorin@gmail.com', 'superadmin', 'Super Admin'),
+    ('onebobdavis@gmail.com', 'admin', 'Admin User')
+ON CONFLICT (email) 
+DO UPDATE SET 
+    role = EXCLUDED.role,
+    name = EXCLUDED.name,
+    updated_at = TIMEZONE('utc', NOW());
+
+-- Grant necessary permissions
 GRANT ALL ON public.users TO authenticated;
 GRANT ALL ON public.brand_settings TO authenticated;
-GRANT SELECT ON public.users TO anon;
-GRANT SELECT ON public.brand_settings TO anon;
-
--- Function to sync auth users to public users
-CREATE OR REPLACE FUNCTION sync_auth_users() RETURNS void AS $$
-BEGIN
-    -- Sync superadmin
-    INSERT INTO public.users (id, name, email, role, company)
-    SELECT 
-        id,
-        email as name,
-        email,
-        'superadmin',
-        'Super Admin Company'
-    FROM auth.users
-    WHERE email = 'armandmorin@gmail.com'
-    ON CONFLICT (email) DO UPDATE
-    SET role = 'superadmin',
-        company = 'Super Admin Company';
-
-    -- Sync admin
-    INSERT INTO public.users (id, name, email, role, company)
-    SELECT 
-        id,
-        email as name,
-        email,
-        'admin',
-        'Admin Company'
-    FROM auth.users
-    WHERE email = 'onebobdavis@gmail.com'
-    ON CONFLICT (email) DO UPDATE
-    SET role = 'admin',
-        company = 'Admin Company';
-
-    -- Create brand settings for users who don't have them
-    INSERT INTO public.brand_settings (admin_id, is_super_admin)
-    SELECT 
-        id,
-        CASE WHEN email = 'armandmorin@gmail.com' THEN true ELSE false END
-    FROM public.users
-    WHERE NOT EXISTS (
-        SELECT 1 FROM public.brand_settings WHERE admin_id = public.users.id
-    );
-END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
-
--- Run the sync function
-SELECT sync_auth_users();
