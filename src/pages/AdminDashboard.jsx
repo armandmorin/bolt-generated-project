@@ -10,7 +10,7 @@ import styles from '../styles/admin.module.css';
 
 const AdminDashboard = () => {
   const { user } = useSupabase();
-  const [activeTab, setActiveTab] = useState('branding');
+  const [activeTab, setActiveTab] = useState('clients');
   const [brandSettings, setBrandSettings] = useState({
     logo: '',
     primary_color: '#2563eb',
@@ -76,10 +76,125 @@ const AdminDashboard = () => {
     }
   };
 
-  // Rest of your component remains the same...
+  const renderContent = () => {
+    switch (activeTab) {
+      case 'clients':
+        return <ClientManagement />;
+      case 'widget':
+        return <WidgetCustomization />;
+      case 'team':
+        return <TeamMembers />;
+      case 'profile':
+        return <ProfileSettings />;
+      case 'branding':
+        return (
+          <div className={styles.formContainer}>
+            <h2>Brand Settings</h2>
+            <form onSubmit={handleBrandUpdate}>
+              <ImageUpload
+                currentImage={brandSettings.logo}
+                onImageUpload={(imageData) => {
+                  setBrandSettings(prev => ({
+                    ...prev,
+                    logo: imageData
+                  }));
+                }}
+                label="Company Logo"
+              />
+
+              <div className={styles.colorGroup}>
+                <div className={styles.formGroup}>
+                  <label>Header Color</label>
+                  <input
+                    type="color"
+                    value={brandSettings.header_color}
+                    onChange={(e) => setBrandSettings(prev => ({
+                      ...prev,
+                      header_color: e.target.value
+                    }))}
+                  />
+                </div>
+
+                <div className={styles.formGroup}>
+                  <label>Primary Color</label>
+                  <input
+                    type="color"
+                    value={brandSettings.primary_color}
+                    onChange={(e) => setBrandSettings(prev => ({
+                      ...prev,
+                      primary_color: e.target.value
+                    }))}
+                  />
+                </div>
+
+                <div className={styles.formGroup}>
+                  <label>Secondary Color</label>
+                  <input
+                    type="color"
+                    value={brandSettings.secondary_color}
+                    onChange={(e) => setBrandSettings(prev => ({
+                      ...prev,
+                      secondary_color: e.target.value
+                    }))}
+                  />
+                </div>
+              </div>
+
+              <div className={styles.formActions}>
+                <button 
+                  type="submit" 
+                  className={styles.saveButton}
+                  disabled={saving}
+                >
+                  {saving ? 'Saving...' : 'Save Brand Settings'}
+                </button>
+              </div>
+            </form>
+          </div>
+        );
+      default:
+        return null;
+    }
+  };
+
   return (
     <div className={styles.adminDashboard}>
-      {/* ... existing JSX ... */}
+      <div className={styles.tabs}>
+        <button
+          className={`${styles.tabButton} ${activeTab === 'clients' ? styles.active : ''}`}
+          onClick={() => setActiveTab('clients')}
+        >
+          Clients
+        </button>
+        <button
+          className={`${styles.tabButton} ${activeTab === 'widget' ? styles.active : ''}`}
+          onClick={() => setActiveTab('widget')}
+        >
+          Widget Settings
+        </button>
+        <button
+          className={`${styles.tabButton} ${activeTab === 'branding' ? styles.active : ''}`}
+          onClick={() => setActiveTab('branding')}
+        >
+          Brand Settings
+        </button>
+        <button
+          className={`${styles.tabButton} ${activeTab === 'team' ? styles.active : ''}`}
+          onClick={() => setActiveTab('team')}
+        >
+          Team Members
+        </button>
+        <button
+          className={`${styles.tabButton} ${activeTab === 'profile' ? styles.active : ''}`}
+          onClick={() => setActiveTab('profile')}
+        >
+          Profile
+        </button>
+      </div>
+
+      <div className={styles.content}>
+        {renderContent()}
+      </div>
     </div>
   );
 };
