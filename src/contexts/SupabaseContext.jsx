@@ -11,7 +11,8 @@ export const SupabaseProvider = ({ children }) => {
     // Check if user data exists in localStorage
     const storedUser = localStorage.getItem('user');
     if (storedUser) {
-      setUser(JSON.parse(storedUser));
+      const userData = JSON.parse(storedUser);
+      setUser(userData);
     }
 
     // Subscribe to auth changes
@@ -37,7 +38,8 @@ export const SupabaseProvider = ({ children }) => {
   const value = {
     user,
     setUser,
-    loading
+    loading,
+    supabase // Expose supabase client
   };
 
   return (
