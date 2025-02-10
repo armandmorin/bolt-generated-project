@@ -1,6 +1,7 @@
 import React from 'react';
 import { Routes, Route, useLocation, Navigate } from 'react-router-dom';
-import BrandSettingsProvider from './components/BrandSettingsProvider';
+import { SupabaseProvider } from './contexts/SupabaseContext';
+import ProtectedRoute from './components/ProtectedRoute';
 import Header from './components/Header';
 import Login from './pages/Login';
 import AdminRegistration from './pages/AdminRegistration';
@@ -12,41 +13,15 @@ import ClientEdit from './pages/ClientEdit';
 import SupabaseTest from './components/SupabaseTest';
 import './styles/global.css';
 
-// Protected Route component
-const ProtectedRoute = ({ children }) => {
-  const userRole = localStorage.getItem('userRole');
-  const location = useLocation();
-
-  // List of routes that don't require authentication
-  const publicRoutes = ['/', '/register', '/super-admin-login', '/test'];
-  
-  // If it's a public route or test route, allow access
-  if (publicRoutes.includes(location.pathname)) {
-    return children;
-  }
-
-  // If not authenticated and trying to access a protected route, redirect to login
-  if (!userRole) {
-    return <Navigate to="/" replace />;
-  }
-
-  return children;
-};
-
 function App() {
   const location = useLocation();
-  const brandSettings = JSON.parse(localStorage.getItem('brandSettings')) || {
-    logo: '',
-    primaryColor: '#2563eb'
-  };
-
   const publicRoutes = ['/', '/register', '/super-admin-login', '/test'];
   const hideHeader = publicRoutes.includes(location.pathname);
 
   return (
-    <BrandSettingsProvider>
+    <SupabaseProvider>
       <div className="app-container">
-        {!hideHeader && <Header logo={brandSettings.logo} primaryColor={brandSettings.primaryColor} />}
+        {!hideHeader && <Header />}
         <main className="main-content">
           <Routes>
             {/* Public Routes */}
@@ -59,7 +34,7 @@ function App() {
             <Route
               path="/super-admin"
               element={
-                <ProtectedRoute>
+                <ProtectedRoute allowedRoles={['superadmin']}>
                   <SuperAdminDashboard />
                 </ProtectedRoute>
               }
@@ -67,7 +42,7 @@ function App() {
             <Route
               path="/admin"
               element={
-                <ProtectedRoute>
+                <ProtectedRoute allowedRoles={['admin']}>
                   <AdminDashboard />
                 </ProtectedRoute>
               }
@@ -75,7 +50,7 @@ function App() {
             <Route
               path="/client"
               element={
-                <ProtectedRoute>
+                <ProtectedRoute allowedRoles={['admin']}>
                   <ClientDashboard />
                 </ProtectedRoute>
               }
@@ -83,7 +58,7 @@ function App() {
             <Route
               path="/client-edit/:clientId"
               element={
-                <ProtectedRoute>
+                <ProtectedRoute allowedRoles={['admin']}>
                   <ClientEdit />
                 </ProtectedRoute>
               }
@@ -94,7 +69,7 @@ function App() {
           </Routes>
         </main>
       </div>
-    </BrandSettingsProvider>
+    </SupabaseProvider>
   );
 }
 
