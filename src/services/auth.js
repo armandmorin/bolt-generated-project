@@ -8,7 +8,14 @@ export const loginUser = async (email, password) => {
       password
     });
 
-    if (authError) throw authError;
+    if (authError) {
+      console.error('Auth error:', authError);
+      throw new Error('Invalid login credentials');
+    }
+
+    if (!authData?.user) {
+      throw new Error('No user data returned');
+    }
 
     // Then get the user's role from our users table
     const { data: userData, error: userError } = await supabase
@@ -17,12 +24,19 @@ export const loginUser = async (email, password) => {
       .eq('email', email)
       .single();
 
-    if (userError) throw userError;
-    if (!userData) throw new Error('User not found');
+    if (userError) {
+      console.error('User data error:', userError);
+      throw new Error('Error fetching user data');
+    }
+
+    if (!userData) {
+      throw new Error('User not found in database');
+    }
 
     return {
       ...authData.user,
       role: userData.role,
+      name: userData.name,
       company: userData.company
     };
   } catch (error) {
@@ -47,6 +61,7 @@ export const getCurrentUser = async () => {
     return {
       ...authUser,
       role: userData.role,
+      name: userData.name,
       company: userData.company
     };
   } catch (error) {
