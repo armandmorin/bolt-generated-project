@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { supabase } from '../lib/supabase';
+import { getAdminBrandSettings, updateBrandSettings, applyBrandSettings, uploadLogo } from '../services/brandSettings';
 import ClientManagement from './ClientManagement';
 import WidgetCustomization from './WidgetCustomization';
 import ProfileSettings from './ProfileSettings';
@@ -21,66 +21,19 @@ const AdminDashboard = () => {
     loadBrandSettings();
   }, []);
 
-  // Update CSS variables when brand settings change
   useEffect(() => {
-    document.documentElement.style.setProperty('--primary-color', brandSettings.primary_color);
-    document.documentElement.style.setProperty('--secondary-color', brandSettings.secondary_color);
-    document.documentElement.style.setProperty('--header-color', brandSettings.header_color);
-  }, [brandSettings.primary_color, brandSettings.secondary_color, brandSettings.header_color]);
+    applyBrandSettings(brandSettings);
+  }, [brandSettings]);
 
   const loadBrandSettings = async () => {
     try {
-      const { data, error } = await supabase
-        .from('brand_settings')
-        .select('*')
-        .single();
+      const user = JSON.parse(localStorage.getItem('user'));
+      if (!user?.id) return;
 
-      if (error) {
-        throw error;
-      }
-
-      if (data) {
-        setBrandSettings({
-          logo: data.logo || '',
-          primary_color: data.primary_color || '#2563eb',
-          secondary_color: data.secondary_color || '#ffffff',
-          header_color: data.header_color || '#2563eb'
-        });
-      }
+      const settings = await getAdminBrandSettings(user.id);
+      setBrandSettings(settings);
     } catch (error) {
       console.error('Error loading brand settings:', error);
-    }
-  };
-
-  const uploadLogo = async (base64Image) => {
-    try {
-      // Convert base64 to blob
-      const base64Response = await fetch(base64Image);
-      const blob = await base64Response.blob();
-
-      // Create file name
-      const fileName = `logo-${Date.now()}.${blob.type.split('/')[1]}`;
-      const filePath = `logos/${fileName}`;
-
-      // Upload to Supabase Storage
-      const { error: uploadError, data } = await supabase.storage
-        .from('brand-assets')
-        .upload(filePath, blob, {
-          contentType: blob.type,
-          upsert: true
-        });
-
-      if (uploadError) throw uploadError;
-
-      // Get public URL
-      const { data: { publicUrl } } = supabase.storage
-        .from('brand-assets')
-        .getPublicUrl(filePath);
-
-      return publicUrl;
-    } catch (error) {
-      console.error('Error uploading logo:', error);
-      throw error;
     }
   };
 
@@ -89,6 +42,9 @@ const AdminDashboard = () => {
     setSaving(true);
 
     try {
+      const user = JSON.parse(localStorage.getItem('user'));
+      if (!user?.id) throw new Error('User ID not found');
+
       let logoUrl = brandSettings.logo;
 
       // If there's a new logo (base64), upload it
@@ -96,44 +52,19 @@ const AdminDashboard = () => {
         logoUrl = await uploadLogo(brandSettings.logo);
       }
 
-      const { data: existingSettings } = await supabase
-        .from('brand_settings')
-        .select('id')
-        .single();
+      const settingsToUpdate = {
+        ...brandSettings,
+        logo: logoUrl
+      };
 
-      let error;
-      if (existingSettings) {
-        // Update existing settings
-        const { error: updateError } = await supabase
-          .from('brand_settings')
-          .update({
-            logo: logoUrl,
-            primary_color: brandSettings.primary_color,
-            secondary_color: brandSettings.secondary_color,
-            header_color: brandSettings.header_color,
-            updated_at: new Date().toISOString()
-          })
-          .eq('id', existingSettings.id);
-        error = updateError;
+      const success = await updateBrandSettings(settingsToUpdate, user.id);
+
+      if (success) {
+        alert('Brand settings updated successfully!');
+        setBrandSettings(settingsToUpdate);
       } else {
-        // Insert new settings
-        const { error: insertError } = await supabase
-          .from('brand_settings')
-          .insert([{
-            logo: logoUrl,
-            primary_color: brandSettings.primary_color,
-            secondary_color: brandSettings.secondary_color,
-            header_color: brandSettings.header_color
-          }]);
-        error = insertError;
+        throw new Error('Failed to update settings');
       }
-
-      if (error) {
-        throw error;
-      }
-
-      alert('Brand settings updated successfully!');
-      await loadBrandSettings();
     } catch (error) {
       console.error('Error saving brand settings:', error);
       alert('Error saving brand settings. Please try again.');

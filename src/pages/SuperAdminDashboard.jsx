@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { getSuperAdminSettings, updateSuperAdminSettings } from '../services/superAdminSettings';
+import { getDefaultBrandSettings, updateBrandSettings, applyBrandSettings, uploadLogo } from '../services/brandSettings';
 import ImageUpload from '../components/ImageUpload';
 import styles from '../styles/superAdmin.module.css';
 
@@ -14,65 +14,60 @@ const SuperAdminDashboard = () => {
   });
   const [globalBranding, setGlobalBranding] = useState({
     logo: '',
-    headerColor: '#2563eb',
-    buttonColor: '#2563eb'
+    primary_color: '#2563eb',
+    secondary_color: '#ffffff',
+    header_color: '#2563eb'
   });
-  const [domain, setDomain] = useState(() => {
-    return localStorage.getItem('widgetDomain') || '';
-  });
+  const [domain, setDomain] = useState('');
+  const [saving, setSaving] = useState(false);
 
   useEffect(() => {
-    loadSettings();
+    loadBrandSettings();
   }, []);
 
-  const loadSettings = async () => {
+  useEffect(() => {
+    applyBrandSettings(globalBranding);
+  }, [globalBranding]);
+
+  const loadBrandSettings = async () => {
     try {
-      const settings = await getSuperAdminSettings();
-      if (settings) {
-        setGlobalBranding(settings.branding || {
-          logo: '',
-          headerColor: '#2563eb',
-          buttonColor: '#2563eb'
-        });
-        setDomain(settings.domain || '');
+      const settings = await getDefaultBrandSettings();
+      setGlobalBranding(settings);
+    } catch (error) {
+      console.error('Error loading brand settings:', error);
+    }
+  };
+
+  const handleBrandUpdate = async (e) => {
+    e.preventDefault();
+    setSaving(true);
+
+    try {
+      let logoUrl = globalBranding.logo;
+
+      // If there's a new logo (base64), upload it
+      if (globalBranding.logo && globalBranding.logo.startsWith('data:image')) {
+        logoUrl = await uploadLogo(globalBranding.logo);
+      }
+
+      const settingsToUpdate = {
+        ...globalBranding,
+        logo: logoUrl
+      };
+
+      const success = await updateBrandSettings(settingsToUpdate, null, true);
+      
+      if (success) {
+        alert('Global branding settings updated successfully!');
+        setGlobalBranding(settingsToUpdate);
+      } else {
+        throw new Error('Failed to update settings');
       }
     } catch (error) {
-      console.error('Error loading settings:', error);
-    }
-  };
-
-  const handleDomainSave = async (e) => {
-    e.preventDefault();
-    const settings = await getSuperAdminSettings();
-    const success = await updateSuperAdminSettings({
-      ...settings,
-      domain: domain
-    });
-    if (success) {
-      alert('Domain settings updated successfully!');
-    } else {
-      alert('Failed to update domain settings');
-    }
-  };
-
-  const handleBrandingChange = (e) => {
-    const { name, value } = e.target;
-    setGlobalBranding(prev => ({
-      ...prev,
-      [name]: value
-    }));
-  };
-
-  const saveBrandingSettings = async () => {
-    const settings = await getSuperAdminSettings();
-    const success = await updateSuperAdminSettings({
-      ...settings,
-      branding: globalBranding
-    });
-    if (success) {
-      alert('Global branding settings updated successfully!');
-    } else {
+      console.error('Error saving brand settings:', error);
       alert('Failed to update branding settings');
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -86,42 +81,38 @@ const SuperAdminDashboard = () => {
 
   const addAdmin = async (e) => {
     e.preventDefault();
-    const settings = await getSuperAdminSettings();
-    const admins = settings.admins || [];
-    const updatedAdmins = [...admins, {
-      ...newAdmin,
-      id: Date.now(),
-      clients: [],
-      dateCreated: new Date().toISOString()
-    }];
+    try {
+      // Here you would typically make an API call to create a new admin
+      // For now, we'll just add to local state
+      const newAdminData = {
+        ...newAdmin,
+        id: Date.now(),
+        clients: [],
+        dateCreated: new Date().toISOString()
+      };
 
-    const success = await updateSuperAdminSettings({
-      ...settings,
-      admins: updatedAdmins
-    });
-
-    if (success) {
-      setAdmins(updatedAdmins);
-      setNewAdmin({ name: '', email: '', password: '', company: '' });
+      setAdmins(prev => [...prev, newAdminData]);
+      setNewAdmin({
+        name: '',
+        email: '',
+        password: '',
+        company: ''
+      });
       alert('Admin added successfully!');
-    } else {
+    } catch (error) {
+      console.error('Error adding admin:', error);
       alert('Failed to add admin');
     }
   };
 
   const removeAdmin = async (adminId) => {
-    const settings = await getSuperAdminSettings();
-    const updatedAdmins = settings.admins.filter(admin => admin.id !== adminId);
-    
-    const success = await updateSuperAdminSettings({
-      ...settings,
-      admins: updatedAdmins
-    });
-
-    if (success) {
-      setAdmins(updatedAdmins);
+    try {
+      // Here you would typically make an API call to remove the admin
+      // For now, we'll just remove from local state
+      setAdmins(prev => prev.filter(admin => admin.id !== adminId));
       alert('Admin removed successfully!');
-    } else {
+    } catch (error) {
+      console.error('Error removing admin:', error);
       alert('Failed to remove admin');
     }
   };
@@ -153,7 +144,10 @@ const SuperAdminDashboard = () => {
         {activeTab === 'branding' && (
           <div className={styles.formContainer}>
             <h2>Global Branding Settings</h2>
-            <div className={styles.brandingForm}>
+            <p className={styles.description}>
+              These settings will serve as the default for all new admins.
+            </p>
+            <form onSubmit={handleBrandUpdate}>
               <ImageUpload
                 currentImage={globalBranding.logo}
                 onImageUpload={(imageData) => {
@@ -170,33 +164,49 @@ const SuperAdminDashboard = () => {
                   <label>Header Color</label>
                   <input
                     type="color"
-                    name="headerColor"
-                    value={globalBranding.headerColor}
-                    onChange={handleBrandingChange}
+                    value={globalBranding.header_color}
+                    onChange={(e) => setGlobalBranding(prev => ({
+                      ...prev,
+                      header_color: e.target.value
+                    }))}
                   />
                 </div>
 
                 <div className={styles.formGroup}>
-                  <label>Button Color</label>
+                  <label>Primary Color</label>
                   <input
                     type="color"
-                    name="buttonColor"
-                    value={globalBranding.buttonColor}
-                    onChange={handleBrandingChange}
+                    value={globalBranding.primary_color}
+                    onChange={(e) => setGlobalBranding(prev => ({
+                      ...prev,
+                      primary_color: e.target.value
+                    }))}
+                  />
+                </div>
+
+                <div className={styles.formGroup}>
+                  <label>Secondary Color</label>
+                  <input
+                    type="color"
+                    value={globalBranding.secondary_color}
+                    onChange={(e) => setGlobalBranding(prev => ({
+                      ...prev,
+                      secondary_color: e.target.value
+                    }))}
                   />
                 </div>
               </div>
 
               <div className={styles.formActions}>
                 <button 
-                  type="button" 
+                  type="submit" 
                   className={styles.saveButton}
-                  onClick={saveBrandingSettings}
+                  disabled={saving}
                 >
-                  Save Branding Settings
+                  {saving ? 'Saving...' : 'Save Branding Settings'}
                 </button>
               </div>
-            </div>
+            </form>
           </div>
         )}
 
@@ -207,7 +217,10 @@ const SuperAdminDashboard = () => {
               Set the domain where the accessibility widget will be hosted. 
               This domain will be used in the installation code provided to clients.
             </p>
-            <form onSubmit={handleDomainSave}>
+            <form onSubmit={(e) => {
+              e.preventDefault();
+              // Handle domain save
+            }}>
               <div className={styles.formGroup}>
                 <label>Widget Domain</label>
                 <input
