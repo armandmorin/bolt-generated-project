@@ -1,22 +1,24 @@
--- Drop existing policies if they exist
-DROP POLICY IF EXISTS "Users can view own data" ON public.users;
-DROP POLICY IF EXISTS "Authenticated users can read users" ON public.users;
+-- Ensure unique constraint on admin_id in brand_settings
+ALTER TABLE public.brand_settings 
+ADD CONSTRAINT unique_admin_id UNIQUE (admin_id);
+
+-- Recreate the table with proper constraints if needed
+CREATE TABLE IF NOT EXISTS public.brand_settings (
+    id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+    admin_id UUID UNIQUE NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+    logo TEXT,
+    primary_color TEXT DEFAULT '#2563eb',
+    secondary_color TEXT DEFAULT '#ffffff',
+    header_color TEXT DEFAULT '#2563eb',
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
 
 -- Enable Row Level Security
-ALTER TABLE public.users ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.brand_settings ENABLE ROW LEVEL SECURITY;
 
--- Create policy to allow authenticated users to read their own data
-CREATE POLICY "Users can view own data" 
-ON public.users 
-FOR SELECT 
-USING (auth.uid() = id);
-
--- Create policy to allow admin access
-CREATE POLICY "Authenticated users can read users" 
-ON public.users 
-FOR SELECT 
-TO authenticated 
-USING (true);
-
--- Grant necessary permissions
-GRANT SELECT ON public.users TO authenticated;
+-- Create policies
+CREATE POLICY "Users can manage their own brand settings" 
+ON public.brand_settings 
+FOR ALL 
+USING (auth.uid() = admin_id);

@@ -25,36 +25,18 @@ export const getBrandSettings = async (adminId) => {
     const { data, error } = await supabase
       .from('brand_settings')
       .select()
-      .eq('admin_id', adminId);
+      .eq('admin_id', adminId)
+      .single();
 
     if (error) {
       console.warn('No brand settings found, returning default', error);
-      return {
-        logo: '',
-        primary_color: '#2563eb',
-        secondary_color: '#ffffff',
-        header_color: '#2563eb',
-        admin_id: adminId
-      };
+      return createDefaultBrandSettings(adminId);
     }
 
-    // Return first result or default settings
-    return data[0] || {
-      logo: '',
-      primary_color: '#2563eb',
-      secondary_color: '#ffffff',
-      header_color: '#2563eb',
-      admin_id: adminId
-    };
+    return data;
   } catch (error) {
     console.error('Error fetching brand settings:', error);
-    return {
-      logo: '',
-      primary_color: '#2563eb',
-      secondary_color: '#ffffff',
-      header_color: '#2563eb',
-      admin_id: adminId
-    };
+    return createDefaultBrandSettings(adminId);
   }
 };
 
@@ -70,15 +52,17 @@ export const createDefaultBrandSettings = async (adminId) => {
       updated_at: new Date().toISOString()
     };
 
+    // Use insert or ignore to handle existing records
     const { data, error } = await supabase
       .from('brand_settings')
-      .upsert(defaultSettings, { 
-        onConflict: 'admin_id' 
+      .upsert(defaultSettings, {
+        onConflict: 'admin_id',
+        ignoreDuplicates: true
       })
       .select();
 
     if (error) {
-      console.error('Error creating default brand settings:', error);
+      console.error('Error creating/updating default brand settings:', error);
       return defaultSettings;
     }
 
@@ -92,6 +76,28 @@ export const createDefaultBrandSettings = async (adminId) => {
       secondary_color: '#ffffff',
       header_color: '#2563eb'
     };
+  }
+};
+
+export const updateBrandSettings = async (settingsData) => {
+  try {
+    const { data, error } = await supabase
+      .from('brand_settings')
+      .upsert(settingsData, {
+        onConflict: 'admin_id',
+        ignoreDuplicates: false
+      })
+      .select();
+
+    if (error) {
+      console.error('Error updating brand settings:', error);
+      throw error;
+    }
+
+    return data[0] || settingsData;
+  } catch (error) {
+    console.error('Unexpected error updating brand settings:', error);
+    throw error;
   }
 };
 
