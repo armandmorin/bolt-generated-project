@@ -25,7 +25,7 @@ const Login = () => {
       // Hardcoded admin credentials for demo
       if (email === 'onebobdavis@gmail.com' && password === '1armand') {
         const userData = {
-          id: 'admin-id',
+          id: '550e8400-e29b-41d4-a716-446655440000', // UUID format
           email: 'onebobdavis@gmail.com',
           role: 'admin',
           name: 'Admin User'

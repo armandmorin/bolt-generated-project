@@ -20,7 +20,7 @@ const SuperAdminLogin = () => {
       // Hardcoded super admin credentials for demo
       if (email === 'armandmorin@gmail.com' && password === '1armand') {
         const userData = {
-          id: 'super-admin-id',
+          id: '550e8400-e29b-41d4-a716-446655440001', // UUID format
           email: 'armandmorin@gmail.com',
           role: 'superadmin',
           name: 'Super Admin'
