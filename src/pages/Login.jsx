@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
+import { useSupabase } from '../contexts/SupabaseContext';
+import { loginUser } from '../services/auth';
 import styles from '../styles/modules/login.module.css';
 
 const Login = () => {
@@ -8,6 +10,7 @@ const Login = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const navigate = useNavigate();
+  const { setUser } = useSupabase();
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -15,25 +18,25 @@ const Login = () => {
     setError('');
 
     try {
-      // Hardcoded admin credentials for demo
-      if (email === 'onebobdavis@gmail.com' && password === '1armand') {
-        const userData = {
-          id: '550e8400-e29b-41d4-a716-446655440000',
-          email: 'onebobdavis@gmail.com',
-          role: 'admin',
-          name: 'Admin User'
-        };
-        
-        // Store user data in localStorage
-        localStorage.setItem('user', JSON.stringify(userData));
-        
+      const userData = await loginUser(email, password);
+      
+      // Store user data
+      localStorage.setItem('user', JSON.stringify(userData));
+      setUser(userData);
+
+      // Navigate based on role
+      if (userData.role === 'superadmin') {
+        navigate('/super-admin');
+      } else if (userData.role === 'admin') {
         navigate('/admin');
       } else {
-        setError('Invalid credentials');
+        throw new Error('Invalid user role');
       }
     } catch (error) {
       console.error('Login error:', error);
-      setError('Invalid credentials');
+      setError(error.message === 'Invalid login credentials'
+        ? 'Invalid email or password'
+        : 'An error occurred during login');
     } finally {
       setLoading(false);
     }
