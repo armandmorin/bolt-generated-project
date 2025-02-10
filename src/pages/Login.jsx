@@ -34,9 +34,11 @@ const Login = () => {
       }
     } catch (error) {
       console.error('Login error:', error);
-      setError(error.message === 'Invalid login credentials'
-        ? 'Invalid email or password'
-        : 'An error occurred during login');
+      setError(
+        error.message === 'Invalid login credentials' 
+          ? 'Invalid email or password'
+          : 'An error occurred during login'
+      );
     } finally {
       setLoading(false);
     }

@@ -11,16 +11,11 @@ export const supabase = createClient(supabaseUrl, supabaseKey, {
     autoRefreshToken: true,
     detectSessionInUrl: true,
     storage: window.localStorage,
-    storageKey: 'supabase.auth.token',
-    flowType: 'implicit'
+    storageKey: 'supabase.auth.token'
   },
-  db: {
-    schema: 'public'
-  },
-  global: {
-    headers: {
-      'X-Client-Info': 'supabase-js-v2'
-    }
+  headers: {
+    'Content-Type': 'application/json',
+    'Accept': 'application/json'
   }
 });
 
@@ -44,6 +39,7 @@ export const signOut = async () => {
   try {
     const { error } = await supabase.auth.signOut();
     if (error) throw error;
+    localStorage.removeItem('user');
   } catch (error) {
     console.error('Error signing out:', error.message);
     throw error;
@@ -72,23 +68,10 @@ export const getCurrentUser = async () => {
   }
 };
 
-// Helper function to check if user is authenticated
-export const isAuthenticated = async () => {
-  const session = await getCurrentSession();
-  return !!session;
-};
-
-// Helper function to get auth token
-export const getAuthToken = async () => {
-  const session = await getCurrentSession();
-  return session?.access_token;
-};
-
 // Initialize session from localStorage if exists
 const initializeSession = async () => {
   const session = await getCurrentSession();
   if (session) {
-    // Set the session in the client
     await supabase.auth.setSession({
       access_token: session.access_token,
       refresh_token: session.refresh_token
@@ -99,5 +82,4 @@ const initializeSession = async () => {
 // Initialize the session when the file is loaded
 initializeSession().catch(console.error);
 
-// Export the initialized client and helper functions
 export default supabase;
