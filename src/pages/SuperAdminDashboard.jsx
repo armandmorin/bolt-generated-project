@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { supabase } from '../lib/supabase';
-import { getSuperAdminSettings, updateSuperAdminSettings } from '../lib/superAdminSettings';
+import { getSuperAdminSettings, updateSuperAdminSettings } from '../services/superAdminSettings';
 import ImageUpload from '../components/ImageUpload';
-import styles from '../styles/admin.module.css';
+import styles from '../styles/superAdmin.module.css';
 
 const SuperAdminDashboard = () => {
   const [activeTab, setActiveTab] = useState('branding');
@@ -18,44 +17,41 @@ const SuperAdminDashboard = () => {
     headerColor: '#2563eb',
     buttonColor: '#2563eb'
   });
-  const [domain, setDomain] = useState('');
-  const [saving, setSaving] = useState(false);
+  const [domain, setDomain] = useState(() => {
+    return localStorage.getItem('widgetDomain') || '';
+  });
 
   useEffect(() => {
     loadSettings();
-    loadAdmins();
   }, []);
 
   const loadSettings = async () => {
     try {
       const settings = await getSuperAdminSettings();
       if (settings) {
-        setGlobalBranding({
-          logo: settings.logo || '',
-          headerColor: settings.headerColor || '#2563eb',
-          buttonColor: settings.buttonColor || '#2563eb'
+        setGlobalBranding(settings.branding || {
+          logo: '',
+          headerColor: '#2563eb',
+          buttonColor: '#2563eb'
         });
-        setDomain(settings.widgetDomain || '');
+        setDomain(settings.domain || '');
       }
     } catch (error) {
       console.error('Error loading settings:', error);
     }
   };
 
-  const loadAdmins = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('admins')
-        .select('*')
-        .order('created_at', { ascending: false });
-
-      if (error) throw error;
-
-      if (data) {
-        setAdmins(data);
-      }
-    } catch (error) {
-      console.error('Error loading admins:', error);
+  const handleDomainSave = async (e) => {
+    e.preventDefault();
+    const settings = await getSuperAdminSettings();
+    const success = await updateSuperAdminSettings({
+      ...settings,
+      domain: domain
+    });
+    if (success) {
+      alert('Domain settings updated successfully!');
+    } else {
+      alert('Failed to update domain settings');
     }
   };
 
@@ -68,47 +64,15 @@ const SuperAdminDashboard = () => {
   };
 
   const saveBrandingSettings = async () => {
-    setSaving(true);
-    try {
-      const success = await updateSuperAdminSettings({
-        ...await getSuperAdminSettings(),
-        logo: globalBranding.logo,
-        headerColor: globalBranding.headerColor,
-        buttonColor: globalBranding.buttonColor
-      });
-
-      if (success) {
-        alert('Global branding settings updated successfully!');
-      } else {
-        throw new Error('Failed to update settings');
-      }
-    } catch (error) {
-      console.error('Error saving branding settings:', error);
-      alert('Error saving branding settings');
-    } finally {
-      setSaving(false);
-    }
-  };
-
-  const handleDomainSave = async (e) => {
-    e.preventDefault();
-    setSaving(true);
-    try {
-      const success = await updateSuperAdminSettings({
-        ...await getSuperAdminSettings(),
-        widgetDomain: domain
-      });
-
-      if (success) {
-        alert('Domain settings updated successfully!');
-      } else {
-        throw new Error('Failed to update domain settings');
-      }
-    } catch (error) {
-      console.error('Error saving domain settings:', error);
-      alert('Error saving domain settings');
-    } finally {
-      setSaving(false);
+    const settings = await getSuperAdminSettings();
+    const success = await updateSuperAdminSettings({
+      ...settings,
+      branding: globalBranding
+    });
+    if (success) {
+      alert('Global branding settings updated successfully!');
+    } else {
+      alert('Failed to update branding settings');
     }
   };
 
@@ -122,44 +86,43 @@ const SuperAdminDashboard = () => {
 
   const addAdmin = async (e) => {
     e.preventDefault();
-    setSaving(true);
-    try {
-      const { error } = await supabase
-        .from('admins')
-        .insert([{
-          name: newAdmin.name,
-          email: newAdmin.email,
-          password: newAdmin.password, // In production, use proper password hashing
-          company: newAdmin.company,
-          role: 'admin'
-        }]);
+    const settings = await getSuperAdminSettings();
+    const admins = settings.admins || [];
+    const updatedAdmins = [...admins, {
+      ...newAdmin,
+      id: Date.now(),
+      clients: [],
+      dateCreated: new Date().toISOString()
+    }];
 
-      if (error) throw error;
+    const success = await updateSuperAdminSettings({
+      ...settings,
+      admins: updatedAdmins
+    });
 
-      alert('Admin added successfully!');
+    if (success) {
+      setAdmins(updatedAdmins);
       setNewAdmin({ name: '', email: '', password: '', company: '' });
-      await loadAdmins();
-    } catch (error) {
-      console.error('Error adding admin:', error);
-      alert('Error adding admin');
-    } finally {
-      setSaving(false);
+      alert('Admin added successfully!');
+    } else {
+      alert('Failed to add admin');
     }
   };
 
   const removeAdmin = async (adminId) => {
-    try {
-      const { error } = await supabase
-        .from('admins')
-        .delete()
-        .eq('id', adminId);
+    const settings = await getSuperAdminSettings();
+    const updatedAdmins = settings.admins.filter(admin => admin.id !== adminId);
+    
+    const success = await updateSuperAdminSettings({
+      ...settings,
+      admins: updatedAdmins
+    });
 
-      if (error) throw error;
-
-      await loadAdmins();
-    } catch (error) {
-      console.error('Error removing admin:', error);
-      alert('Error removing admin');
+    if (success) {
+      setAdmins(updatedAdmins);
+      alert('Admin removed successfully!');
+    } else {
+      alert('Failed to remove admin');
     }
   };
 
@@ -229,9 +192,8 @@ const SuperAdminDashboard = () => {
                   type="button" 
                   className={styles.saveButton}
                   onClick={saveBrandingSettings}
-                  disabled={saving}
                 >
-                  {saving ? 'Saving...' : 'Save Branding Settings'}
+                  Save Branding Settings
                 </button>
               </div>
             </div>
@@ -260,12 +222,8 @@ const SuperAdminDashboard = () => {
                 </span>
               </div>
               <div className={styles.formActions}>
-                <button 
-                  type="submit" 
-                  className={styles.saveButton}
-                  disabled={saving}
-                >
-                  {saving ? 'Saving...' : 'Save Domain'}
+                <button type="submit" className={styles.saveButton}>
+                  Save Domain
                 </button>
               </div>
             </form>
@@ -321,12 +279,8 @@ const SuperAdminDashboard = () => {
                   />
                 </div>
 
-                <button 
-                  type="submit" 
-                  className={styles.addButton}
-                  disabled={saving}
-                >
-                  {saving ? 'Adding...' : 'Add Admin'}
+                <button type="submit" className={styles.addButton}>
+                  Add Admin
                 </button>
               </form>
             </div>
@@ -350,8 +304,8 @@ const SuperAdminDashboard = () => {
                       <td>{admin.name}</td>
                       <td>{admin.email}</td>
                       <td>{admin.company}</td>
-                      <td>{admin.clients?.length || 0}</td>
-                      <td>{new Date(admin.created_at).toLocaleDateString()}</td>
+                      <td>{admin.clients.length}</td>
+                      <td>{new Date(admin.dateCreated).toLocaleDateString()}</td>
                       <td>
                         <button
                           className={styles.removeButton}

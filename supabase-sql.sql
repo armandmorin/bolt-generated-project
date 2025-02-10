@@ -1,37 +1,40 @@
--- Create admins table
-CREATE TABLE IF NOT EXISTS admins (
+-- Create super_admin_settings table if it doesn't exist
+CREATE TABLE IF NOT EXISTS super_admin_settings (
     id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-    name VARCHAR NOT NULL,
-    email VARCHAR NOT NULL UNIQUE,
-    password VARCHAR NOT NULL, -- In production, use proper password hashing
-    company VARCHAR NOT NULL,
-    role VARCHAR NOT NULL DEFAULT 'admin',
-    clients JSONB DEFAULT '[]'::jsonb,
+    settings JSONB NOT NULL DEFAULT '{}'::jsonb,
     created_at TIMESTAMPTZ DEFAULT NOW(),
     updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
 -- Enable RLS
-ALTER TABLE admins ENABLE ROW LEVEL SECURITY;
+ALTER TABLE super_admin_settings ENABLE ROW LEVEL SECURITY;
 
--- Create policies
-CREATE POLICY "Enable read access for all users" ON admins
-    FOR SELECT
-    USING (true);
+-- Drop existing policy if it exists
+DROP POLICY IF EXISTS "Enable all operations for all users" ON super_admin_settings;
 
-CREATE POLICY "Enable insert for authenticated users" ON admins
-    FOR INSERT
-    WITH CHECK (auth.role() = 'authenticated');
+-- Create new policy
+CREATE POLICY "Enable all operations for all users" ON super_admin_settings
+    FOR ALL
+    USING (true)
+    WITH CHECK (true);
 
-CREATE POLICY "Enable update for authenticated users" ON admins
-    FOR UPDATE
-    USING (auth.role() = 'authenticated');
+-- Grant permissions
+GRANT ALL ON super_admin_settings TO anon;
+GRANT ALL ON super_admin_settings TO authenticated;
+GRANT ALL ON super_admin_settings TO service_role;
 
-CREATE POLICY "Enable delete for authenticated users" ON admins
-    FOR DELETE
-    USING (auth.role() = 'authenticated');
+-- Insert default settings if none exist
+INSERT INTO super_admin_settings (settings)
+SELECT jsonb_build_object(
+    'branding', jsonb_build_object(
+        'logo', '',
+        'headerColor', '#2563eb',
+        'buttonColor', '#2563eb'
+    ),
+    'domain', '',
+    'admins', '[]'::jsonb
+)
+WHERE NOT EXISTS (SELECT 1 FROM super_admin_settings);
 
--- Grant necessary permissions
-GRANT ALL ON admins TO anon;
-GRANT ALL ON admins TO authenticated;
-GRANT ALL ON admins TO service_role;
+-- Create index for better performance
+CREATE INDEX IF NOT EXISTS idx_super_admin_settings_updated_at ON super_admin_settings(updated_at);
