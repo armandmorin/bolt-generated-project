@@ -13,7 +13,7 @@ export const loginUser = async (email, password) => {
       throw error;
     }
 
-    // If authentication is successful, create a user object
+    // Create base user object
     const userInfo = {
       id: data.user.id,
       email: data.user.email,
@@ -21,8 +21,9 @@ export const loginUser = async (email, password) => {
       name: data.user.email.split('@')[0]
     };
 
-    // Optional: Try to get additional user info if needed
+    // Try to get additional user info, but don't make it critical
     try {
+      // Use the session token for authorization
       const { data: userData } = await supabase
         .from('users')
         .select('role, name')
@@ -51,7 +52,7 @@ export const getCurrentUser = async () => {
     if (error) throw error;
     if (!user) return null;
 
-    // Create user object
+    // Create base user object
     const userInfo = {
       id: user.id,
       email: user.email,
@@ -59,7 +60,7 @@ export const getCurrentUser = async () => {
       name: user.email.split('@')[0]
     };
 
-    // Optional: Try to get additional user info
+    // Try to get additional user info, but don't make it critical
     try {
       const { data: userData } = await supabase
         .from('users')

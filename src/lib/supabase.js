@@ -12,7 +12,7 @@ export const supabase = createClient(supabaseUrl, supabaseKey, {
       'apikey': supabaseKey,
       'Authorization': `Bearer ${supabaseKey}`,
       'Content-Type': 'application/json',
-      'Accept': 'application/json'
+      'Accept': 'application/vnd.pgrst.object+json'
     }
   },
   db: {
@@ -22,7 +22,6 @@ export const supabase = createClient(supabaseUrl, supabaseKey, {
 
 export const getBrandSettings = async (adminId) => {
   try {
-    // Use .select() without specifying columns to get all columns
     const { data, error } = await supabase
       .from('brand_settings')
       .select()
