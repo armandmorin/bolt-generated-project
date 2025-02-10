@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useSupabase } from '../contexts/SupabaseContext';
+import { supabase } from '../lib/supabase';
 import ImageUpload from '../components/ImageUpload';
 import styles from '../styles/superAdmin.module.css';
 
@@ -15,8 +16,10 @@ const SuperAdminDashboard = () => {
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
-    loadBrandSettings();
-  }, []);
+    if (user) {
+      loadBrandSettings();
+    }
+  }, [user]);
 
   const loadBrandSettings = async () => {
     try {
@@ -32,6 +35,10 @@ const SuperAdminDashboard = () => {
 
       if (data) {
         setBrandSettings(data);
+        // Apply settings to CSS variables
+        document.documentElement.style.setProperty('--primary-color', data.primary_color);
+        document.documentElement.style.setProperty('--secondary-color', data.secondary_color);
+        document.documentElement.style.setProperty('--header-color', data.header_color);
       }
     } catch (error) {
       console.error('Error loading brand settings:', error);
@@ -47,15 +54,24 @@ const SuperAdminDashboard = () => {
 
       // If there's a new logo (base64), upload it
       if (brandSettings.logo && brandSettings.logo.startsWith('data:image')) {
+        // Convert base64 to blob
+        const base64Data = brandSettings.logo.split(',')[1];
+        const blob = await fetch(`data:image/png;base64,${base64Data}`).then(r => r.blob());
+        
+        const fileName = `logo-${Date.now()}.png`;
+        
         const { data: uploadData, error: uploadError } = await supabase.storage
           .from('brand-assets')
-          .upload(`logos/${Date.now()}-logo`, brandSettings.logo);
+          .upload(fileName, blob, {
+            contentType: 'image/png',
+            upsert: true
+          });
 
         if (uploadError) throw uploadError;
         
         const { data: { publicUrl } } = supabase.storage
           .from('brand-assets')
-          .getPublicUrl(uploadData.path);
+          .getPublicUrl(fileName);
           
         logoUrl = publicUrl;
       }
