@@ -21,23 +21,17 @@ export const loginUser = async (email, password) => {
     const { data: userData, error: userError } = await supabase
       .from('users')
       .select('*')
-      .eq('email', email)
-      .maybeSingle();
+      .eq('id', session.user.id)
+      .single();
 
     if (userError) {
       console.error('User data error:', userError);
       throw new Error('Error fetching user data');
     }
 
-    if (!userData) {
-      throw new Error('User not found');
-    }
-
     return {
       ...session.user,
-      role: userData.user_role,
-      name: userData.name,
-      company: userData.company
+      ...userData
     };
   } catch (error) {
     console.error('Login error:', error);
@@ -55,17 +49,14 @@ export const getCurrentUser = async () => {
     const { data: userData, error: userError } = await supabase
       .from('users')
       .select('*')
-      .eq('email', session.user.email)
-      .maybeSingle();
+      .eq('id', session.user.id)
+      .single();
 
     if (userError) throw userError;
-    if (!userData) return null;
 
     return {
       ...session.user,
-      role: userData.user_role,
-      name: userData.name,
-      company: userData.company
+      ...userData
     };
   } catch (error) {
     console.error('Error getting current user:', error);

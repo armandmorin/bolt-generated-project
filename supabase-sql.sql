@@ -1,26 +1,16 @@
 -- Enable required extensions
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
--- Drop existing tables and policies
+-- Drop existing tables
 DROP TABLE IF EXISTS public.brand_settings CASCADE;
 DROP TABLE IF EXISTS public.users CASCADE;
 
--- Create enum for user roles if it doesn't exist
-DO $$
-BEGIN
-    IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'user_role') THEN
-        CREATE TYPE user_role AS ENUM ('superadmin', 'admin');
-    END IF;
-EXCEPTION
-    WHEN duplicate_object THEN NULL;
-END $$;
-
 -- Create users table
 CREATE TABLE public.users (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    id UUID PRIMARY KEY,
     name VARCHAR NOT NULL,
     email VARCHAR NOT NULL UNIQUE,
-    user_role user_role NOT NULL,
+    role VARCHAR NOT NULL,
     company VARCHAR,
     created_at TIMESTAMPTZ DEFAULT NOW(),
     updated_at TIMESTAMPTZ DEFAULT NOW()
@@ -28,7 +18,7 @@ CREATE TABLE public.users (
 
 -- Create brand_settings table
 CREATE TABLE public.brand_settings (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
     admin_id UUID REFERENCES public.users(id),
     logo TEXT,
     primary_color VARCHAR(7) NOT NULL DEFAULT '#2563eb',
@@ -44,152 +34,76 @@ CREATE TABLE public.brand_settings (
 ALTER TABLE public.users ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.brand_settings ENABLE ROW LEVEL SECURITY;
 
--- Drop existing policies
-DROP POLICY IF EXISTS "Allow public read access" ON public.users;
-DROP POLICY IF EXISTS "Allow individual read access" ON public.users;
-DROP POLICY IF EXISTS "Allow individual update access" ON public.users;
-DROP POLICY IF EXISTS "Allow public read access" ON public.brand_settings;
-DROP POLICY IF EXISTS "Allow individual update access" ON public.brand_settings;
-
 -- Create policies for users table
-CREATE POLICY "Allow public read access" ON public.users
-    FOR SELECT TO PUBLIC
+CREATE POLICY "Enable read access for all users"
+    ON public.users FOR SELECT
     USING (true);
 
-CREATE POLICY "Allow individual update access" ON public.users
-    FOR UPDATE TO authenticated
+CREATE POLICY "Enable update for own user"
+    ON public.users FOR UPDATE
     USING (auth.uid() = id);
 
 -- Create policies for brand_settings table
-CREATE POLICY "Allow public read access" ON public.brand_settings
-    FOR SELECT TO PUBLIC
+CREATE POLICY "Enable read access for all users"
+    ON public.brand_settings FOR SELECT
     USING (true);
 
-CREATE POLICY "Allow individual update access" ON public.brand_settings
-    FOR UPDATE TO authenticated
+CREATE POLICY "Enable update for own settings"
+    ON public.brand_settings FOR UPDATE
     USING (auth.uid() = admin_id);
 
--- Grant necessary permissions
-GRANT USAGE ON SCHEMA public TO anon, authenticated;
-GRANT ALL ON public.users TO anon, authenticated;
-GRANT ALL ON public.brand_settings TO anon, authenticated;
+CREATE POLICY "Enable insert for authenticated users"
+    ON public.brand_settings FOR INSERT
+    WITH CHECK (auth.uid() = admin_id);
 
--- Function to create auth users
-CREATE OR REPLACE FUNCTION create_auth_user(
-    p_email TEXT,
-    p_password TEXT,
-    p_role user_role,
-    p_name TEXT,
-    p_company TEXT
-) RETURNS UUID AS $$
-DECLARE
-    v_user_id UUID := uuid_generate_v4();
+-- Grant permissions
+GRANT ALL ON public.users TO authenticated;
+GRANT ALL ON public.brand_settings TO authenticated;
+GRANT SELECT ON public.users TO anon;
+GRANT SELECT ON public.brand_settings TO anon;
+
+-- Function to sync auth users to public users
+CREATE OR REPLACE FUNCTION sync_auth_users() RETURNS void AS $$
 BEGIN
-    -- Insert into auth.users
-    INSERT INTO auth.users (
+    -- Sync superadmin
+    INSERT INTO public.users (id, name, email, role, company)
+    SELECT 
         id,
-        instance_id,
+        email as name,
         email,
-        encrypted_password,
-        email_confirmed_at,
-        raw_app_meta_data,
-        raw_user_meta_data,
-        aud,
-        role,
-        created_at,
-        updated_at
-    ) VALUES (
-        v_user_id,
-        '00000000-0000-0000-0000-000000000000',
-        p_email,
-        crypt(p_password, gen_salt('bf')),
-        NOW(),
-        jsonb_build_object(
-            'provider', 'email',
-            'providers', ARRAY['email']
-        ),
-        jsonb_build_object(
-            'role', p_role,
-            'name', p_name,
-            'company', p_company
-        ),
-        'authenticated',
-        'authenticated',
-        NOW(),
-        NOW()
-    );
+        'superadmin',
+        'Super Admin Company'
+    FROM auth.users
+    WHERE email = 'armandmorin@gmail.com'
+    ON CONFLICT (email) DO UPDATE
+    SET role = 'superadmin',
+        company = 'Super Admin Company';
 
-    -- Insert into auth.identities
-    INSERT INTO auth.identities (
+    -- Sync admin
+    INSERT INTO public.users (id, name, email, role, company)
+    SELECT 
         id,
-        user_id,
-        identity_data,
-        provider,
-        provider_id,
-        created_at,
-        updated_at
-    ) VALUES (
-        v_user_id,
-        v_user_id,
-        jsonb_build_object(
-            'sub', v_user_id::text,
-            'email', p_email
-        ),
-        'email',
-        'email',
-        NOW(),
-        NOW()
-    );
-
-    -- Insert into public.users
-    INSERT INTO public.users (
-        id,
-        name,
+        email as name,
         email,
-        user_role,
-        company
-    ) VALUES (
-        v_user_id,
-        p_name,
-        p_email,
-        p_role,
-        p_company
-    );
+        'admin',
+        'Admin Company'
+    FROM auth.users
+    WHERE email = 'onebobdavis@gmail.com'
+    ON CONFLICT (email) DO UPDATE
+    SET role = 'admin',
+        company = 'Admin Company';
 
-    -- Create default brand settings
-    INSERT INTO public.brand_settings (
-        admin_id,
-        is_super_admin
-    ) VALUES (
-        v_user_id,
-        p_role = 'superadmin'
+    -- Create brand settings for users who don't have them
+    INSERT INTO public.brand_settings (admin_id, is_super_admin)
+    SELECT 
+        id,
+        CASE WHEN email = 'armandmorin@gmail.com' THEN true ELSE false END
+    FROM public.users
+    WHERE NOT EXISTS (
+        SELECT 1 FROM public.brand_settings WHERE admin_id = public.users.id
     );
-
-    RETURN v_user_id;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
--- Create initial users
-DO $$
-BEGIN
-    -- Create superadmin
-    PERFORM create_auth_user(
-        'armandmorin@gmail.com',
-        '1armand',
-        'superadmin'::user_role,
-        'Armand Morin',
-        'Super Admin Company'
-    );
-
-    -- Create admin
-    PERFORM create_auth_user(
-        'onebobdavis@gmail.com',
-        '1armand',
-        'admin'::user_role,
-        'Bob Davis',
-        'Admin Company'
-    );
-EXCEPTION WHEN unique_violation THEN
-    -- Ignore if users already exist
-    NULL;
-END $$;
+-- Run the sync function
+SELECT sync_auth_users();
