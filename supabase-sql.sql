@@ -1,66 +1,62 @@
--- Drop existing tables if they exist (be careful with this in production!)
-DROP TABLE IF EXISTS public.brand_settings CASCADE;
-DROP TABLE IF EXISTS public.users CASCADE;
-
--- Enable UUID extension if not already enabled
+-- Enable required extensions
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
--- Create users table
-CREATE TABLE public.users (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    email TEXT UNIQUE NOT NULL,
-    role TEXT NOT NULL CHECK (role IN ('superadmin', 'admin')),
-    name TEXT,
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc', NOW()),
-    updated_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc', NOW())
-);
+-- Drop existing brand_settings table if it exists
+DROP TABLE IF EXISTS public.brand_settings CASCADE;
 
 -- Create brand_settings table
 CREATE TABLE public.brand_settings (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    admin_id UUID REFERENCES public.users(id),
+    admin_id UUID NOT NULL,
     logo TEXT,
     primary_color TEXT DEFAULT '#2563eb',
     secondary_color TEXT DEFAULT '#ffffff',
     header_color TEXT DEFAULT '#2563eb',
     created_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc', NOW()),
-    updated_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc', NOW())
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc', NOW()),
+    UNIQUE(admin_id)
 );
 
 -- Enable Row Level Security (RLS)
-ALTER TABLE public.users ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.brand_settings ENABLE ROW LEVEL SECURITY;
 
--- Drop existing policies if they exist
-DROP POLICY IF EXISTS "Allow public read access" ON public.users;
-DROP POLICY IF EXISTS "Allow individual update" ON public.users;
+-- Create policies for brand_settings table
 DROP POLICY IF EXISTS "Allow read access" ON public.brand_settings;
-DROP POLICY IF EXISTS "Allow individual update" ON public.brand_settings;
+DROP POLICY IF EXISTS "Allow insert" ON public.brand_settings;
+DROP POLICY IF EXISTS "Allow update own settings" ON public.brand_settings;
 
--- Create policies
-CREATE POLICY "Allow public read access" ON public.users
-    FOR SELECT USING (true);
+CREATE POLICY "Allow read access"
+ON public.brand_settings FOR SELECT
+USING (true);
 
-CREATE POLICY "Allow individual update" ON public.users
-    FOR UPDATE USING (auth.uid()::text = id::text);
+CREATE POLICY "Allow insert"
+ON public.brand_settings FOR INSERT
+WITH CHECK (true);
 
-CREATE POLICY "Allow read access" ON public.brand_settings
-    FOR SELECT USING (true);
+CREATE POLICY "Allow update own settings"
+ON public.brand_settings FOR UPDATE
+USING (auth.uid()::text = admin_id::text);
 
-CREATE POLICY "Allow individual update" ON public.brand_settings
-    FOR UPDATE USING (auth.uid()::text = admin_id::text);
+-- Set up storage for logos
+INSERT INTO storage.buckets (id, name, public)
+VALUES ('brand-assets', 'brand-assets', true)
+ON CONFLICT (id) DO NOTHING;
 
--- Insert initial users (will error if they already exist, which is fine)
-INSERT INTO public.users (email, role, name)
-VALUES 
-    ('armandmorin@gmail.com', 'superadmin', 'Super Admin'),
-    ('onebobdavis@gmail.com', 'admin', 'Admin User')
-ON CONFLICT (email) 
-DO UPDATE SET 
-    role = EXCLUDED.role,
-    name = EXCLUDED.name,
-    updated_at = TIMEZONE('utc', NOW());
+-- Storage policies
+DROP POLICY IF EXISTS "Allow public read access" ON storage.objects;
+DROP POLICY IF EXISTS "Allow authenticated insert" ON storage.objects;
+
+CREATE POLICY "Allow public read access"
+ON storage.objects FOR SELECT
+USING (bucket_id = 'brand-assets');
+
+CREATE POLICY "Allow authenticated insert"
+ON storage.objects FOR INSERT
+WITH CHECK (
+    bucket_id = 'brand-assets' 
+    AND auth.role() = 'authenticated'
+);
 
 -- Grant necessary permissions
-GRANT ALL ON public.users TO authenticated;
 GRANT ALL ON public.brand_settings TO authenticated;
+GRANT ALL ON storage.objects TO authenticated;
