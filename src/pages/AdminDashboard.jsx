@@ -5,7 +5,7 @@ import WidgetCustomization from './WidgetCustomization';
 import ProfileSettings from './ProfileSettings';
 import TeamMembers from './TeamMembers';
 import ImageUpload from '../components/ImageUpload';
-import { supabase } from '../lib/supabase';
+import { supabase, getBrandSettings } from '../lib/supabase';
 import styles from '../styles/admin.module.css';
 
 const DEFAULT_BRAND_SETTINGS = {
@@ -34,32 +34,29 @@ const AdminDashboard = () => {
       setLoading(true);
       setError(null);
 
-      const { data, error: fetchError } = await supabase
-        .from('brand_settings')
-        .select('*')
-        .eq('admin_id', user.id)
-        .single();
+      const settings = await getBrandSettings(user.id);
 
-      if (fetchError && fetchError.code !== 'PGRST116') {
-        throw fetchError;
-      }
-
-      if (data) {
-        setBrandSettings(data);
-        applyBrandSettings(data);
+      if (settings) {
+        setBrandSettings(settings);
+        applyBrandSettings(settings);
+      } else {
+        // If no settings found, use default
+        setBrandSettings(DEFAULT_BRAND_SETTINGS);
+        applyBrandSettings(DEFAULT_BRAND_SETTINGS);
       }
     } catch (err) {
       console.error('Error loading brand settings:', err);
       setError('Failed to load brand settings. Please try again.');
+      setBrandSettings(DEFAULT_BRAND_SETTINGS);
     } finally {
       setLoading(false);
     }
   };
 
   const applyBrandSettings = (settings) => {
-    document.documentElement.style.setProperty('--primary-color', settings.primary_color);
-    document.documentElement.style.setProperty('--secondary-color', settings.secondary_color);
-    document.documentElement.style.setProperty('--header-color', settings.header_color);
+    document.documentElement.style.setProperty('--primary-color', settings.primary_color || '#2563eb');
+    document.documentElement.style.setProperty('--secondary-color', settings.secondary_color || '#ffffff');
+    document.documentElement.style.setProperty('--header-color', settings.header_color || '#2563eb');
   };
 
   const handleBrandUpdate = async (e) => {
@@ -80,27 +77,27 @@ const AdminDashboard = () => {
         updated_at: new Date().toISOString()
       };
 
-      let error;
+      let result;
       if (existingSettings) {
-        const { error: updateError } = await supabase
+        result = await supabase
           .from('brand_settings')
           .update(settingsData)
           .eq('admin_id', user.id);
-        error = updateError;
       } else {
-        const { error: insertError } = await supabase
+        result = await supabase
           .from('brand_settings')
-          .insert([{ ...settingsData, created_at: new Date().toISOString() }]);
-        error = insertError;
+          .insert([settingsData]);
       }
 
-      if (error) throw error;
+      if (result.error) {
+        throw result.error;
+      }
 
       applyBrandSettings(brandSettings);
-      alert('Brand settings saved successfully!');
-    } catch (err) {
-      console.error('Error saving brand settings:', err);
-      setError('Failed to save brand settings. Please try again.');
+      alert('Brand settings updated successfully!');
+    } catch (error) {
+      console.error('Error updating brand settings:', error);
+      setError('Failed to save brand settings');
     } finally {
       setSaving(false);
     }
