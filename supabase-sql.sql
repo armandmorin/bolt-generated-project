@@ -1,31 +1,36 @@
--- Drop existing policies for brand_settings
-DROP POLICY IF EXISTS "Allow read access" ON public.brand_settings;
-DROP POLICY IF EXISTS "Allow insert" ON public.brand_settings;
-DROP POLICY IF EXISTS "Allow update own settings" ON public.brand_settings;
+-- First, drop all existing policies
 DROP POLICY IF EXISTS "Enable read access for all users" ON public.brand_settings;
 DROP POLICY IF EXISTS "Enable insert for authenticated users" ON public.brand_settings;
 DROP POLICY IF EXISTS "Enable update for authenticated users" ON public.brand_settings;
+DROP POLICY IF EXISTS "Enable delete for authenticated users" ON public.brand_settings;
+DROP POLICY IF EXISTS "Allow read access" ON public.brand_settings;
+DROP POLICY IF EXISTS "Allow insert" ON public.brand_settings;
+DROP POLICY IF EXISTS "Allow update own settings" ON public.brand_settings;
 
--- Create new comprehensive policies for brand_settings
-CREATE POLICY "Enable read access for all users"
+-- Disable and re-enable RLS to ensure clean state
+ALTER TABLE public.brand_settings DISABLE ROW LEVEL SECURITY;
+ALTER TABLE public.brand_settings ENABLE ROW LEVEL SECURITY;
+
+-- Create simple, permissive policies for testing
+CREATE POLICY "brand_settings_select_policy"
 ON public.brand_settings FOR SELECT
+TO authenticated
 USING (true);
 
-CREATE POLICY "Enable insert for authenticated users"
+CREATE POLICY "brand_settings_insert_policy"
 ON public.brand_settings FOR INSERT
-WITH CHECK (auth.role() = 'authenticated');
+TO authenticated
+WITH CHECK (true);
 
-CREATE POLICY "Enable update for authenticated users"
+CREATE POLICY "brand_settings_update_policy"
 ON public.brand_settings FOR UPDATE
-USING (auth.role() = 'authenticated');
+TO authenticated
+USING (true);
 
-CREATE POLICY "Enable delete for authenticated users"
+CREATE POLICY "brand_settings_delete_policy"
 ON public.brand_settings FOR DELETE
-USING (auth.role() = 'authenticated');
+TO authenticated
+USING (true);
 
--- Grant necessary permissions
+-- Grant full access to authenticated users
 GRANT ALL ON public.brand_settings TO authenticated;
-GRANT ALL ON public.brand_settings TO anon;
-
--- Verify RLS is enabled
-ALTER TABLE public.brand_settings ENABLE ROW LEVEL SECURITY;
