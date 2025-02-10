@@ -12,7 +12,7 @@ export const supabase = createClient(supabaseUrl, supabaseKey, {
       'apikey': supabaseKey,
       'Authorization': `Bearer ${supabaseKey}`,
       'Content-Type': 'application/json',
-      'Accept': 'application/vnd.pgrst.object+json'
+      'Accept': 'application/json'
     }
   },
   db: {
@@ -25,8 +25,7 @@ export const getBrandSettings = async (adminId) => {
     const { data, error } = await supabase
       .from('brand_settings')
       .select()
-      .eq('admin_id', adminId)
-      .single();
+      .eq('admin_id', adminId);
 
     if (error) {
       console.warn('No brand settings found, returning default', error);
@@ -39,7 +38,14 @@ export const getBrandSettings = async (adminId) => {
       };
     }
 
-    return data;
+    // Return first result or default settings
+    return data[0] || {
+      logo: '',
+      primary_color: '#2563eb',
+      secondary_color: '#ffffff',
+      header_color: '#2563eb',
+      admin_id: adminId
+    };
   } catch (error) {
     console.error('Error fetching brand settings:', error);
     return {

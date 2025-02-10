@@ -21,18 +21,22 @@ function ClientManagement() {
   }, []);
 
   async function loadClients() {
-    const { data, error } = await supabase
-      .from('clients')
-      .select('*')
-      .order('created_at', { ascending: false });
+    try {
+      const { data, error } = await supabase
+        .from('clients')
+        .select('*')
+        .order('created_at', { ascending: false });
 
-    if (error) {
-      console.error('Error loading clients:', error);
-      return;
-    }
+      if (error) {
+        console.error('Error loading clients:', error);
+        return;
+      }
 
-    if (data) {
-      setClients(data);
+      if (data) {
+        setClients(data || []);
+      }
+    } catch (error) {
+      console.error('Unexpected error loading clients:', error);
     }
   }
 
@@ -57,42 +61,56 @@ function ClientManagement() {
       website: newClient.website,
       contact_email: newClient.contactEmail,
       client_key: clientKey,
-      status: 'active'
+      status: 'active',
+      created_at: new Date().toISOString()
     };
 
-    const { error } = await supabase
-      .from('clients')
-      .insert([newClientData]);
+    try {
+      const { data, error } = await supabase
+        .from('clients')
+        .insert([newClientData])
+        .select();
 
-    if (error) {
-      console.error('Error adding client:', error);
-      alert('Failed to add client. Please try again.');
-      return;
+      if (error) {
+        console.error('Error adding client:', error);
+        alert('Failed to add client. Please try again.');
+        return;
+      }
+
+      // Reload clients after successful addition
+      await loadClients();
+      
+      // Reset form
+      setNewClient({
+        name: '',
+        website: '',
+        contactEmail: ''
+      });
+    } catch (error) {
+      console.error('Unexpected error adding client:', error);
+      alert('An unexpected error occurred. Please try again.');
     }
-
-    await loadClients();
-    
-    setNewClient({
-      name: '',
-      website: '',
-      contactEmail: ''
-    });
   };
 
-  const toggleClientStatus = async (id, currentStatus) => {
+  const toggleClientStatus = async (clientId, currentStatus) => {
     const newStatus = currentStatus === 'active' ? 'inactive' : 'active';
     
-    const { error } = await supabase
-      .from('clients')
-      .update({ status: newStatus })
-      .eq('id', id);
+    try {
+      const { error } = await supabase
+        .from('clients')
+        .update({ status: newStatus })
+        .eq('id', clientId);
 
-    if (error) {
-      console.error('Error updating client status:', error);
-      return;
+      if (error) {
+        console.error('Error updating client status:', error);
+        return;
+      }
+
+      // Reload clients to reflect the change
+      await loadClients();
+    } catch (error) {
+      console.error('Unexpected error updating client status:', error);
     }
-
-    await loadClients();
   };
 
   const showClientCode = (client) => {
