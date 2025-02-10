@@ -87,10 +87,160 @@ const SuperAdminDashboard = () => {
     }
   };
 
-  // Rest of the component remains the same...
-  
+  const applySettings = (settings) => {
+    document.documentElement.style.setProperty('--primary-color', settings.primary_color);
+    document.documentElement.style.setProperty('--secondary-color', settings.secondary_color);
+    document.documentElement.style.setProperty('--header-color', settings.header_color);
+  };
+
+  const handleBrandUpdate = async (e) => {
+    e.preventDefault();
+    setSaving(true);
+
+    try {
+      const { error } = await supabase
+        .from('brand_settings')
+        .upsert({
+          ...brandSettings,
+          admin_id: user.id,
+          updated_at: new Date().toISOString()
+        });
+
+      if (error) throw error;
+
+      applySettings(brandSettings);
+      alert('Brand settings updated successfully!');
+    } catch (error) {
+      console.error('Error updating brand settings:', error);
+      alert('Error updating brand settings: ' + error.message);
+    } finally {
+      setSaving(false);
+    }
+  };
+
   return (
-    // ... existing JSX
+    <div className={styles.superAdminDashboard}>
+      <div className={styles.tabs}>
+        <button
+          className={`${styles.tabButton} ${activeTab === 'branding' ? styles.active : ''}`}
+          onClick={() => setActiveTab('branding')}
+        >
+          Brand Settings
+        </button>
+        <button
+          className={`${styles.tabButton} ${activeTab === 'admins' ? styles.active : ''}`}
+          onClick={() => setActiveTab('admins')}
+        >
+          Manage Admins
+        </button>
+      </div>
+
+      <div className={styles.content}>
+        {activeTab === 'branding' && (
+          <div className={styles.formContainer}>
+            <h2>Brand Settings</h2>
+            <form onSubmit={handleBrandUpdate}>
+              <ImageUpload
+                currentImage={brandSettings.logo}
+                onImageUpload={(imageData) => {
+                  setBrandSettings(prev => ({
+                    ...prev,
+                    logo: imageData
+                  }));
+                }}
+                label="Company Logo"
+              />
+
+              <div className={styles.colorGroup}>
+                <div className={styles.formGroup}>
+                  <label>Header Color</label>
+                  <input
+                    type="color"
+                    value={brandSettings.header_color}
+                    onChange={(e) => setBrandSettings(prev => ({
+                      ...prev,
+                      header_color: e.target.value
+                    }))}
+                  />
+                </div>
+
+                <div className={styles.formGroup}>
+                  <label>Primary Color</label>
+                  <input
+                    type="color"
+                    value={brandSettings.primary_color}
+                    onChange={(e) => setBrandSettings(prev => ({
+                      ...prev,
+                      primary_color: e.target.value
+                    }))}
+                  />
+                </div>
+
+                <div className={styles.formGroup}>
+                  <label>Secondary Color</label>
+                  <input
+                    type="color"
+                    value={brandSettings.secondary_color}
+                    onChange={(e) => setBrandSettings(prev => ({
+                      ...prev,
+                      secondary_color: e.target.value
+                    }))}
+                  />
+                </div>
+              </div>
+
+              <div className={styles.formActions}>
+                <button 
+                  type="submit" 
+                  className={styles.saveButton}
+                  disabled={saving}
+                >
+                  {saving ? 'Saving...' : 'Save Brand Settings'}
+                </button>
+              </div>
+            </form>
+          </div>
+        )}
+
+        {activeTab === 'admins' && (
+          <div className={styles.adminSection}>
+            <div className={styles.addAdminSection}>
+              <h2>Add New Admin</h2>
+              <form className={styles.addAdminForm}>
+                <div className={styles.formGroup}>
+                  <label>Admin Name</label>
+                  <input type="text" placeholder="Enter admin name" />
+                </div>
+                <div className={styles.formGroup}>
+                  <label>Admin Email</label>
+                  <input type="email" placeholder="Enter admin email" />
+                </div>
+                <button type="submit" className={styles.addButton}>
+                  Add Admin
+                </button>
+              </form>
+            </div>
+
+            <div className={styles.adminListSection}>
+              <h2>Current Admins</h2>
+              <table className={styles.adminTable}>
+                <thead>
+                  <tr>
+                    <th>Name</th>
+                    <th>Email</th>
+                    <th>Added Date</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {/* Admin list would go here */}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
   );
 };
 
