@@ -6,14 +6,26 @@ const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS
 export const supabase = createClient(supabaseUrl, supabaseKey, {
   auth: {
     persistSession: true
+  },
+  global: {
+    headers: {
+      'apikey': supabaseKey,
+      'Authorization': `Bearer ${supabaseKey}`,
+      'Content-Type': 'application/json',
+      'Accept': 'application/json'
+    }
+  },
+  db: {
+    schema: 'public'
   }
 });
 
 export const getBrandSettings = async (adminId) => {
   try {
+    // Use .select() without specifying columns to get all columns
     const { data, error } = await supabase
       .from('brand_settings')
-      .select('*')
+      .select()
       .eq('admin_id', adminId)
       .single();
 
