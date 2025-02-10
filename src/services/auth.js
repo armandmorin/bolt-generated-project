@@ -17,7 +17,7 @@ export const loginUser = async (email, password) => {
       throw new Error('No user data returned');
     }
 
-    // Then get the user's role from our users table
+    // Get user data from public.users table
     const { data: userData, error: userError } = await supabase
       .from('users')
       .select('*')
@@ -27,10 +27,6 @@ export const loginUser = async (email, password) => {
     if (userError) {
       console.error('User data error:', userError);
       throw new Error('Error fetching user data');
-    }
-
-    if (!userData) {
-      throw new Error('User not found in database');
     }
 
     return {

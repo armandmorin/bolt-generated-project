@@ -1,17 +1,28 @@
 -- Enable required extensions
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
+-- Create roles if they don't exist
+DO $$
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'admin') THEN
+        CREATE ROLE admin;
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'superadmin') THEN
+        CREATE ROLE superadmin;
+    END IF;
+END
+$$;
+
 -- Drop existing tables if they exist
 DROP TABLE IF EXISTS public.brand_settings CASCADE;
 DROP TABLE IF EXISTS public.users CASCADE;
-DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
 
 -- Create users table
 CREATE TABLE public.users (
     id UUID PRIMARY KEY,
     name VARCHAR NOT NULL,
     email VARCHAR NOT NULL UNIQUE,
-    role VARCHAR NOT NULL CHECK (role IN ('superadmin', 'admin')),
+    role VARCHAR NOT NULL,
     company VARCHAR,
     created_at TIMESTAMPTZ DEFAULT NOW(),
     updated_at TIMESTAMPTZ DEFAULT NOW()
@@ -36,24 +47,30 @@ ALTER TABLE public.users ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.brand_settings ENABLE ROW LEVEL SECURITY;
 
 -- Create policies
-CREATE POLICY "Enable all operations for authenticated users" ON public.users
-    FOR ALL
-    USING (true)
-    WITH CHECK (true);
+CREATE POLICY "Enable read access for all users" ON public.users
+    FOR SELECT
+    USING (true);
 
-CREATE POLICY "Enable all operations for authenticated users" ON public.brand_settings
+CREATE POLICY "Enable write access for authenticated users" ON public.users
     FOR ALL
-    USING (true)
-    WITH CHECK (true);
+    USING (auth.role() = 'authenticated')
+    WITH CHECK (auth.role() = 'authenticated');
+
+CREATE POLICY "Enable read access for all users" ON public.brand_settings
+    FOR SELECT
+    USING (true);
+
+CREATE POLICY "Enable write access for authenticated users" ON public.brand_settings
+    FOR ALL
+    USING (auth.role() = 'authenticated')
+    WITH CHECK (auth.role() = 'authenticated');
 
 -- Grant permissions
-GRANT ALL ON public.users TO anon;
 GRANT ALL ON public.users TO authenticated;
-GRANT ALL ON public.users TO service_role;
-
-GRANT ALL ON public.brand_settings TO anon;
 GRANT ALL ON public.brand_settings TO authenticated;
-GRANT ALL ON public.brand_settings TO service_role;
+GRANT USAGE ON SCHEMA public TO anon;
+GRANT SELECT ON public.users TO anon;
+GRANT SELECT ON public.brand_settings TO anon;
 
 -- Function to create or update users
 CREATE OR REPLACE FUNCTION create_or_update_user(
@@ -100,14 +117,14 @@ BEGIN
             '00000000-0000-0000-0000-000000000000',
             uuid_generate_v4(),
             'authenticated',
-            p_role,
+            'authenticated',  -- Changed from p_role to 'authenticated'
             p_email,
             v_encrypted_pass,
             NOW(),
             NOW(),
             NOW(),
-            '{"provider":"email","providers":["email"]}',
-            format('{"role":"%s"}', p_role)::jsonb,
+            jsonb_build_object('provider', 'email', 'providers', ARRAY['email']),
+            jsonb_build_object('role', p_role),  -- Store custom role in metadata
             NOW(),
             NOW(),
             encode(gen_random_bytes(32), 'base64'),
@@ -131,8 +148,11 @@ BEGIN
         VALUES (
             v_user_id,
             v_user_id,
-            'email',  -- provider_id is required
-            format('{"sub":"%s","email":"%s"}', v_user_id::text, p_email)::jsonb,
+            'email',
+            jsonb_build_object(
+                'sub', v_user_id::text,
+                'email', p_email
+            ),
             'email',
             NOW(),
             NOW(),
@@ -143,9 +163,8 @@ BEGIN
         UPDATE auth.users
         SET 
             encrypted_password = v_encrypted_pass,
-            role = p_role,
-            updated_at = NOW(),
-            raw_user_meta_data = format('{"role":"%s"}', p_role)::jsonb
+            raw_user_meta_data = jsonb_build_object('role', p_role),
+            updated_at = NOW()
         WHERE id = v_user_id;
     END IF;
 
