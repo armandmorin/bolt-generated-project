@@ -21,8 +21,8 @@ export const loginUser = async (email, password) => {
     const { data: userData, error: userError } = await supabase
       .from('users')
       .select('*')
-      .eq('id', session.user.id)
-      .single();
+      .eq('email', email)
+      .maybeSingle();
 
     if (userError) {
       console.error('User data error:', userError);
@@ -35,7 +35,9 @@ export const loginUser = async (email, password) => {
 
     return {
       ...session.user,
-      ...userData
+      role: userData.user_role,
+      name: userData.name,
+      company: userData.company
     };
   } catch (error) {
     console.error('Login error:', error);
@@ -53,15 +55,17 @@ export const getCurrentUser = async () => {
     const { data: userData, error: userError } = await supabase
       .from('users')
       .select('*')
-      .eq('id', session.user.id)
-      .single();
+      .eq('email', session.user.email)
+      .maybeSingle();
 
     if (userError) throw userError;
     if (!userData) return null;
 
     return {
       ...session.user,
-      ...userData
+      role: userData.user_role,
+      name: userData.name,
+      company: userData.company
     };
   } catch (error) {
     console.error('Error getting current user:', error);
