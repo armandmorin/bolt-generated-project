@@ -3,7 +3,7 @@ import { supabase } from '../lib/supabase';
 export const loginUser = async (email, password) => {
   try {
     // First authenticate with Supabase Auth
-    const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
+    const { data: { session }, error: authError } = await supabase.auth.signInWithPassword({
       email,
       password
     });
@@ -13,7 +13,7 @@ export const loginUser = async (email, password) => {
       throw new Error('Invalid login credentials');
     }
 
-    if (!authData?.user) {
+    if (!session?.user) {
       throw new Error('No user data returned');
     }
 
@@ -21,7 +21,7 @@ export const loginUser = async (email, password) => {
     const { data: userData, error: userError } = await supabase
       .from('users')
       .select('*')
-      .eq('email', email)
+      .eq('id', session.user.id)
       .single();
 
     if (userError) {
@@ -29,11 +29,13 @@ export const loginUser = async (email, password) => {
       throw new Error('Error fetching user data');
     }
 
+    if (!userData) {
+      throw new Error('User not found');
+    }
+
     return {
-      ...authData.user,
-      role: userData.role,
-      name: userData.name,
-      company: userData.company
+      ...session.user,
+      ...userData
     };
   } catch (error) {
     console.error('Login error:', error);
@@ -43,22 +45,23 @@ export const loginUser = async (email, password) => {
 
 export const getCurrentUser = async () => {
   try {
-    const { data: { user: authUser } } = await supabase.auth.getUser();
-    if (!authUser) return null;
+    const { data: { session }, error: authError } = await supabase.auth.getSession();
+    
+    if (authError) throw authError;
+    if (!session?.user) return null;
 
     const { data: userData, error: userError } = await supabase
       .from('users')
       .select('*')
-      .eq('email', authUser.email)
+      .eq('id', session.user.id)
       .single();
 
     if (userError) throw userError;
-    
+    if (!userData) return null;
+
     return {
-      ...authUser,
-      role: userData.role,
-      name: userData.name,
-      company: userData.company
+      ...session.user,
+      ...userData
     };
   } catch (error) {
     console.error('Error getting current user:', error);
