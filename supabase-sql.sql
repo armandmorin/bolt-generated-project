@@ -1,40 +1,44 @@
--- Drop existing table if it exists
-drop table if exists public.brand_settings;
+-- First, drop existing policies
+drop policy if exists "Users can view own brand settings" on public.brand_settings;
+drop policy if exists "Users can insert own brand settings" on public.brand_settings;
+drop policy if exists "Users can update own brand settings" on public.brand_settings;
 
--- Create the brand_settings table
-create table public.brand_settings (
+-- Recreate the table with proper constraints
+create table if not exists public.brand_settings (
   id uuid default uuid_generate_v4() primary key,
-  admin_id uuid references auth.users(id) on delete cascade,
+  admin_id uuid references auth.users(id) on delete cascade unique,
   logo text,
   primary_color text default '#2563eb',
   secondary_color text default '#ffffff',
   header_color text default '#2563eb',
   created_at timestamp with time zone default timezone('utc'::text, now()) not null,
-  updated_at timestamp with time zone default timezone('utc'::text, now()) not null
+  updated_at timestamp with time zone default timezone('utc'::text, now()) not null,
+  constraint unique_admin_settings unique (admin_id)
 );
 
--- Create indexes
-create index if not exists brand_settings_admin_id_idx on public.brand_settings(admin_id);
-
--- Set up RLS policies
+-- Enable RLS
 alter table public.brand_settings enable row level security;
 
--- Allow users to read their own settings
-create policy "Users can view own brand settings"
+-- Create new policies
+create policy "Enable read access for users"
   on public.brand_settings for select
-  using (auth.uid() = admin_id);
+  to authenticated
+  using (true);
 
--- Allow users to insert their own settings
-create policy "Users can insert own brand settings"
+create policy "Enable insert for users"
   on public.brand_settings for insert
+  to authenticated
   with check (auth.uid() = admin_id);
 
--- Allow users to update their own settings
-create policy "Users can update own brand settings"
+create policy "Enable update for users"
   on public.brand_settings for update
+  to authenticated
   using (auth.uid() = admin_id);
 
--- Grant necessary permissions
+-- Grant permissions
 grant usage on schema public to authenticated;
 grant all on public.brand_settings to authenticated;
 grant usage, select on all sequences in schema public to authenticated;
+
+-- Create index
+create index if not exists idx_brand_settings_admin_id on public.brand_settings(admin_id);

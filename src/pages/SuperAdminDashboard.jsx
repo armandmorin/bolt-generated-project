@@ -16,6 +16,7 @@ const SuperAdminDashboard = () => {
   const [activeTab, setActiveTab] = useState('branding');
   const [brandSettings, setBrandSettings] = useState(DEFAULT_SETTINGS);
   const [saving, setSaving] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     if (user?.id) {
@@ -25,48 +26,61 @@ const SuperAdminDashboard = () => {
 
   const loadBrandSettings = async () => {
     try {
-      if (!user?.id) return;
-
-      // Try to get existing settings
-      const { data, error } = await supabase
+      setLoading(true);
+      
+      // First, check if settings exist
+      const { count, error: countError } = await supabase
         .from('brand_settings')
-        .select('*')
-        .eq('admin_id', user.id)
-        .limit(1);
+        .select('*', { count: 'exact', head: true })
+        .eq('admin_id', user.id);
 
-      if (error) {
-        throw error;
+      if (countError) {
+        console.error('Error checking settings:', countError);
+        return;
       }
 
-      if (data && data.length > 0) {
-        setBrandSettings(data[0]);
-        applySettings(data[0]);
-      } else {
-        // If no settings exist, create default settings
-        const { data: newData, error: insertError } = await supabase
+      if (count === 0) {
+        // No settings exist, create default settings
+        console.log('Creating default settings...');
+        const { data: newSettings, error: insertError } = await supabase
           .from('brand_settings')
-          .insert([
-            {
-              admin_id: user.id,
-              ...DEFAULT_SETTINGS,
-              created_at: new Date().toISOString(),
-              updated_at: new Date().toISOString()
-            }
-          ])
-          .select()
+          .insert([{
+            admin_id: user.id,
+            ...DEFAULT_SETTINGS,
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString()
+          }])
+          .select('*')
           .single();
 
         if (insertError) {
-          throw insertError;
+          console.error('Error creating settings:', insertError);
+          return;
         }
 
-        if (newData) {
-          setBrandSettings(newData);
-          applySettings(newData);
+        setBrandSettings(newSettings || DEFAULT_SETTINGS);
+        applySettings(newSettings || DEFAULT_SETTINGS);
+      } else {
+        // Settings exist, fetch them
+        console.log('Fetching existing settings...');
+        const { data: existingSettings, error: fetchError } = await supabase
+          .from('brand_settings')
+          .select('*')
+          .eq('admin_id', user.id)
+          .single();
+
+        if (fetchError) {
+          console.error('Error fetching settings:', fetchError);
+          return;
         }
+
+        setBrandSettings(existingSettings || DEFAULT_SETTINGS);
+        applySettings(existingSettings || DEFAULT_SETTINGS);
       }
     } catch (error) {
-      console.error('Error loading brand settings:', error);
+      console.error('Error in loadBrandSettings:', error);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -87,12 +101,15 @@ const SuperAdminDashboard = () => {
           admin_id: user.id,
           ...brandSettings,
           updated_at: new Date().toISOString()
+        }, {
+          onConflict: 'admin_id'
         });
 
       if (error) throw error;
 
       applySettings(brandSettings);
       alert('Brand settings updated successfully!');
+      await loadBrandSettings(); // Reload settings after update
     } catch (error) {
       console.error('Error updating brand settings:', error);
       alert('Error updating brand settings: ' + error.message);
@@ -100,6 +117,10 @@ const SuperAdminDashboard = () => {
       setSaving(false);
     }
   };
+
+  if (loading) {
+    return <div className={styles.loading}>Loading...</div>;
+  }
 
   return (
     <div className={styles.superAdminDashboard}>
