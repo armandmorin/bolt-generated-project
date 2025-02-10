@@ -1,10 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useSupabase } from '../contexts/SupabaseContext';
 import ClientManagement from './ClientManagement';
 import WidgetCustomization from './WidgetCustomization';
 import ProfileSettings from './ProfileSettings';
 import TeamMembers from './TeamMembers';
 import ImageUpload from '../components/ImageUpload';
+import { supabase } from '../lib/supabase';
 import styles from '../styles/admin.module.css';
 
 const DEFAULT_BRAND_SETTINGS = {
@@ -19,18 +20,87 @@ const AdminDashboard = () => {
   const [activeTab, setActiveTab] = useState('clients');
   const [brandSettings, setBrandSettings] = useState(DEFAULT_BRAND_SETTINGS);
   const [saving, setSaving] = useState(false);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    if (user?.id) {
+      loadBrandSettings();
+    }
+  }, [user]);
+
+  const loadBrandSettings = async () => {
+    try {
+      setError(null);
+      const { data, error } = await supabase
+        .from('brand_settings')
+        .select('*')
+        .eq('admin_id', user.id)
+        .single();
+
+      if (error && error.code !== 'PGRST116') {
+        throw error;
+      }
+
+      if (data) {
+        setBrandSettings(data);
+        applyBrandSettings(data);
+      }
+    } catch (err) {
+      console.error('Error loading brand settings:', err);
+      setError('Failed to load brand settings');
+    }
+  };
+
+  const applyBrandSettings = (settings) => {
+    document.documentElement.style.setProperty('--primary-color', settings.primary_color);
+    document.documentElement.style.setProperty('--secondary-color', settings.secondary_color);
+    document.documentElement.style.setProperty('--header-color', settings.header_color);
+  };
 
   const handleBrandUpdate = async (e) => {
     e.preventDefault();
     setSaving(true);
+    setError(null);
 
     try {
-      // For demo purposes, just show success message
+      const { data: existingSettings } = await supabase
+        .from('brand_settings')
+        .select('id')
+        .eq('admin_id', user.id)
+        .single();
+
+      let error;
+      if (existingSettings) {
+        // Update existing settings
+        const { error: updateError } = await supabase
+          .from('brand_settings')
+          .update({
+            ...brandSettings,
+            updated_at: new Date().toISOString()
+          })
+          .eq('admin_id', user.id);
+        error = updateError;
+      } else {
+        // Insert new settings
+        const { error: insertError } = await supabase
+          .from('brand_settings')
+          .insert([{
+            ...brandSettings,
+            admin_id: user.id,
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString()
+          }]);
+        error = insertError;
+      }
+
+      if (error) throw error;
+
+      applyBrandSettings(brandSettings);
       alert('Brand settings updated successfully!');
-      setBrandSettings(prev => ({...prev}));
-    } catch (error) {
-      console.error('Error saving brand settings:', error);
-      alert('Error saving brand settings: ' + error.message);
+    } catch (err) {
+      console.error('Error saving brand settings:', err);
+      setError('Failed to save brand settings');
+      alert('Error saving brand settings: ' + err.message);
     } finally {
       setSaving(false);
     }
@@ -50,6 +120,11 @@ const AdminDashboard = () => {
         return (
           <div className={styles.formContainer}>
             <h2>Brand Settings</h2>
+            {error && (
+              <div className={styles.errorMessage}>
+                {error}
+              </div>
+            )}
             <form onSubmit={handleBrandUpdate}>
               <ImageUpload
                 currentImage={brandSettings.logo}
