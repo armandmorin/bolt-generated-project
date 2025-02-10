@@ -10,66 +10,62 @@ import SuperAdminDashboard from './pages/SuperAdminDashboard';
 import AdminDashboard from './pages/AdminDashboard';
 import ClientDashboard from './pages/ClientDashboard';
 import ClientEdit from './pages/ClientEdit';
-import SupabaseTest from './components/SupabaseTest';
 import './styles/global.css';
 
 function App() {
   const location = useLocation();
-  const publicRoutes = ['/', '/register', '/super-admin-login', '/test'];
+  const publicRoutes = ['/', '/register', '/super-admin-login'];
   const hideHeader = publicRoutes.includes(location.pathname);
 
   return (
-    <SupabaseProvider>
-      <div className="app-container">
-        {!hideHeader && <Header />}
-        <main className="main-content">
-          <Routes>
-            {/* Public Routes */}
-            <Route path="/test" element={<SupabaseTest />} />
-            <Route path="/" element={<Login />} />
-            <Route path="/register" element={<AdminRegistration />} />
-            <Route path="/super-admin-login" element={<SuperAdminLogin />} />
+    <div className="app-container">
+      {!hideHeader && <Header />}
+      <main className="main-content">
+        <Routes>
+          {/* Public Routes */}
+          <Route path="/" element={<Login />} />
+          <Route path="/register" element={<AdminRegistration />} />
+          <Route path="/super-admin-login" element={<SuperAdminLogin />} />
 
-            {/* Protected Routes */}
-            <Route
-              path="/super-admin"
-              element={
-                <ProtectedRoute allowedRoles={['superadmin']}>
-                  <SuperAdminDashboard />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/admin"
-              element={
-                <ProtectedRoute allowedRoles={['admin']}>
-                  <AdminDashboard />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/client"
-              element={
-                <ProtectedRoute allowedRoles={['admin']}>
-                  <ClientDashboard />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/client-edit/:clientId"
-              element={
-                <ProtectedRoute allowedRoles={['admin']}>
-                  <ClientEdit />
-                </ProtectedRoute>
-              }
-            />
+          {/* Protected Routes */}
+          <Route
+            path="/super-admin"
+            element={
+              <ProtectedRoute allowedRoles={['superadmin']}>
+                <SuperAdminDashboard />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin"
+            element={
+              <ProtectedRoute allowedRoles={['admin']}>
+                <AdminDashboard />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/client"
+            element={
+              <ProtectedRoute allowedRoles={['admin']}>
+                <ClientDashboard />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/client-edit/:clientId"
+            element={
+              <ProtectedRoute allowedRoles={['admin']}>
+                <ClientEdit />
+              </ProtectedRoute>
+            }
+          />
 
-            {/* Catch all route */}
-            <Route path="*" element={<Navigate to="/" replace />} />
-          </Routes>
-        </main>
-      </div>
-    </SupabaseProvider>
+          {/* Catch all route */}
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+      </main>
+    </div>
   );
 }
 

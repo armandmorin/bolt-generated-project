@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate, Link, useLocation } from 'react-router-dom';
-import { useSupabase } from '../contexts/SupabaseContext';
+import { useNavigate, Link } from 'react-router-dom';
 import styles from '../styles/modules/login.module.css';
 
 const Login = () => {
@@ -9,12 +8,6 @@ const Login = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const navigate = useNavigate();
-  const location = useLocation();
-  const { setUser } = useSupabase();
-
-  if (location.pathname === '/test') {
-    return null;
-  }
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -25,15 +18,14 @@ const Login = () => {
       // Hardcoded admin credentials for demo
       if (email === 'onebobdavis@gmail.com' && password === '1armand') {
         const userData = {
-          id: '550e8400-e29b-41d4-a716-446655440000', // UUID format
+          id: '550e8400-e29b-41d4-a716-446655440000',
           email: 'onebobdavis@gmail.com',
           role: 'admin',
           name: 'Admin User'
         };
         
-        // Store user data
+        // Store user data in localStorage
         localStorage.setItem('user', JSON.stringify(userData));
-        setUser(userData);
         
         navigate('/admin');
       } else {
@@ -63,9 +55,9 @@ const Login = () => {
             <label>Email</label>
             <input
               type="email"
-              placeholder="Enter your email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
+              placeholder="Enter your email"
               required
             />
           </div>
@@ -74,9 +66,9 @@ const Login = () => {
             <label>Password</label>
             <input
               type="password"
-              placeholder="Enter your password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
+              placeholder="Enter your password"
               required
             />
           </div>
