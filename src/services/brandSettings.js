@@ -119,3 +119,34 @@ export const getBrandSettingsForHeader = async () => {
     };
   }
 };
+
+export const uploadLogo = async (base64Image) => {
+  try {
+    // Convert base64 to blob
+    const blob = await fetch(base64Image).then(r => r.blob());
+    const filename = `logo-${Date.now()}.${blob.type.split('/')[1]}`;
+
+    const { data, error } = await supabase.storage
+      .from('brand-assets')
+      .upload(filename, blob);
+
+    if (error) throw error;
+
+    const { data: { publicUrl } } = supabase.storage
+      .from('brand-assets')
+      .getPublicUrl(filename);
+
+    return publicUrl;
+  } catch (error) {
+    console.error('Error uploading logo:', error);
+    throw error;
+  }
+};
+
+export const applyBrandSettings = (settings) => {
+  if (!settings) return;
+
+  document.documentElement.style.setProperty('--primary-color', settings.primary_color || '#2563eb');
+  document.documentElement.style.setProperty('--secondary-color', settings.secondary_color || '#ffffff');
+  document.documentElement.style.setProperty('--header-color', settings.header_color || '#2563eb');
+};
