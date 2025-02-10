@@ -6,32 +6,19 @@ const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS
 export const supabase = createClient(supabaseUrl, supabaseKey, {
   auth: {
     persistSession: true
-  },
-  global: {
-    headers: {
-      'apikey': supabaseKey,
-      'Authorization': `Bearer ${supabaseKey}`,
-      'Content-Type': 'application/json',
-      'Accept': 'application/vnd.pgrst.object+json'
-    }
-  },
-  db: {
-    schema: 'public'
   }
 });
 
-// Helper function to get brand settings with proper error handling
 export const getBrandSettings = async (adminId) => {
   try {
-    // First, check if brand settings exist
-    const { data: existingSettings, error: settingsError } = await supabase
+    const { data, error } = await supabase
       .from('brand_settings')
       .select('*')
-      .eq('admin_id', adminId);
+      .eq('admin_id', adminId)
+      .single();
 
-    // If no settings exist, return default settings
-    if (settingsError || !existingSettings || existingSettings.length === 0) {
-      console.warn('No brand settings found, returning default');
+    if (error) {
+      console.warn('No brand settings found, returning default', error);
       return {
         logo: '',
         primary_color: '#2563eb',
@@ -41,12 +28,9 @@ export const getBrandSettings = async (adminId) => {
       };
     }
 
-    // Return the first (and should be only) settings record
-    return existingSettings[0];
+    return data;
   } catch (error) {
-    console.error('Unexpected error in getBrandSettings:', error);
-    
-    // Return default settings in case of any error
+    console.error('Error fetching brand settings:', error);
     return {
       logo: '',
       primary_color: '#2563eb',
@@ -91,18 +75,6 @@ export const createDefaultBrandSettings = async (adminId) => {
       secondary_color: '#ffffff',
       header_color: '#2563eb'
     };
-  }
-};
-
-export const initializeTables = async () => {
-  try {
-    const { error: brandSettingsError } = await supabase.rpc('create_brand_settings_if_not_exists');
-    
-    if (brandSettingsError) {
-      console.error('Error creating brand_settings table:', brandSettingsError);
-    }
-  } catch (error) {
-    console.error('Error initializing tables:', error);
   }
 };
 
