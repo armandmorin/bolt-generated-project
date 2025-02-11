@@ -11,19 +11,28 @@ const AdminDashboard = () => {
   const [activeTab, setActiveTab] = useState('branding');
   const [brandSettings, setBrandSettings] = useState({
     logo: '',
-    primaryColor: '#2563eb',
+    headerColor: '#ffffff',  // new: header background color
+    primaryColor: '#2563eb', // new: primary (link) color
     secondaryColor: '#ffffff'
   });
+  const [modalMessage, setModalMessage] = useState('');
+  const [showModal, setShowModal] = useState(false);
 
   useEffect(() => {
     loadBrandingSettings();
   }, []);
 
+  const updateCSSVariables = (settings) => {
+    // Update CSS custom properties so the header and links update in realtime.
+    document.documentElement.style.setProperty('--header-bg', settings.headerColor);
+    document.documentElement.style.setProperty('--link-color', settings.primaryColor);
+  };
+
   const loadBrandingSettings = async () => {
     try {
       const user = JSON.parse(localStorage.getItem('user'));
       if (!user) return;
-      // Use maybeSingle() to avoid errors when no row is returned
+      // Use maybeSingle() to avoid errors when no row is returned.
       const { data, error } = await supabase
         .from('admin_branding')
         .select('*')
@@ -36,11 +45,14 @@ const AdminDashboard = () => {
       }
 
       if (data) {
-        setBrandSettings({
+        const newSettings = {
           logo: data.logo || '',
+          headerColor: data.header_color || '#ffffff',
           primaryColor: data.primary_color || '#2563eb',
           secondaryColor: data.secondary_color || '#ffffff'
-        });
+        };
+        setBrandSettings(newSettings);
+        updateCSSVariables(newSettings);
       }
     } catch (error) {
       console.error('Error loading branding settings:', error);
@@ -52,31 +64,51 @@ const AdminDashboard = () => {
     try {
       const user = JSON.parse(localStorage.getItem('user'));
       if (!user) {
-        alert('User not found');
+        setModalMessage('User not found');
+        setShowModal(true);
+        setTimeout(() => setShowModal(false), 3000);
         return;
       }
-
-      // Use upsert to handle both update and insert at once
+      // Use upsert to save branding settings in Supabase
       const { error } = await supabase
         .from('admin_branding')
         .upsert({
           admin_email: user.email,
           logo: brandSettings.logo,
+          header_color: brandSettings.headerColor,
           primary_color: brandSettings.primaryColor,
           secondary_color: brandSettings.secondaryColor
         }, { onConflict: 'admin_email' });
 
       if (error) throw error;
 
-      alert('Brand settings updated successfully!');
+      setModalMessage('Brand settings updated successfully!');
+      setShowModal(true);
+      updateCSSVariables(brandSettings);
+      setTimeout(() => setShowModal(false), 3000);
     } catch (error) {
       console.error('Error updating branding settings:', error);
-      alert('Failed to update brand settings');
+      setModalMessage('Failed to update brand settings');
+      setShowModal(true);
+      setTimeout(() => setShowModal(false), 3000);
     }
+  };
+
+  const handleColorChange = (field, value) => {
+    const newSettings = { ...brandSettings, [field]: value };
+    setBrandSettings(newSettings);
+    updateCSSVariables(newSettings);
   };
 
   return (
     <div className={styles.adminDashboard}>
+      {showModal && (
+        <div className={styles.modal}>
+          <div className={styles.modalContent}>
+            <p>{modalMessage}</p>
+          </div>
+        </div>
+      )}
       <div className={styles.tabs}>
         <button
           className={`${styles.tabButton} ${activeTab === 'branding' ? styles.active : ''}`}
@@ -116,31 +148,37 @@ const AdminDashboard = () => {
             <form onSubmit={handleBrandUpdate}>
               <ImageUpload
                 currentImage={brandSettings.logo}
-                onImageUpload={(imageData) => {
-                  setBrandSettings(prev => ({
-                    ...prev,
-                    logo: imageData
-                  }));
-                }}
+                onImageUpload={(imageData) =>
+                  setBrandSettings({ ...brandSettings, logo: imageData })
+                }
                 label="Company Logo"
               />
 
               <div className={styles.colorGroup}>
                 <div className={styles.formGroup}>
-                  <label>Primary Color</label>
+                  <label>Header Color</label>
+                  <input
+                    type="color"
+                    value={brandSettings.headerColor}
+                    onChange={(e) => handleColorChange('headerColor', e.target.value)}
+                  />
+                </div>
+                <div className={styles.formGroup}>
+                  <label>Primary Color (Link Color)</label>
                   <input
                     type="color"
                     value={brandSettings.primaryColor}
-                    onChange={(e) => setBrandSettings({ ...brandSettings, primaryColor: e.target.value })}
+                    onChange={(e) => handleColorChange('primaryColor', e.target.value)}
                   />
                 </div>
-
                 <div className={styles.formGroup}>
                   <label>Secondary Color</label>
                   <input
                     type="color"
                     value={brandSettings.secondaryColor}
-                    onChange={(e) => setBrandSettings({ ...brandSettings, secondaryColor: e.target.value })}
+                    onChange={(e) =>
+                      setBrandSettings({ ...brandSettings, secondaryColor: e.target.value })
+                    }
                   />
                 </div>
               </div>
