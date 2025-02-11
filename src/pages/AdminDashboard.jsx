@@ -11,28 +11,27 @@ const AdminDashboard = () => {
   const [activeTab, setActiveTab] = useState('branding');
   const [brandSettings, setBrandSettings] = useState({
     logo: '',
-    headerColor: '#ffffff',  // new: header background color
-    primaryColor: '#2563eb', // new: primary (link) color
-    secondaryColor: '#ffffff'
+    headerColor: '#ffffff',  // Header background color
+    primaryColor: '#2563eb', // Primary (link and button) color
+    secondaryColor: '#ffffff' 
   });
   const [modalMessage, setModalMessage] = useState('');
   const [showModal, setShowModal] = useState(false);
+
+  // Update CSS variables for realtime changes.
+  const updateCSSVariables = (settings) => {
+    document.documentElement.style.setProperty('--header-bg', settings.headerColor);
+    document.documentElement.style.setProperty('--primary-color', settings.primaryColor);
+  };
 
   useEffect(() => {
     loadBrandingSettings();
   }, []);
 
-  const updateCSSVariables = (settings) => {
-    // Update CSS custom properties so the header and links update in realtime.
-    document.documentElement.style.setProperty('--header-bg', settings.headerColor);
-    document.documentElement.style.setProperty('--link-color', settings.primaryColor);
-  };
-
   const loadBrandingSettings = async () => {
     try {
       const user = JSON.parse(localStorage.getItem('user'));
       if (!user) return;
-      // Use maybeSingle() to avoid errors when no row is returned.
       const { data, error } = await supabase
         .from('admin_branding')
         .select('*')
@@ -69,7 +68,6 @@ const AdminDashboard = () => {
         setTimeout(() => setShowModal(false), 3000);
         return;
       }
-      // Use upsert to save branding settings in Supabase
       const { error } = await supabase
         .from('admin_branding')
         .upsert({
@@ -81,7 +79,6 @@ const AdminDashboard = () => {
         }, { onConflict: 'admin_email' });
 
       if (error) throw error;
-
       setModalMessage('Brand settings updated successfully!');
       setShowModal(true);
       updateCSSVariables(brandSettings);
@@ -164,7 +161,7 @@ const AdminDashboard = () => {
                   />
                 </div>
                 <div className={styles.formGroup}>
-                  <label>Primary Color (Link Color)</label>
+                  <label>Primary Color (Link, Button Color)</label>
                   <input
                     type="color"
                     value={brandSettings.primaryColor}
