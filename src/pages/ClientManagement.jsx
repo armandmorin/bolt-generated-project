@@ -22,17 +22,15 @@ function ClientManagement() {
 
   const loadClients = async () => {
     try {
-      // Override Accept header specifically for queries that return arrays.
       const { data, error } = await supabase
         .from('clients')
-        .select('*', {
-          headers: { Accept: 'application/json, text/plain, */*' }
-        })
+        .select('*')
         .order('created_at', { ascending: false });
       if (error) {
         console.error('Error loading clients:', error);
         return;
       }
+      // data is expected to be an array (even if empty)
       setClients(data || []);
     } catch (err) {
       console.error('Error loading clients:', err);
