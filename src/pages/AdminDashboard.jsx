@@ -23,12 +23,12 @@ const AdminDashboard = () => {
     try {
       const user = JSON.parse(localStorage.getItem('user'));
       if (!user) return;
-      // Override Accept header using queryOptions on the select() call
+      // Use maybeSingle() to avoid errors when no row is returned
       const { data, error } = await supabase
         .from('admin_branding')
-        .select('*', { headers: { Accept: '*/*' } })
+        .select('*')
         .eq('admin_email', user.email)
-        .single();
+        .maybeSingle();
 
       if (error) {
         console.error('Error loading branding settings:', error);
@@ -56,7 +56,7 @@ const AdminDashboard = () => {
         return;
       }
 
-      // Use upsert to handle insert/update in one call.
+      // Use upsert to handle both update and insert at once
       const { error } = await supabase
         .from('admin_branding')
         .upsert({
