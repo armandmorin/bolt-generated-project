@@ -1,94 +1,111 @@
-import React, { useState, useEffect } from 'react';
-import { useSupabase } from '../contexts/SupabaseContext';
-import ClientManagement from './ClientManagement';
-import WidgetCustomization from './WidgetCustomization';
-import ProfileSettings from './ProfileSettings';
-import TeamMembers from './TeamMembers';
-import ImageUpload from '../components/ImageUpload';
-import { supabase, getBrandSettings, updateBrandSettings, createDefaultBrandSettings } from '../lib/supabase';
-import styles from '../styles/admin.module.css';
+import React, { useState } from 'react';
+    import ClientManagement from './ClientManagement';
+    import WidgetCustomization from './WidgetCustomization';
+    import ProfileSettings from './ProfileSettings';
+    import TeamMembers from './TeamMembers';
+    import ImageUpload from '../components/ImageUpload';
+    import styles from '../styles/admin.module.css';
 
-const DEFAULT_BRAND_SETTINGS = {
-  logo: '',
-  primary_color: '#2563eb',
-  secondary_color: '#ffffff',
-  header_color: '#2563eb'
-};
+    const AdminDashboard = () => {
+      const [activeTab, setActiveTab] = useState('branding');
+      const [brandSettings, setBrandSettings] = useState({
+        logo: '',
+        primaryColor: '#2563eb',
+        secondaryColor: '#ffffff'
+      });
 
-const AdminDashboard = () => {
-  const { user } = useSupabase();
-  const [activeTab, setActiveTab] = useState('clients');
-  const [brandSettings, setBrandSettings] = useState(DEFAULT_BRAND_SETTINGS);
-  const [saving, setSaving] = useState(false);
-  const [error, setError] = useState(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    if (user?.id) {
-      loadBrandSettings();
-    }
-  }, [user]);
-
-  const loadBrandSettings = async () => {
-    try {
-      setLoading(true);
-      setError(null);
-
-      // Try to get existing settings, or create default if none exist
-      const settings = await getBrandSettings(user.id);
-
-      if (settings) {
-        setBrandSettings(settings);
-        applyBrandSettings(settings);
-      } else {
-        // If no settings found, create default
-        const newSettings = await createDefaultBrandSettings(user.id);
-        setBrandSettings(newSettings);
-        applyBrandSettings(newSettings);
-      }
-    } catch (err) {
-      console.error('Error loading brand settings:', err);
-      setError('Failed to load brand settings. Using defaults.');
-      setBrandSettings(DEFAULT_BRAND_SETTINGS);
-      applyBrandSettings(DEFAULT_BRAND_SETTINGS);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const applyBrandSettings = (settings) => {
-    document.documentElement.style.setProperty('--primary-color', settings.primary_color || '#2563eb');
-    document.documentElement.style.setProperty('--secondary-color', settings.secondary_color || '#ffffff');
-    document.documentElement.style.setProperty('--header-color', settings.header_color || '#2563eb');
-  };
-
-  const handleBrandUpdate = async (e) => {
-    e.preventDefault();
-    setSaving(true);
-    setError(null);
-
-    try {
-      const settingsData = {
-        ...brandSettings,
-        admin_id: user.id,
-        updated_at: new Date().toISOString()
+      const handleBrandUpdate = (e) => {
+        e.preventDefault();
+        localStorage.setItem('brandSettings', JSON.stringify(brandSettings));
+        alert('Brand settings updated successfully!');
       };
 
-      const updatedSettings = await updateBrandSettings(settingsData);
-      
-      setBrandSettings(updatedSettings);
-      applyBrandSettings(updatedSettings);
-      alert('Brand settings updated successfully!');
-    } catch (error) {
-      console.error('Error updating brand settings:', error);
-      setError('Failed to save brand settings');
-    } finally {
-      setSaving(false);
-    }
-  };
+      return (
+        <div className={styles.adminDashboard}>
+          <div className={styles.tabs}>
+            <button
+              className={`${styles.tabButton} ${activeTab === 'branding' ? styles.active : ''}`}
+              onClick={() => setActiveTab('branding')}
+            >
+              Website Branding
+            </button>
+            <button
+              className={`${styles.tabButton} ${activeTab === 'widget' ? styles.active : ''}`}
+              onClick={() => setActiveTab('widget')}
+            >
+              Widget Preview
+            </button>
+            <button
+              className={`${styles.tabButton} ${activeTab === 'clients' ? styles.active : ''}`}
+              onClick={() => setActiveTab('clients')}
+            >
+              Client Management
+            </button>
+            <button
+              className={`${styles.tabButton} ${activeTab === 'team' ? styles.active : ''}`}
+              onClick={() => setActiveTab('team')}
+            >
+              Team Members
+            </button>
+            <button
+              className={`${styles.tabButton} ${activeTab === 'profile' ? styles.active : ''}`}
+              onClick={() => setActiveTab('profile')}
+            >
+              Profile
+            </button>
+          </div>
 
-  // Rest of the component remains the same...
-  // (render method and other methods stay unchanged)
-};
+          <div className={styles.content}>
+            {activeTab === 'branding' && (
+              <div className={styles.formContainer}>
+                <form onSubmit={handleBrandUpdate}>
+                  <ImageUpload
+                    currentImage={brandSettings.logo}
+                    onImageUpload={(imageData) => {
+                      setBrandSettings(prev => ({
+                        ...prev,
+                        logo: imageData
+                      }));
+                    }}
+                    label="Company Logo"
+                  />
 
-export default AdminDashboard;
+                  <div className={styles.colorGroup}>
+                    <div className={styles.formGroup}>
+                      <label>Primary Color</label>
+                      <input
+                        type="color"
+                        value={brandSettings.primaryColor}
+                        onChange={(e) => setBrandSettings({ ...brandSettings, primaryColor: e.target.value })}
+                      />
+                    </div>
+
+                    <div className={styles.formGroup}>
+                      <label>Secondary Color</label>
+                      <input
+                        type="color"
+                        value={brandSettings.secondaryColor}
+                        onChange={(e) => setBrandSettings({ ...brandSettings, secondaryColor: e.target.value })}
+                      />
+                    </div>
+                  </div>
+
+                  <div className={styles.formActions}>
+                    <button type="submit" className={styles.primaryButton}>
+                      Save Changes
+                    </button>
+                  </div>
+                </form>
+              </div>
+            )}
+
+            {activeTab === 'widget' && <WidgetCustomization />}
+            {activeTab === 'clients' && <ClientManagement />}
+            {activeTab === 'team' && <TeamMembers />}
+            {activeTab === 'profile' && <ProfileSettings />}
+          </div>
+        </div>
+      );
+    };
+
+    export default AdminDashboard;

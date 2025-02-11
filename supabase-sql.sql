@@ -1,24 +1,28 @@
--- Ensure unique constraint on admin_id in brand_settings
-ALTER TABLE public.brand_settings 
-ADD CONSTRAINT unique_admin_id UNIQUE (admin_id);
-
--- Recreate the table with proper constraints if needed
-CREATE TABLE IF NOT EXISTS public.brand_settings (
-    id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
-    admin_id UUID UNIQUE NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
-    logo TEXT,
-    primary_color TEXT DEFAULT '#2563eb',
-    secondary_color TEXT DEFAULT '#ffffff',
-    header_color TEXT DEFAULT '#2563eb',
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+-- Create widget_settings table
+CREATE TABLE IF NOT EXISTS widget_settings (
+    id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+    client_id UUID REFERENCES clients(id),
+    header_color VARCHAR,
+    header_text_color VARCHAR,
+    button_color VARCHAR,
+    powered_by_text VARCHAR,
+    powered_by_color VARCHAR,
+    button_size VARCHAR,
+    button_position VARCHAR,
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- Enable Row Level Security
-ALTER TABLE public.brand_settings ENABLE ROW LEVEL SECURITY;
+-- Enable RLS
+ALTER TABLE widget_settings ENABLE ROW LEVEL SECURITY;
 
--- Create policies
-CREATE POLICY "Users can manage their own brand settings" 
-ON public.brand_settings 
-FOR ALL 
-USING (auth.uid() = admin_id);
+-- Create policy for widget_settings table
+CREATE POLICY "Enable all operations for all users" ON widget_settings
+    FOR ALL
+    USING (true)
+    WITH CHECK (true);
+
+-- Grant necessary permissions
+GRANT ALL ON widget_settings TO anon;
+GRANT ALL ON widget_settings TO authenticated;
+GRANT ALL ON widget_settings TO service_role;

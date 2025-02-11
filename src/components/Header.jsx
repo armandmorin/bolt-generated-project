@@ -1,29 +1,26 @@
 import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { useSupabase } from '../contexts/SupabaseContext';
 import styles from '../styles/header.module.css';
 
-const Header = () => {
+const Header = ({ logo, primaryColor }) => {
   const navigate = useNavigate();
-  const { user, setUser } = useSupabase();
+  const userRole = localStorage.getItem('userRole');
 
   const handleLogout = () => {
+    localStorage.removeItem('userRole');
     localStorage.removeItem('user');
-    setUser(null);
     navigate('/');
   };
 
   const getNavLinks = () => {
-    if (!user) return null;
-
-    if (user.role === 'superadmin') {
+    if (userRole === 'superadmin') {
       return (
         <>
           <Link to="/super-admin" className={styles.navLink}>Dashboard</Link>
         </>
       );
     }
-    if (user.role === 'admin') {
+    if (userRole === 'admin') {
       return (
         <>
           <Link to="/admin" className={styles.navLink}>Dashboard</Link>
@@ -34,12 +31,21 @@ const Header = () => {
   };
 
   return (
-    <header className={styles.mainHeader}>
+    <header 
+      className={styles.mainHeader}
+      style={{ backgroundColor: primaryColor }}
+    >
       <div className={styles.headerContent}>
         <div className={styles.logoContainer}>
-          <span className={styles.logoText}>
-            {user?.role === 'superadmin' ? 'Super Admin' : 'Admin Dashboard'}
-          </span>
+          {logo ? (
+            <Link to={userRole === 'superadmin' ? '/super-admin' : '/admin'}>
+              <img src={logo} alt="Logo" className={styles.logo} />
+            </Link>
+          ) : (
+            <span className={styles.logoText}>
+              {userRole === 'superadmin' ? 'Super Admin' : 'Admin Dashboard'}
+            </span>
+          )}
         </div>
 
         <nav className={styles.mainNav}>
@@ -49,7 +55,7 @@ const Header = () => {
           
           <div className={styles.navGroup}>
             <span className={styles.userRole}>
-              {user?.role === 'superadmin' ? 'Super Admin' : 'Admin'}
+              {userRole === 'superadmin' ? 'Super Admin' : 'Admin'}
             </span>
             <button 
               onClick={handleLogout}

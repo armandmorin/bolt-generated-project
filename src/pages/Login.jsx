@@ -1,58 +1,35 @@
 import React, { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
-import { useSupabase } from '../contexts/SupabaseContext';
-import { loginUser } from '../services/auth';
+import { useNavigate, Link, useLocation } from 'react-router-dom';
 import styles from '../styles/modules/login.module.css';
 
 const Login = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
   const navigate = useNavigate();
-  const { setUser } = useSupabase();
+  const location = useLocation();
+  const brandSettings = JSON.parse(localStorage.getItem('brandSettings') || '{}');
+
+  // Check if we're trying to access the test page
+  if (location.pathname === '/test') {
+    return null; // Don't render login for test route
+  }
 
   const handleLogin = async (e) => {
     e.preventDefault();
-    setLoading(true);
-    setError('');
-
-    try {
-      const userData = await loginUser(email, password);
-      
-      // Store user data
-      localStorage.setItem('user', JSON.stringify(userData));
-      setUser(userData);
-
-      // Navigate based on role
-      if (userData.role === 'superadmin') {
-        navigate('/super-admin');
-      } else if (userData.role === 'admin') {
-        navigate('/admin');
-      } else {
-        throw new Error('Invalid user role');
-      }
-    } catch (error) {
-      console.error('Login error:', error);
-      setError(
-        error.message === 'Invalid login credentials' 
-          ? 'Invalid email or password'
-          : 'An error occurred during login'
-      );
-    } finally {
-      setLoading(false);
-    }
+    localStorage.setItem('userRole', 'admin');
+    localStorage.setItem('user', JSON.stringify({ email, role: 'admin' }));
+    navigate('/admin');
   };
 
   return (
     <div className={styles.loginPage}>
       <div className={styles.loginContainer}>
-        <h1>Admin Login</h1>
-
-        {error && (
-          <div className={styles.errorMessage}>
-            {error}
+        {brandSettings.logo ? (
+          <div className={styles.logoContainer}>
+            <img src={brandSettings.logo} alt="Company Logo" className={styles.logo} />
           </div>
+        ) : (
+          <h1>Admin Login</h1>
         )}
 
         <form onSubmit={handleLogin}>
@@ -60,9 +37,9 @@ const Login = () => {
             <label>Email</label>
             <input
               type="email"
+              placeholder="Enter your email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              placeholder="Enter your email"
               required
             />
           </div>
@@ -71,19 +48,15 @@ const Login = () => {
             <label>Password</label>
             <input
               type="password"
+              placeholder="Enter your password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              placeholder="Enter your password"
               required
             />
           </div>
 
-          <button 
-            type="submit" 
-            className={styles.loginButton}
-            disabled={loading}
-          >
-            {loading ? 'Logging in...' : 'Login'}
+          <button type="submit" className={styles.loginButton}>
+            Login
           </button>
         </form>
 

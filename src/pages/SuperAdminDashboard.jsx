@@ -1,219 +1,286 @@
 import React, { useState, useEffect } from 'react';
-import { useSupabase } from '../contexts/SupabaseContext';
-import { supabase } from '../lib/supabase';
-import ImageUpload from '../components/ImageUpload';
-import styles from '../styles/superAdmin.module.css';
+    import ImageUpload from '../components/ImageUpload';
+    import styles from '../styles/admin.module.css';
 
-const DEFAULT_SETTINGS = {
-  logo: '',
-  primary_color: '#2563eb',
-  secondary_color: '#ffffff',
-  header_color: '#2563eb'
-};
+    const SuperAdminDashboard = () => {
+      const [activeTab, setActiveTab] = useState('branding');
+      const [admins, setAdmins] = useState([]);
+      const [newAdmin, setNewAdmin] = useState({
+        name: '',
+        email: '',
+        password: '',
+        company: ''
+      });
+      const [globalBranding, setGlobalBranding] = useState({
+        logo: '',
+        headerColor: '#2563eb',
+        buttonColor: '#2563eb'
+      });
+      const [domain, setDomain] = useState(() => {
+        return localStorage.getItem('widgetDomain') || '';
+      });
 
-const SuperAdminDashboard = () => {
-  const { user } = useSupabase();
-  const [activeTab, setActiveTab] = useState('branding');
-  const [brandSettings, setBrandSettings] = useState(DEFAULT_SETTINGS);
-  const [saving, setSaving] = useState(false);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    if (user?.id) {
-      loadBrandSettings();
-    }
-  }, [user]);
-
-  const loadBrandSettings = async () => {
-    try {
-      setLoading(true);
-      
-      // First, check if settings exist
-      const { count, error: countError } = await supabase
-        .from('brand_settings')
-        .select('*', { count: 'exact', head: true })
-        .eq('admin_id', user.id);
-
-      if (countError) {
-        console.error('Error checking settings:', countError);
-        return;
-      }
-
-      if (count === 0) {
-        // No settings exist, create default settings
-        console.log('Creating default settings...');
-        const { data: newSettings, error: insertError } = await supabase
-          .from('brand_settings')
-          .insert([{
-            admin_id: user.id,
-            ...DEFAULT_SETTINGS,
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString()
-          }])
-          .select('*')
-          .single();
-
-        if (insertError) {
-          console.error('Error creating settings:', insertError);
-          return;
+      useEffect(() => {
+        const savedAdmins = localStorage.getItem('admins');
+        if (savedAdmins) {
+          setAdmins(JSON.parse(savedAdmins));
         }
 
-        setBrandSettings(newSettings || DEFAULT_SETTINGS);
-        applySettings(newSettings || DEFAULT_SETTINGS);
-      } else {
-        // Settings exist, fetch them
-        console.log('Fetching existing settings...');
-        const { data: existingSettings, error: fetchError } = await supabase
-          .from('brand_settings')
-          .select('*')
-          .eq('admin_id', user.id)
-          .single();
-
-        if (fetchError) {
-          console.error('Error fetching settings:', fetchError);
-          return;
+        const savedBranding = localStorage.getItem('globalBranding');
+        if (savedBranding) {
+          setGlobalBranding(JSON.parse(savedBranding));
         }
+      }, []);
 
-        setBrandSettings(existingSettings || DEFAULT_SETTINGS);
-        applySettings(existingSettings || DEFAULT_SETTINGS);
-      }
-    } catch (error) {
-      console.error('Error in loadBrandSettings:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
+      const handleDomainSave = (e) => {
+        e.preventDefault();
+        localStorage.setItem('widgetDomain', domain);
+        alert('Domain settings updated successfully!');
+      };
 
-  const applySettings = (settings) => {
-    document.documentElement.style.setProperty('--primary-color', settings.primary_color);
-    document.documentElement.style.setProperty('--secondary-color', settings.secondary_color);
-    document.documentElement.style.setProperty('--header-color', settings.header_color);
-  };
+      const handleBrandingChange = (e) => {
+        const { name, value } = e.target;
+        setGlobalBranding(prev => ({
+          ...prev,
+          [name]: value
+        }));
+      };
 
-  const handleBrandUpdate = async (e) => {
-    e.preventDefault();
-    setSaving(true);
+      const saveBrandingSettings = () => {
+        localStorage.setItem('globalBranding', JSON.stringify(globalBranding));
+        localStorage.setItem('brandSettings', JSON.stringify({
+          logo: globalBranding.logo,
+          primaryColor: globalBranding.headerColor,
+          buttonColor: globalBranding.buttonColor
+        }));
+        alert('Global branding settings updated successfully!');
+      };
 
-    try {
-      const { error } = await supabase
-        .from('brand_settings')
-        .upsert({
-          admin_id: user.id,
-          ...brandSettings,
-          updated_at: new Date().toISOString()
-        }, {
-          onConflict: 'admin_id'
-        });
+      const handleInputChange = (e) => {
+        const { name, value } = e.target;
+        setNewAdmin(prev => ({
+          ...prev,
+          [name]: value
+        }));
+      };
 
-      if (error) throw error;
+      const addAdmin = (e) => {
+        e.preventDefault();
+        const updatedAdmins = [...admins, {
+          ...newAdmin,
+          id: Date.now(),
+          clients: [],
+          dateCreated: new Date().toISOString()
+        }];
+        setAdmins(updatedAdmins);
+        localStorage.setItem('admins', JSON.stringify(updatedAdmins));
+        setNewAdmin({ name: '', email: '', password: '', company: '' });
+      };
 
-      applySettings(brandSettings);
-      alert('Brand settings updated successfully!');
-      await loadBrandSettings(); // Reload settings after update
-    } catch (error) {
-      console.error('Error updating brand settings:', error);
-      alert('Error updating brand settings: ' + error.message);
-    } finally {
-      setSaving(false);
-    }
-  };
+      const removeAdmin = (adminId) => {
+        const updatedAdmins = admins.filter(admin => admin.id !== adminId);
+        setAdmins(updatedAdmins);
+        localStorage.setItem('admins', JSON.stringify(updatedAdmins));
+      };
 
-  if (loading) {
-    return <div className={styles.loading}>Loading...</div>;
-  }
+      return (
+        <div className={styles.superAdminDashboard}>
+          <div className={styles.tabs}>
+            <button
+              className={`${styles.tabButton} ${activeTab === 'branding' ? styles.active : ''}`}
+              onClick={() => setActiveTab('branding')}
+            >
+              Global Branding
+            </button>
+            <button
+              className={`${styles.tabButton} ${activeTab === 'domain' ? styles.active : ''}`}
+              onClick={() => setActiveTab('domain')}
+            >
+              Domain Settings
+            </button>
+            <button
+              className={`${styles.tabButton} ${activeTab === 'admins' ? styles.active : ''}`}
+              onClick={() => setActiveTab('admins')}
+            >
+              Admin Management
+            </button>
+          </div>
 
-  return (
-    <div className={styles.superAdminDashboard}>
-      <div className={styles.tabs}>
-        <button
-          className={`${styles.tabButton} ${activeTab === 'branding' ? styles.active : ''}`}
-          onClick={() => setActiveTab('branding')}
-        >
-          Brand Settings
-        </button>
-        <button
-          className={`${styles.tabButton} ${activeTab === 'admins' ? styles.active : ''}`}
-          onClick={() => setActiveTab('admins')}
-        >
-          Manage Admins
-        </button>
-      </div>
-
-      <div className={styles.content}>
-        {activeTab === 'branding' && (
-          <div className={styles.formContainer}>
-            <h2>Brand Settings</h2>
-            <form onSubmit={handleBrandUpdate}>
-              <ImageUpload
-                currentImage={brandSettings.logo}
-                onImageUpload={(imageData) => {
-                  setBrandSettings(prev => ({
-                    ...prev,
-                    logo: imageData
-                  }));
-                }}
-                label="Company Logo"
-              />
-
-              <div className={styles.colorGroup}>
-                <div className={styles.formGroup}>
-                  <label>Header Color</label>
-                  <input
-                    type="color"
-                    value={brandSettings.header_color}
-                    onChange={(e) => setBrandSettings(prev => ({
-                      ...prev,
-                      header_color: e.target.value
-                    }))}
+          <div className={styles.content}>
+            {activeTab === 'branding' && (
+              <div className={styles.formContainer}>
+                <h2>Global Branding Settings</h2>
+                <div className={styles.brandingForm}>
+                  <ImageUpload
+                    currentImage={globalBranding.logo}
+                    onImageUpload={(imageData) => {
+                      setGlobalBranding(prev => ({
+                        ...prev,
+                        logo: imageData
+                      }));
+                    }}
+                    label="Default Logo"
                   />
-                </div>
 
-                <div className={styles.formGroup}>
-                  <label>Primary Color</label>
-                  <input
-                    type="color"
-                    value={brandSettings.primary_color}
-                    onChange={(e) => setBrandSettings(prev => ({
-                      ...prev,
-                      primary_color: e.target.value
-                    }))}
-                  />
-                </div>
+                  <div className={styles.colorGroup}>
+                    <div className={styles.formGroup}>
+                      <label>Header Color</label>
+                      <input
+                        type="color"
+                        name="headerColor"
+                        value={globalBranding.headerColor}
+                        onChange={handleBrandingChange}
+                      />
+                    </div>
 
-                <div className={styles.formGroup}>
-                  <label>Secondary Color</label>
-                  <input
-                    type="color"
-                    value={brandSettings.secondary_color}
-                    onChange={(e) => setBrandSettings(prev => ({
-                      ...prev,
-                      secondary_color: e.target.value
-                    }))}
-                  />
+                    <div className={styles.formGroup}>
+                      <label>Button Color</label>
+                      <input
+                        type="color"
+                        name="buttonColor"
+                        value={globalBranding.buttonColor}
+                        onChange={handleBrandingChange}
+                      />
+                    </div>
+                  </div>
+
+                  <div className={styles.formActions}>
+                    <button 
+                      type="button" 
+                      className={styles.saveButton}
+                      onClick={saveBrandingSettings}
+                    >
+                      Save Branding Settings
+                    </button>
+                  </div>
                 </div>
               </div>
+            )}
 
-              <div className={styles.formActions}>
-                <button 
-                  type="submit" 
-                  className={styles.saveButton}
-                  disabled={saving}
-                >
-                  {saving ? 'Saving...' : 'Save Brand Settings'}
-                </button>
+            {activeTab === 'domain' && (
+              <div className={styles.formContainer}>
+                <h2>Widget Domain Configuration</h2>
+                <p className={styles.description}>
+                  Set the domain where the accessibility widget will be hosted. 
+                  This domain will be used in the installation code provided to clients.
+                </p>
+                <form onSubmit={handleDomainSave}>
+                  <div className={styles.formGroup}>
+                    <label>Widget Domain</label>
+                    <input
+                      type="url"
+                      value={domain}
+                      onChange={(e) => setDomain(e.target.value)}
+                      placeholder="https://widget.yourdomain.com"
+                      required
+                    />
+                    <span className={styles.hint}>
+                      Example: https://widget.yourdomain.com or https://yourdomain.com/widget
+                    </span>
+                  </div>
+                  <div className={styles.formActions}>
+                    <button type="submit" className={styles.saveButton}>
+                      Save Domain
+                    </button>
+                  </div>
+                </form>
               </div>
-            </form>
-          </div>
-        )}
+            )}
 
-        {activeTab === 'admins' && (
-          <div className={styles.adminSection}>
-            {/* Admin management content */}
-          </div>
-        )}
-      </div>
-    </div>
-  );
-};
+            {activeTab === 'admins' && (
+              <div className={styles.adminSection}>
+                <div className={styles.addAdminSection}>
+                  <h2>Add New Admin</h2>
+                  <form onSubmit={addAdmin} className={styles.addAdminForm}>
+                    <div className={styles.formGroup}>
+                      <label>Name</label>
+                      <input
+                        type="text"
+                        name="name"
+                        value={newAdmin.name}
+                        onChange={handleInputChange}
+                        required
+                      />
+                    </div>
 
-export default SuperAdminDashboard;
+                    <div className={styles.formGroup}>
+                      <label>Email</label>
+                      <input
+                        type="email"
+                        name="email"
+                        value={newAdmin.email}
+                        onChange={handleInputChange}
+                        required
+                      />
+                    </div>
+
+                    <div className={styles.formGroup}>
+                      <label>Password</label>
+                      <input
+                        type="password"
+                        name="password"
+                        value={newAdmin.password}
+                        onChange={handleInputChange}
+                        required
+                      />
+                    </div>
+
+                    <div className={styles.formGroup}>
+                      <label>Company</label>
+                      <input
+                        type="text"
+                        name="company"
+                        value={newAdmin.company}
+                        onChange={handleInputChange}
+                        required
+                      />
+                    </div>
+
+                    <button type="submit" className={styles.addButton}>
+                      Add Admin
+                    </button>
+                  </form>
+                </div>
+
+                <div className={styles.adminListSection}>
+                  <h2>Admin List</h2>
+                  <table className={styles.adminTable}>
+                    <thead>
+                      <tr>
+                        <th>Name</th>
+                        <th>Email</th>
+                        <th>Company</th>
+                        <th>Clients</th>
+                        <th>Date Created</th>
+                        <th>Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {admins.map(admin => (
+                        <tr key={admin.id}>
+                          <td>{admin.name}</td>
+                          <td>{admin.email}</td>
+                          <td>{admin.company}</td>
+                          <td>{admin.clients.length}</td>
+                          <td>{new Date(admin.dateCreated).toLocaleDateString()}</td>
+                          <td>
+                            <button
+                              className={styles.removeButton}
+                              onClick={() => removeAdmin(admin.id)}
+                            >
+                              Remove
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      );
+    };
+
+    export default SuperAdminDashboard;
