@@ -60,9 +60,10 @@ function ClientManagement() {
     };
 
     try {
+      // Use "returning: 'minimal'" so that no rows are returned.
       const { error } = await supabase
         .from('clients')
-        .insert([newClientData]);
+        .insert([newClientData], { returning: 'minimal' });
       if (error) {
         console.error('Error adding client:', error);
         alert('Failed to add client. Please try again.');
@@ -123,7 +124,6 @@ function ClientManagement() {
           className={styles.searchInput}
         />
       </div>
-
       <div className={styles.addClientForm}>
         <h3>Add New Client</h3>
         <form onSubmit={addClient}>
