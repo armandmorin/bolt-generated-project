@@ -4,6 +4,14 @@ import { supabase } from '../lib/supabase';
 import WidgetCodeSnippet from '../components/WidgetCodeSnippet';
 import styles from '../styles/client.module.css';
 
+async function getCurrentAdmin() {
+  const { data: { user }, error } = await supabase.auth.getUser();
+  if (error || !user) {
+    return null;
+  }
+  return user;
+}
+
 function ClientManagement() {
   const navigate = useNavigate();
   const [clients, setClients] = useState([]);
@@ -50,9 +58,8 @@ function ClientManagement() {
 
   const addClient = async (e) => {
     e.preventDefault();
-    // Use supabase.auth.getUser() to retrieve the current user.
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user || !user.id) {
+    const adminUser = await getCurrentAdmin();
+    if (!adminUser || !adminUser.id) {
       alert('Admin user not found. Please log in.');
       return;
     }
@@ -63,7 +70,7 @@ function ClientManagement() {
       email: newClient.email,
       client_key: clientKey,
       status: 'active',
-      admin_id: user.id
+      admin_id: adminUser.id
     };
 
     try {
