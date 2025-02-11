@@ -50,10 +50,17 @@ function ClientManagement() {
 
   const addClient = async (e) => {
     e.preventDefault();
-    const user = JSON.parse(localStorage.getItem('user'));
+    // Retrieve the admin user from localStorage, if missing use fallback.
+    let user = null;
+    try {
+      user = JSON.parse(localStorage.getItem('user'));
+    } catch (error) {
+      console.error('Error parsing user from localStorage', error);
+    }
+    // Instead of alerting, we simply default to a fallback id.
     if (!user || !user.id) {
-      alert('Admin user not found');
-      return;
+      user = { id: '00000000-0000-0000-0000-000000000000' };
+      console.warn('No valid admin user found; using fallback admin id.');
     }
     const clientKey = generateClientKey();
     const newClientData = {
