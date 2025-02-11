@@ -24,12 +24,13 @@ function ClientManagement() {
     try {
       const { data, error } = await supabase
         .from('clients')
-        .select('*')  // Return an array
+        .select('*')
         .order('created_at', { ascending: false });
       if (error) {
         console.error('Error loading clients:', error);
         return;
       }
+      // data is an array (even if empty)
       setClients(data || []);
     } catch (err) {
       console.error('Error loading clients:', err);
@@ -51,15 +52,17 @@ function ClientManagement() {
   const addClient = async (e) => {
     e.preventDefault();
     const clientKey = generateClientKey();
+    // Update key from contact_email to contactEmail
     const newClientData = {
       name: newClient.name,
       website: newClient.website,
-      contact_email: newClient.contactEmail,
+      contactEmail: newClient.contactEmail,
       client_key: clientKey,
       status: 'active'
     };
 
     try {
+      // Using returning: 'minimal' so no rows are returned
       const { error } = await supabase
         .from('clients')
         .insert([newClientData], { returning: 'minimal' });
@@ -107,9 +110,9 @@ function ClientManagement() {
   };
 
   const filteredClients = clients.filter(client =>
-    client.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    client.website.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    client.contact_email.toLowerCase().includes(searchQuery.toLowerCase())
+    (client.name && client.name.toLowerCase().includes(searchQuery.toLowerCase())) ||
+    (client.website && client.website.toLowerCase().includes(searchQuery.toLowerCase())) ||
+    (client.contactEmail && client.contactEmail.toLowerCase().includes(searchQuery.toLowerCase()))
   );
 
   return (
@@ -184,7 +187,7 @@ function ClientManagement() {
                     {client.website}
                   </a>
                 </td>
-                <td>{client.contact_email}</td>
+                <td>{client.contactEmail}</td>
                 <td>{client.client_key}</td>
                 <td>
                   <span className={`${styles.status} ${client.status === 'active' ? styles.statusActive : styles.statusInactive}`}>
@@ -193,8 +196,12 @@ function ClientManagement() {
                 </td>
                 <td>
                   <div className={styles.actionButtons}>
-                    <button className={styles.editButton} onClick={() => handleEditClient(client.id)}>Edit</button>
-                    <button className={styles.codeButton} onClick={() => showClientCode(client)}>Get Code</button>
+                    <button className={styles.editButton} onClick={() => handleEditClient(client.id)}>
+                      Edit
+                    </button>
+                    <button className={styles.codeButton} onClick={() => showClientCode(client)}>
+                      Get Code
+                    </button>
                     <button className={`${styles.statusButton} ${client.status === 'active' ? styles.statusButtonActive : styles.statusButtonInactive}`} onClick={() => toggleClientStatus(client.id, client.status)}>
                       {client.status === 'active' ? 'Deactivate' : 'Activate'}
                     </button>
@@ -212,7 +219,9 @@ function ClientManagement() {
             <h3>Installation Code</h3>
             <WidgetCodeSnippet clientKey={selectedClientCode} />
             <div className={styles.modalButtons}>
-              <button onClick={() => setShowCodeModal(false)} className={styles.closeButton}>Close</button>
+              <button onClick={() => setShowCodeModal(false)} className={styles.closeButton}>
+                Close
+              </button>
             </div>
           </div>
         </div>
