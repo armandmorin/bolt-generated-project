@@ -10,7 +10,7 @@ function ClientManagement() {
   const [newClient, setNewClient] = useState({
     name: '',
     website: '',
-    contactEmail: ''
+    contact_email: ''
   });
   const [searchQuery, setSearchQuery] = useState('');
   const [showCodeModal, setShowCodeModal] = useState(false);
@@ -30,7 +30,6 @@ function ClientManagement() {
         console.error('Error loading clients:', error);
         return;
       }
-      // data is an array (even if empty)
       setClients(data || []);
     } catch (err) {
       console.error('Error loading clients:', err);
@@ -52,17 +51,15 @@ function ClientManagement() {
   const addClient = async (e) => {
     e.preventDefault();
     const clientKey = generateClientKey();
-    // Update key from contact_email to contactEmail
     const newClientData = {
       name: newClient.name,
       website: newClient.website,
-      contactEmail: newClient.contactEmail,
+      contact_email: newClient.contact_email,
       client_key: clientKey,
       status: 'active'
     };
 
     try {
-      // Using returning: 'minimal' so no rows are returned
       const { error } = await supabase
         .from('clients')
         .insert([newClientData], { returning: 'minimal' });
@@ -75,7 +72,7 @@ function ClientManagement() {
       setNewClient({
         name: '',
         website: '',
-        contactEmail: ''
+        contact_email: ''
       });
     } catch (err) {
       console.error('Error adding client:', err);
@@ -112,7 +109,7 @@ function ClientManagement() {
   const filteredClients = clients.filter(client =>
     (client.name && client.name.toLowerCase().includes(searchQuery.toLowerCase())) ||
     (client.website && client.website.toLowerCase().includes(searchQuery.toLowerCase())) ||
-    (client.contactEmail && client.contactEmail.toLowerCase().includes(searchQuery.toLowerCase()))
+    (client.contact_email && client.contact_email.toLowerCase().includes(searchQuery.toLowerCase()))
   );
 
   return (
@@ -153,8 +150,8 @@ function ClientManagement() {
             <label>Contact Email</label>
             <input
               type="email"
-              name="contactEmail"
-              value={newClient.contactEmail}
+              name="contact_email"
+              value={newClient.contact_email}
               onChange={handleInputChange}
               required
             />
@@ -187,7 +184,7 @@ function ClientManagement() {
                     {client.website}
                   </a>
                 </td>
-                <td>{client.contactEmail}</td>
+                <td>{client.contact_email}</td>
                 <td>{client.client_key}</td>
                 <td>
                   <span className={`${styles.status} ${client.status === 'active' ? styles.statusActive : styles.statusInactive}`}>
