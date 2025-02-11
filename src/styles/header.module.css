@@ -21,7 +21,7 @@
 }
 
 .logo {
-  max-width: 150px;
+  max-width: 250px;
   height: auto;
   max-height: 40px;
   object-fit: contain;
@@ -55,7 +55,7 @@
 }
 
 .navLink:hover {
-  background-color: rgba(37, 99, 235, 0.1);
+  background-color: rgba(37,99,235,0.1);
 }
 
 .navGroup {
