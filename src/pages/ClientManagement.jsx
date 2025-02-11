@@ -22,6 +22,8 @@ function ClientManagement() {
 
   const loadClients = async () => {
     try {
+      // Remove any .single() behavior by not using it.
+      // Also, we use no header override; rely on defaults.
       const { data, error } = await supabase
         .from('clients')
         .select('*')
@@ -30,7 +32,7 @@ function ClientManagement() {
         console.error('Error loading clients:', error);
         return;
       }
-      // data is expected to be an array (even if empty)
+      // data is an array (even if empty)
       setClients(data || []);
     } catch (err) {
       console.error('Error loading clients:', err);
