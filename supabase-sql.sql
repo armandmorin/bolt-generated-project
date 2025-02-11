@@ -1,2 +1,4 @@
--- If needed, rename the column
-ALTER TABLE clients RENAME COLUMN contact_email TO "contactEmail";
+-- Insert a test admin user without a "password" column
+INSERT INTO users (id, email, role)
+VALUES ('00000000-0000-0000-0000-000000000000', 'admin@example.com', 'admin')
+ON CONFLICT (id) DO NOTHING;

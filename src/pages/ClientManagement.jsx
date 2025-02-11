@@ -50,17 +50,11 @@ function ClientManagement() {
 
   const addClient = async (e) => {
     e.preventDefault();
-    // Retrieve the admin user from localStorage, if missing use fallback.
-    let user = null;
-    try {
-      user = JSON.parse(localStorage.getItem('user'));
-    } catch (error) {
-      console.error('Error parsing user from localStorage', error);
-    }
-    // Instead of alerting, we simply default to a fallback id.
+    // Use Supabase Auth to get the current user.
+    const user = supabase.auth.user();
     if (!user || !user.id) {
-      user = { id: '00000000-0000-0000-0000-000000000000' };
-      console.warn('No valid admin user found; using fallback admin id.');
+      alert('Admin user not found. Please log in.');
+      return;
     }
     const clientKey = generateClientKey();
     const newClientData = {
