@@ -50,22 +50,20 @@ function ClientManagement() {
 
   const addClient = async (e) => {
     e.preventDefault();
-    // Retrieve admin user from localStorage; if not available, use a fallback for testing.
     const userJSON = localStorage.getItem('user');
     let user = null;
     if (userJSON) {
       try {
         user = JSON.parse(userJSON);
-      } catch (e) {
-        console.error('Error parsing admin user from localStorage', e);
+      } catch (error) {
+        console.error('Error parsing admin user from localStorage', error);
       }
     }
+    // Fallback to a valid UUID for testing
     if (!user || !user.id) {
-      // For testing, set a default admin id.
-      user = { id: 'test-admin-id' };
-      console.warn('No admin user found, defaulting to test-admin-id for testing');
+      user = { id: '00000000-0000-0000-0000-000000000000' };
+      console.warn('No valid admin user found; using fallback admin id');
     }
-
     const clientKey = generateClientKey();
     const newClientData = {
       name: newClient.name,
@@ -226,6 +224,7 @@ function ClientManagement() {
           </tbody>
         </table>
       </div>
+
       {showCodeModal && (
         <div className={styles.modal}>
           <div className={styles.modalContent}>
