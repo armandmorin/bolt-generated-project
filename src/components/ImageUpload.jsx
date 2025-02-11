@@ -40,6 +40,11 @@ const ImageUpload = ({ currentImage, onImageUpload, label = "Logo" }) => {
     }
   };
 
+  const handleRemove = () => {
+    setPreviewUrl('');
+    onImageUpload('');
+  };
+
   return (
     <div className={styles.imageUploadContainer}>
       <label className={styles.label}>{label}</label>
@@ -49,7 +54,12 @@ const ImageUpload = ({ currentImage, onImageUpload, label = "Logo" }) => {
         onDrop={handleDrop}
       >
         {previewUrl ? (
-          <img src={previewUrl} alt="Logo Preview" className={styles.preview} />
+          <>
+            <img src={previewUrl} alt="Logo Preview" className={styles.preview} />
+            <button type="button" className={styles.removeButton} onClick={handleRemove}>
+              ×
+            </button>
+          </>
         ) : (
           <span>Drag and drop an image or click to upload</span>
         )}
