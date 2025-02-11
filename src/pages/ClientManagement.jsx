@@ -22,7 +22,7 @@ function ClientManagement() {
 
   const loadClients = async () => {
     try {
-      // Query returns an array of client rows.
+      // Query returns an array of client records.
       const { data, error } = await supabase
         .from('clients')
         .select('*')
@@ -31,7 +31,6 @@ function ClientManagement() {
         console.error('Error loading clients:', error);
         return;
       }
-      // Ensure we store an array (even if empty).
       setClients(data || []);
     } catch (err) {
       console.error('Error loading clients:', err);
@@ -52,14 +51,19 @@ function ClientManagement() {
 
   const addClient = async (e) => {
     e.preventDefault();
+    const user = JSON.parse(localStorage.getItem('user'));
+    if (!user || !user.id) {
+      alert('Admin user not found');
+      return;
+    }
     const clientKey = generateClientKey();
-    // Using camelCase field "contactEmail" so it matches our Supabase schema.
     const newClientData = {
       name: newClient.name,
       website: newClient.website,
       contactEmail: newClient.contactEmail,
       client_key: clientKey,
-      status: 'active'
+      status: 'active',
+      admin_id: user.id
     };
 
     try {
