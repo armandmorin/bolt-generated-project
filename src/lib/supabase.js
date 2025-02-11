@@ -14,5 +14,12 @@ export const supabase = createClient(supabaseUrl, supabaseKey, {
   },
   db: {
     schema: 'public'
+  },
+  global: {
+    headers: {
+      'Content-Type': 'application/json',
+      // When using .single(), PostgREST expects the Accept header to be set to this value.
+      'Accept': 'application/vnd.pgrst.object+json'
+    }
   }
 });
