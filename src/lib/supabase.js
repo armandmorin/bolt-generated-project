@@ -18,7 +18,8 @@ export const supabase = createClient(supabaseUrl, supabaseKey, {
   global: {
     headers: { 
       'Content-Type': 'application/json',
-      'Accept': 'application/json'
+      // Modify Accept header to allow text/plain and all
+      'Accept': 'application/json, text/plain, */*'
     }
   }
 });
