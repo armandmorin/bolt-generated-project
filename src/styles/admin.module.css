@@ -1,12 +1,13 @@
 .adminDashboard {
   padding: 2rem;
+  background-color: #f8fafc;
 }
 
 .tabs {
   display: flex;
   gap: 1rem;
   margin-bottom: 2rem;
-  border-bottom: 1px solid var(--border-color);
+  border-bottom: 1px solid #e2e8f0;
 }
 
 .tabButton {
@@ -16,17 +17,17 @@
   border-bottom: 2px solid transparent;
   cursor: pointer;
   font-size: 1rem;
-  color: var(--text-color);
+  color: #1e293b;
   transition: all 0.2s ease;
 }
 
 .tabButton:hover {
-  color: var(--primary-color);
+  color: #2563eb;
 }
 
 .tabButton.active {
-  color: var(--primary-color);
-  border-bottom-color: var(--primary-color);
+  color: #2563eb;
+  border-bottom-color: #2563eb;
 }
 
 .content {
@@ -44,7 +45,6 @@
 .colorGroup {
   display: flex;
   gap: 1rem;
-  margin-bottom: 1.5rem;
 }
 
 .formGroup {
@@ -56,7 +56,7 @@
 
 .primaryButton {
   padding: 0.75rem 1.5rem;
-  background-color: var(--primary-color);
+  background-color: #2563eb;
   color: white;
   border: none;
   border-radius: 6px;
@@ -71,7 +71,7 @@
   transform: translateY(-1px);
 }
 
-/* Modal styles for branding updates */
+/* Modal styles for notifications */
 .modal {
   position: fixed;
   top: 20px;
@@ -84,7 +84,7 @@
   opacity: 0.9;
 }
 
-/* Additional responsive styling */
+/* Responsive styling */
 @media (max-width: 768px) {
   .adminDashboard {
     padding: 1rem;
