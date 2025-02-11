@@ -23,15 +23,16 @@ const AdminDashboard = () => {
     try {
       const user = JSON.parse(localStorage.getItem('user'));
       if (!user) return;
-
+      // Override Accept header using queryOptions on the select() call
       const { data, error } = await supabase
         .from('admin_branding')
-        .select('*')
+        .select('*', { headers: { Accept: '*/*' } })
         .eq('admin_email', user.email)
         .single();
 
-      if (error && error.code !== 'PGRST116') {
-        throw error;
+      if (error) {
+        console.error('Error loading branding settings:', error);
+        return;
       }
 
       if (data) {
@@ -55,17 +56,15 @@ const AdminDashboard = () => {
         return;
       }
 
-      // Upsert method to handle both insert and update
-      const { data, error } = await supabase
+      // Use upsert to handle insert/update in one call.
+      const { error } = await supabase
         .from('admin_branding')
         .upsert({
           admin_email: user.email,
           logo: brandSettings.logo,
           primary_color: brandSettings.primaryColor,
           secondary_color: brandSettings.secondaryColor
-        }, {
-          onConflict: 'admin_email'
-        });
+        }, { onConflict: 'admin_email' });
 
       if (error) throw error;
 
@@ -76,11 +75,90 @@ const AdminDashboard = () => {
     }
   };
 
-  // Rest of the component remains the same...
-
   return (
     <div className={styles.adminDashboard}>
-      {/* Existing JSX remains the same */}
+      <div className={styles.tabs}>
+        <button
+          className={`${styles.tabButton} ${activeTab === 'branding' ? styles.active : ''}`}
+          onClick={() => setActiveTab('branding')}
+        >
+          Website Branding
+        </button>
+        <button
+          className={`${styles.tabButton} ${activeTab === 'widget' ? styles.active : ''}`}
+          onClick={() => setActiveTab('widget')}
+        >
+          Widget Preview
+        </button>
+        <button
+          className={`${styles.tabButton} ${activeTab === 'clients' ? styles.active : ''}`}
+          onClick={() => setActiveTab('clients')}
+        >
+          Client Management
+        </button>
+        <button
+          className={`${styles.tabButton} ${activeTab === 'team' ? styles.active : ''}`}
+          onClick={() => setActiveTab('team')}
+        >
+          Team Members
+        </button>
+        <button
+          className={`${styles.tabButton} ${activeTab === 'profile' ? styles.active : ''}`}
+          onClick={() => setActiveTab('profile')}
+        >
+          Profile
+        </button>
+      </div>
+
+      <div className={styles.content}>
+        {activeTab === 'branding' && (
+          <div className={styles.formContainer}>
+            <form onSubmit={handleBrandUpdate}>
+              <ImageUpload
+                currentImage={brandSettings.logo}
+                onImageUpload={(imageData) => {
+                  setBrandSettings(prev => ({
+                    ...prev,
+                    logo: imageData
+                  }));
+                }}
+                label="Company Logo"
+              />
+
+              <div className={styles.colorGroup}>
+                <div className={styles.formGroup}>
+                  <label>Primary Color</label>
+                  <input
+                    type="color"
+                    value={brandSettings.primaryColor}
+                    onChange={(e) => setBrandSettings({ ...brandSettings, primaryColor: e.target.value })}
+                  />
+                </div>
+
+                <div className={styles.formGroup}>
+                  <label>Secondary Color</label>
+                  <input
+                    type="color"
+                    value={brandSettings.secondaryColor}
+                    onChange={(e) => setBrandSettings({ ...brandSettings, secondaryColor: e.target.value })}
+                  />
+                </div>
+              </div>
+
+              <div className={styles.formActions}>
+                <button type="submit" className={styles.primaryButton}>
+                  Save Changes
+                </button>
+              </div>
+            </form>
+          </div>
+        )}
+
+        {activeTab === 'widget' && <WidgetCustomization />}
+        {activeTab === 'clients' && <ClientManagement />}
+        {activeTab === 'team' && <TeamMembers />}
+        {activeTab === 'profile' && <ProfileSettings />}
+      </div>
     </div>
   );
 };
