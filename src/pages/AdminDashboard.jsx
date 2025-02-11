@@ -8,41 +8,42 @@ import ImageUpload from '../components/ImageUpload';
 import styles from '../styles/admin.module.css';
 
 const AdminDashboard = () => {
-  // Read active tab from window.location.hash if available, else default to 'branding'
+  // Read active tab from location hash for persistence
   const initialTab = window.location.hash.replace('#', '') || 'branding';
   const [activeTab, setActiveTab] = useState(initialTab);
   const [brandSettings, setBrandSettings] = useState({
     logo: '',
     headerColor: '#ffffff',  // Header background color
-    primaryColor: '#2563eb', // Primary (link, button) color
-    secondaryColor: '#ffffff'
+    primaryColor: '#2563eb', // Primary (link and button) color
+    secondaryColor: '#ffffff' 
   });
   const [modalMessage, setModalMessage] = useState('');
   const [showModal, setShowModal] = useState(false);
 
-  // Function to update CSS variables for realtime styling
+  // Updates CSS custom properties for realtime styling
   const updateCSSVariables = (settings) => {
     document.documentElement.style.setProperty('--header-bg', settings.headerColor);
     document.documentElement.style.setProperty('--primary-color', settings.primaryColor);
   };
 
-  // On mount, load branding settings and update CSS variables; also listen to hash changes.
   useEffect(() => {
     loadBrandingSettings();
-    const handleHashChange = () => {
-      const tab = window.location.hash.replace('#', '');
-      if(tab) {
-        setActiveTab(tab);
-      }
-    };
     window.addEventListener('hashchange', handleHashChange);
     return () => window.removeEventListener('hashchange', handleHashChange);
   }, []);
+
+  const handleHashChange = () => {
+    const tab = window.location.hash.replace('#', '');
+    if(tab) {
+      setActiveTab(tab);
+    }
+  };
 
   const loadBrandingSettings = async () => {
     try {
       const user = JSON.parse(localStorage.getItem('user'));
       if (!user) return;
+      // Use maybeSingle to avoid errors when no row exists
       const { data, error } = await supabase
         .from('admin_branding')
         .select('*')
@@ -61,6 +62,8 @@ const AdminDashboard = () => {
         };
         setBrandSettings(newSettings);
         updateCSSVariables(newSettings);
+        // Also update localStorage so Header component can pick up changes
+        localStorage.setItem('brandSettings', JSON.stringify(newSettings));
       }
     } catch (error) {
       console.error('Error loading branding settings:', error);
@@ -77,6 +80,7 @@ const AdminDashboard = () => {
         setTimeout(() => setShowModal(false), 3000);
         return;
       }
+      // Upsert branding settings into Supabase
       const { error } = await supabase
         .from('admin_branding')
         .upsert({
@@ -88,8 +92,19 @@ const AdminDashboard = () => {
         }, { onConflict: 'admin_email' });
       if (error) throw error;
       setModalMessage('Brand settings updated successfully!');
-      setShowModal(true);
+      // Update CSS variables in realtime
       updateCSSVariables(brandSettings);
+      // Save branding settings in localStorage so that Header component receives them
+      localStorage.setItem(
+        'brandSettings',
+        JSON.stringify({
+          logo: brandSettings.logo,
+          headerColor: brandSettings.headerColor,
+          primaryColor: brandSettings.primaryColor,
+          secondaryColor: brandSettings.secondaryColor
+        })
+      );
+      setShowModal(true);
       setTimeout(() => setShowModal(false), 3000);
     } catch (error) {
       console.error('Error updating branding settings:', error);
@@ -105,7 +120,6 @@ const AdminDashboard = () => {
     updateCSSVariables(newSettings);
   };
 
-  // Update the window hash when tab changes
   const handleTabChange = (tab) => {
     setActiveTab(tab);
     window.location.hash = tab;
@@ -187,7 +201,10 @@ const AdminDashboard = () => {
                     type="color"
                     value={brandSettings.secondaryColor}
                     onChange={(e) =>
-                      setBrandSettings({ ...brandSettings, secondaryColor: e.target.value })
+                      setBrandSettings({
+                        ...brandSettings,
+                        secondaryColor: e.target.value
+                      })
                     }
                   />
                 </div>
