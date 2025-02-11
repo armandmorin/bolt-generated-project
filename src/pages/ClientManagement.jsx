@@ -10,7 +10,7 @@ function ClientManagement() {
   const [newClient, setNewClient] = useState({
     name: '',
     website: '',
-    contactEmail: ''
+    contact_email: ''
   });
   const [searchQuery, setSearchQuery] = useState('');
   const [showCodeModal, setShowCodeModal] = useState(false);
@@ -22,15 +22,17 @@ function ClientManagement() {
 
   const loadClients = async () => {
     try {
-      // Use .select('*') without single() so an array is returned
+      // Using .range(0, 1000) to force an array response even if there are 0 rows.
       const { data, error } = await supabase
         .from('clients')
         .select('*')
-        .order('created_at', { ascending: false });
+        .order('created_at', { ascending: false })
+        .range(0, 1000);
       if (error) {
         console.error('Error loading clients:', error);
         return;
       }
+      // Data is now forced to be an array.
       setClients(data || []);
     } catch (err) {
       console.error('Error loading clients:', err);
@@ -52,17 +54,15 @@ function ClientManagement() {
   const addClient = async (e) => {
     e.preventDefault();
     const clientKey = generateClientKey();
-    // Use camelCase key "contactEmail" (make sure your table uses this column name)
     const newClientData = {
       name: newClient.name,
       website: newClient.website,
-      contactEmail: newClient.contactEmail,
+      contact_email: newClient.contact_email,
       client_key: clientKey,
       status: 'active'
     };
 
     try {
-      // Insert without expecting a single object, this returns an array.
       const { error } = await supabase
         .from('clients')
         .insert([newClientData], { returning: 'minimal' });
@@ -75,7 +75,7 @@ function ClientManagement() {
       setNewClient({
         name: '',
         website: '',
-        contactEmail: ''
+        contact_email: ''
       });
     } catch (err) {
       console.error('Error adding client:', err);
@@ -112,7 +112,7 @@ function ClientManagement() {
   const filteredClients = clients.filter(client =>
     (client.name && client.name.toLowerCase().includes(searchQuery.toLowerCase())) ||
     (client.website && client.website.toLowerCase().includes(searchQuery.toLowerCase())) ||
-    (client.contactEmail && client.contactEmail.toLowerCase().includes(searchQuery.toLowerCase()))
+    (client.contact_email && client.contact_email.toLowerCase().includes(searchQuery.toLowerCase()))
   );
 
   return (
@@ -153,8 +153,8 @@ function ClientManagement() {
             <label>Contact Email</label>
             <input
               type="email"
-              name="contactEmail"
-              value={newClient.contactEmail}
+              name="contact_email"
+              value={newClient.contact_email}
               onChange={handleInputChange}
               required
             />
@@ -187,7 +187,7 @@ function ClientManagement() {
                     {client.website}
                   </a>
                 </td>
-                <td>{client.contactEmail}</td>
+                <td>{client.contact_email}</td>
                 <td>{client.client_key}</td>
                 <td>
                   <span className={`${styles.status} ${client.status === 'active' ? styles.statusActive : styles.statusInactive}`}>
@@ -202,7 +202,10 @@ function ClientManagement() {
                     <button className={styles.codeButton} onClick={() => showClientCode(client)}>
                       Get Code
                     </button>
-                    <button className={`${styles.statusButton} ${client.status === 'active' ? styles.statusButtonActive : styles.statusButtonInactive}`} onClick={() => toggleClientStatus(client.id, client.status)}>
+                    <button
+                      className={`${styles.statusButton} ${client.status === 'active' ? styles.statusButtonActive : styles.statusButtonInactive}`}
+                      onClick={() => toggleClientStatus(client.id, client.status)}
+                    >
                       {client.status === 'active' ? 'Deactivate' : 'Activate'}
                     </button>
                   </div>
