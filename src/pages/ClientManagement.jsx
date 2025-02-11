@@ -22,10 +22,9 @@ function ClientManagement() {
 
   const loadClients = async () => {
     try {
-      // Remove .single() because we're expecting multiple rows.
       const { data, error } = await supabase
         .from('clients')
-        .select('*')
+        .select('*', { headers: { Accept: 'application/json' } })
         .order('created_at', { ascending: false });
       if (error) {
         console.error('Error loading clients:', error);
@@ -61,7 +60,6 @@ function ClientManagement() {
     };
 
     try {
-      // Using returning: 'minimal' to avoid expecting a single row object
       const { error } = await supabase
         .from('clients')
         .insert([newClientData], { returning: 'minimal' });
