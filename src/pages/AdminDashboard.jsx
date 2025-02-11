@@ -8,24 +8,35 @@ import ImageUpload from '../components/ImageUpload';
 import styles from '../styles/admin.module.css';
 
 const AdminDashboard = () => {
-  const [activeTab, setActiveTab] = useState('branding');
+  // Read active tab from window.location.hash if available, else default to 'branding'
+  const initialTab = window.location.hash.replace('#', '') || 'branding';
+  const [activeTab, setActiveTab] = useState(initialTab);
   const [brandSettings, setBrandSettings] = useState({
     logo: '',
     headerColor: '#ffffff',  // Header background color
-    primaryColor: '#2563eb', // Primary (link and button) color
-    secondaryColor: '#ffffff' 
+    primaryColor: '#2563eb', // Primary (link, button) color
+    secondaryColor: '#ffffff'
   });
   const [modalMessage, setModalMessage] = useState('');
   const [showModal, setShowModal] = useState(false);
 
-  // Update CSS variables for realtime changes.
+  // Function to update CSS variables for realtime styling
   const updateCSSVariables = (settings) => {
     document.documentElement.style.setProperty('--header-bg', settings.headerColor);
     document.documentElement.style.setProperty('--primary-color', settings.primaryColor);
   };
 
+  // On mount, load branding settings and update CSS variables; also listen to hash changes.
   useEffect(() => {
     loadBrandingSettings();
+    const handleHashChange = () => {
+      const tab = window.location.hash.replace('#', '');
+      if(tab) {
+        setActiveTab(tab);
+      }
+    };
+    window.addEventListener('hashchange', handleHashChange);
+    return () => window.removeEventListener('hashchange', handleHashChange);
   }, []);
 
   const loadBrandingSettings = async () => {
@@ -37,12 +48,10 @@ const AdminDashboard = () => {
         .select('*')
         .eq('admin_email', user.email)
         .maybeSingle();
-
       if (error) {
         console.error('Error loading branding settings:', error);
         return;
       }
-
       if (data) {
         const newSettings = {
           logo: data.logo || '',
@@ -77,7 +86,6 @@ const AdminDashboard = () => {
           primary_color: brandSettings.primaryColor,
           secondary_color: brandSettings.secondaryColor
         }, { onConflict: 'admin_email' });
-
       if (error) throw error;
       setModalMessage('Brand settings updated successfully!');
       setShowModal(true);
@@ -97,6 +105,12 @@ const AdminDashboard = () => {
     updateCSSVariables(newSettings);
   };
 
+  // Update the window hash when tab changes
+  const handleTabChange = (tab) => {
+    setActiveTab(tab);
+    window.location.hash = tab;
+  };
+
   return (
     <div className={styles.adminDashboard}>
       {showModal && (
@@ -109,31 +123,31 @@ const AdminDashboard = () => {
       <div className={styles.tabs}>
         <button
           className={`${styles.tabButton} ${activeTab === 'branding' ? styles.active : ''}`}
-          onClick={() => setActiveTab('branding')}
+          onClick={() => handleTabChange('branding')}
         >
           Website Branding
         </button>
         <button
           className={`${styles.tabButton} ${activeTab === 'widget' ? styles.active : ''}`}
-          onClick={() => setActiveTab('widget')}
+          onClick={() => handleTabChange('widget')}
         >
           Widget Preview
         </button>
         <button
           className={`${styles.tabButton} ${activeTab === 'clients' ? styles.active : ''}`}
-          onClick={() => setActiveTab('clients')}
+          onClick={() => handleTabChange('clients')}
         >
           Client Management
         </button>
         <button
           className={`${styles.tabButton} ${activeTab === 'team' ? styles.active : ''}`}
-          onClick={() => setActiveTab('team')}
+          onClick={() => handleTabChange('team')}
         >
           Team Members
         </button>
         <button
           className={`${styles.tabButton} ${activeTab === 'profile' ? styles.active : ''}`}
-          onClick={() => setActiveTab('profile')}
+          onClick={() => handleTabChange('profile')}
         >
           Profile
         </button>
@@ -150,7 +164,6 @@ const AdminDashboard = () => {
                 }
                 label="Company Logo"
               />
-
               <div className={styles.colorGroup}>
                 <div className={styles.formGroup}>
                   <label>Header Color</label>
@@ -179,7 +192,6 @@ const AdminDashboard = () => {
                   />
                 </div>
               </div>
-
               <div className={styles.formActions}>
                 <button type="submit" className={styles.primaryButton}>
                   Save Changes
@@ -188,7 +200,6 @@ const AdminDashboard = () => {
             </form>
           </div>
         )}
-
         {activeTab === 'widget' && <WidgetCustomization />}
         {activeTab === 'clients' && <ClientManagement />}
         {activeTab === 'team' && <TeamMembers />}
