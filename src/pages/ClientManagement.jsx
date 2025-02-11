@@ -22,17 +22,14 @@ function ClientManagement() {
 
   const loadClients = async () => {
     try {
-      // Remove any .single() behavior by not using it.
-      // Also, we use no header override; rely on defaults.
       const { data, error } = await supabase
         .from('clients')
-        .select('*')
+        .select('*')  // Return an array
         .order('created_at', { ascending: false });
       if (error) {
         console.error('Error loading clients:', error);
         return;
       }
-      // data is an array (even if empty)
       setClients(data || []);
     } catch (err) {
       console.error('Error loading clients:', err);
@@ -45,7 +42,7 @@ function ClientManagement() {
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setNewClient((prev) => ({
+    setNewClient(prev => ({
       ...prev,
       [name]: value
     }));
@@ -109,7 +106,7 @@ function ClientManagement() {
     navigate(`/client-edit/${clientId}`);
   };
 
-  const filteredClients = clients.filter((client) =>
+  const filteredClients = clients.filter(client =>
     client.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
     client.website.toLowerCase().includes(searchQuery.toLowerCase()) ||
     client.contact_email.toLowerCase().includes(searchQuery.toLowerCase())
@@ -179,7 +176,7 @@ function ClientManagement() {
             </tr>
           </thead>
           <tbody>
-            {filteredClients.map((client) => (
+            {filteredClients.map(client => (
               <tr key={client.id}>
                 <td>{client.name}</td>
                 <td>
@@ -190,28 +187,15 @@ function ClientManagement() {
                 <td>{client.contact_email}</td>
                 <td>{client.client_key}</td>
                 <td>
-                  <span
-                    className={`${styles.status} ${
-                      client.status === 'active' ? styles.statusActive : styles.statusInactive
-                    }`}
-                  >
+                  <span className={`${styles.status} ${client.status === 'active' ? styles.statusActive : styles.statusInactive}`}>
                     {client.status}
                   </span>
                 </td>
                 <td>
                   <div className={styles.actionButtons}>
-                    <button className={styles.editButton} onClick={() => handleEditClient(client.id)}>
-                      Edit
-                    </button>
-                    <button className={styles.codeButton} onClick={() => showClientCode(client)}>
-                      Get Code
-                    </button>
-                    <button
-                      className={`${styles.statusButton} ${
-                        client.status === 'active' ? styles.statusButtonActive : styles.statusButtonInactive
-                      }`}
-                      onClick={() => toggleClientStatus(client.id, client.status)}
-                    >
+                    <button className={styles.editButton} onClick={() => handleEditClient(client.id)}>Edit</button>
+                    <button className={styles.codeButton} onClick={() => showClientCode(client)}>Get Code</button>
+                    <button className={`${styles.statusButton} ${client.status === 'active' ? styles.statusButtonActive : styles.statusButtonInactive}`} onClick={() => toggleClientStatus(client.id, client.status)}>
                       {client.status === 'active' ? 'Deactivate' : 'Activate'}
                     </button>
                   </div>
@@ -228,9 +212,7 @@ function ClientManagement() {
             <h3>Installation Code</h3>
             <WidgetCodeSnippet clientKey={selectedClientCode} />
             <div className={styles.modalButtons}>
-              <button onClick={() => setShowCodeModal(false)} className={styles.closeButton}>
-                Close
-              </button>
+              <button onClick={() => setShowCodeModal(false)} className={styles.closeButton}>Close</button>
             </div>
           </div>
         </div>
