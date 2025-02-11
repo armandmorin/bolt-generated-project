@@ -10,7 +10,7 @@ function ClientManagement() {
   const [newClient, setNewClient] = useState({
     name: '',
     website: '',
-    contact_email: ''
+    contactEmail: ''
   });
   const [searchQuery, setSearchQuery] = useState('');
   const [showCodeModal, setShowCodeModal] = useState(false);
@@ -22,17 +22,16 @@ function ClientManagement() {
 
   const loadClients = async () => {
     try {
-      // Using .range(0, 1000) to force an array response even if there are 0 rows.
+      // Query returns an array of client rows.
       const { data, error } = await supabase
         .from('clients')
         .select('*')
-        .order('created_at', { ascending: false })
-        .range(0, 1000);
+        .order('created_at', { ascending: false });
       if (error) {
         console.error('Error loading clients:', error);
         return;
       }
-      // Data is now forced to be an array.
+      // Ensure we store an array (even if empty).
       setClients(data || []);
     } catch (err) {
       console.error('Error loading clients:', err);
@@ -54,10 +53,11 @@ function ClientManagement() {
   const addClient = async (e) => {
     e.preventDefault();
     const clientKey = generateClientKey();
+    // Using camelCase field "contactEmail" so it matches our Supabase schema.
     const newClientData = {
       name: newClient.name,
       website: newClient.website,
-      contact_email: newClient.contact_email,
+      contactEmail: newClient.contactEmail,
       client_key: clientKey,
       status: 'active'
     };
@@ -75,7 +75,7 @@ function ClientManagement() {
       setNewClient({
         name: '',
         website: '',
-        contact_email: ''
+        contactEmail: ''
       });
     } catch (err) {
       console.error('Error adding client:', err);
@@ -112,7 +112,7 @@ function ClientManagement() {
   const filteredClients = clients.filter(client =>
     (client.name && client.name.toLowerCase().includes(searchQuery.toLowerCase())) ||
     (client.website && client.website.toLowerCase().includes(searchQuery.toLowerCase())) ||
-    (client.contact_email && client.contact_email.toLowerCase().includes(searchQuery.toLowerCase()))
+    (client.contactEmail && client.contactEmail.toLowerCase().includes(searchQuery.toLowerCase()))
   );
 
   return (
@@ -153,8 +153,8 @@ function ClientManagement() {
             <label>Contact Email</label>
             <input
               type="email"
-              name="contact_email"
-              value={newClient.contact_email}
+              name="contactEmail"
+              value={newClient.contactEmail}
               onChange={handleInputChange}
               required
             />
@@ -187,7 +187,7 @@ function ClientManagement() {
                     {client.website}
                   </a>
                 </td>
-                <td>{client.contact_email}</td>
+                <td>{client.contactEmail}</td>
                 <td>{client.client_key}</td>
                 <td>
                   <span className={`${styles.status} ${client.status === 'active' ? styles.statusActive : styles.statusInactive}`}>
@@ -202,10 +202,7 @@ function ClientManagement() {
                     <button className={styles.codeButton} onClick={() => showClientCode(client)}>
                       Get Code
                     </button>
-                    <button
-                      className={`${styles.statusButton} ${client.status === 'active' ? styles.statusButtonActive : styles.statusButtonInactive}`}
-                      onClick={() => toggleClientStatus(client.id, client.status)}
-                    >
+                    <button className={`${styles.statusButton} ${client.status === 'active' ? styles.statusButtonActive : styles.statusButtonInactive}`} onClick={() => toggleClientStatus(client.id, client.status)}>
                       {client.status === 'active' ? 'Deactivate' : 'Activate'}
                     </button>
                   </div>
