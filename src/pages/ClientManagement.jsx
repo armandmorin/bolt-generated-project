@@ -10,7 +10,7 @@ function ClientManagement() {
   const [newClient, setNewClient] = useState({
     name: '',
     website: '',
-    contactEmail: ''
+    email: ''
   });
   const [searchQuery, setSearchQuery] = useState('');
   const [showCodeModal, setShowCodeModal] = useState(false);
@@ -50,25 +50,16 @@ function ClientManagement() {
 
   const addClient = async (e) => {
     e.preventDefault();
-    const userJSON = localStorage.getItem('user');
-    let user = null;
-    if (userJSON) {
-      try {
-        user = JSON.parse(userJSON);
-      } catch (error) {
-        console.error('Error parsing admin user from localStorage', error);
-      }
-    }
-    // Fallback to a valid UUID for testing
+    const user = JSON.parse(localStorage.getItem('user'));
     if (!user || !user.id) {
-      user = { id: '00000000-0000-0000-0000-000000000000' };
-      console.warn('No valid admin user found; using fallback admin id');
+      alert('Admin user not found');
+      return;
     }
     const clientKey = generateClientKey();
     const newClientData = {
       name: newClient.name,
       website: newClient.website,
-      contactEmail: newClient.contactEmail,
+      email: newClient.email,
       client_key: clientKey,
       status: 'active',
       admin_id: user.id
@@ -87,7 +78,7 @@ function ClientManagement() {
       setNewClient({
         name: '',
         website: '',
-        contactEmail: ''
+        email: ''
       });
     } catch (err) {
       console.error('Error adding client:', err);
@@ -124,7 +115,7 @@ function ClientManagement() {
   const filteredClients = clients.filter(client =>
     (client.name && client.name.toLowerCase().includes(searchQuery.toLowerCase())) ||
     (client.website && client.website.toLowerCase().includes(searchQuery.toLowerCase())) ||
-    (client.contactEmail && client.contactEmail.toLowerCase().includes(searchQuery.toLowerCase()))
+    (client.email && client.email.toLowerCase().includes(searchQuery.toLowerCase()))
   );
 
   return (
@@ -165,8 +156,8 @@ function ClientManagement() {
             <label>Contact Email</label>
             <input
               type="email"
-              name="contactEmail"
-              value={newClient.contactEmail}
+              name="email"
+              value={newClient.email}
               onChange={handleInputChange}
               required
             />
@@ -199,7 +190,7 @@ function ClientManagement() {
                     {client.website}
                   </a>
                 </td>
-                <td>{client.contactEmail}</td>
+                <td>{client.email}</td>
                 <td>{client.client_key}</td>
                 <td>
                   <span className={`${styles.status} ${client.status === 'active' ? styles.statusActive : styles.statusInactive}`}>
