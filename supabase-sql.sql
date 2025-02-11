@@ -1,28 +1,48 @@
--- Create widget_settings table
-CREATE TABLE IF NOT EXISTS widget_settings (
+-- Create global_branding table
+CREATE TABLE IF NOT EXISTS global_branding (
     id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-    client_id UUID REFERENCES clients(id),
-    header_color VARCHAR,
-    header_text_color VARCHAR,
-    button_color VARCHAR,
-    powered_by_text VARCHAR,
-    powered_by_color VARCHAR,
-    button_size VARCHAR,
-    button_position VARCHAR,
+    logo TEXT,
+    header_color TEXT,
+    button_color TEXT,
     created_at TIMESTAMPTZ DEFAULT NOW(),
     updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- Enable RLS
-ALTER TABLE widget_settings ENABLE ROW LEVEL SECURITY;
+-- Create admin_branding table
+CREATE TABLE IF NOT EXISTS admin_branding (
+    id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+    admin_email TEXT UNIQUE NOT NULL,
+    logo TEXT,
+    primary_color TEXT,
+    secondary_color TEXT,
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    updated_at TIMESTAMPTZ DEFAULT NOW()
+);
 
--- Create policy for widget_settings table
-CREATE POLICY "Enable all operations for all users" ON widget_settings
-    FOR ALL
-    USING (true)
-    WITH CHECK (true);
+-- Create global_settings table
+CREATE TABLE IF NOT EXISTS global_settings (
+    id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+    widget_domain TEXT,
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    updated_at TIMESTAMPTZ DEFAULT NOW()
+);
 
--- Grant necessary permissions
-GRANT ALL ON widget_settings TO anon;
-GRANT ALL ON widget_settings TO authenticated;
-GRANT ALL ON widget_settings TO service_role;
+-- Enable Row Level Security
+ALTER TABLE global_branding ENABLE ROW LEVEL SECURITY;
+ALTER TABLE admin_branding ENABLE ROW LEVEL SECURITY;
+ALTER TABLE global_settings ENABLE ROW LEVEL SECURITY;
+
+-- Create policies
+CREATE POLICY "Enable all operations for authenticated users" ON global_branding
+    FOR ALL USING (true) WITH CHECK (true);
+
+CREATE POLICY "Enable all operations for authenticated users" ON admin_branding
+    FOR ALL USING (true) WITH CHECK (true);
+
+CREATE POLICY "Enable all operations for authenticated users" ON global_settings
+    FOR ALL USING (true) WITH CHECK (true);
+
+-- Grant permissions
+GRANT ALL ON global_branding TO anon, authenticated, service_role;
+GRANT ALL ON admin_branding TO anon, authenticated, service_role;
+GRANT ALL ON global_settings TO anon, authenticated, service_role;
