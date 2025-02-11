@@ -50,8 +50,8 @@ function ClientManagement() {
 
   const addClient = async (e) => {
     e.preventDefault();
-    // Use Supabase Auth to get the current user.
-    const user = supabase.auth.user();
+    // Use supabase.auth.getUser() to retrieve the current user.
+    const { data: { user } } = await supabase.auth.getUser();
     if (!user || !user.id) {
       alert('Admin user not found. Please log in.');
       return;
