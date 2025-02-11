@@ -20,21 +20,21 @@ function ClientManagement() {
     loadClients();
   }, []);
 
-  async function loadClients() {
-    const { data, error } = await supabase
-      .from('clients')
-      .select('*')
-      .order('created_at', { ascending: false });
-
-    if (error) {
-      console.error('Error loading clients:', error);
-      return;
-    }
-
-    if (data) {
+  const loadClients = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('clients')
+        .select('*')
+        .order('created_at', { ascending: false });
+      if (error) {
+        console.error('Error loading clients:', error);
+        return;
+      }
       setClients(data);
+    } catch (err) {
+      console.error('Error loading clients:', err);
     }
-  }
+  };
 
   const generateClientKey = () => {
     return 'client_' + Math.random().toString(36).substring(2, 10);
@@ -42,7 +42,7 @@ function ClientManagement() {
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setNewClient(prev => ({
+    setNewClient((prev) => ({
       ...prev,
       [name]: value
     }));
@@ -50,7 +50,6 @@ function ClientManagement() {
 
   const addClient = async (e) => {
     e.preventDefault();
-    
     const clientKey = generateClientKey();
     const newClientData = {
       name: newClient.name,
@@ -60,39 +59,42 @@ function ClientManagement() {
       status: 'active'
     };
 
-    const { error } = await supabase
-      .from('clients')
-      .insert([newClientData]);
-
-    if (error) {
-      console.error('Error adding client:', error);
+    try {
+      const { error } = await supabase
+        .from('clients')
+        .insert([newClientData]);
+      if (error) {
+        console.error('Error adding client:', error);
+        alert('Failed to add client. Please try again.');
+        return;
+      }
+      await loadClients();
+      setNewClient({
+        name: '',
+        website: '',
+        contactEmail: ''
+      });
+    } catch (err) {
+      console.error('Error adding client:', err);
       alert('Failed to add client. Please try again.');
-      return;
     }
-
-    await loadClients();
-    
-    setNewClient({
-      name: '',
-      website: '',
-      contactEmail: ''
-    });
   };
 
   const toggleClientStatus = async (id, currentStatus) => {
     const newStatus = currentStatus === 'active' ? 'inactive' : 'active';
-    
-    const { error } = await supabase
-      .from('clients')
-      .update({ status: newStatus })
-      .eq('id', id);
-
-    if (error) {
-      console.error('Error updating client status:', error);
-      return;
+    try {
+      const { error } = await supabase
+        .from('clients')
+        .update({ status: newStatus })
+        .eq('id', id);
+      if (error) {
+        console.error('Error updating client status:', error);
+        return;
+      }
+      await loadClients();
+    } catch (err) {
+      console.error('Error updating client status:', err);
     }
-
-    await loadClients();
   };
 
   const showClientCode = (client) => {
@@ -104,7 +106,7 @@ function ClientManagement() {
     navigate(`/client-edit/${clientId}`);
   };
 
-  const filteredClients = clients.filter(client =>
+  const filteredClients = clients.filter((client) =>
     client.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
     client.website.toLowerCase().includes(searchQuery.toLowerCase()) ||
     client.contact_email.toLowerCase().includes(searchQuery.toLowerCase())
@@ -135,7 +137,6 @@ function ClientManagement() {
               required
             />
           </div>
-
           <div className={styles.formGroup}>
             <label>Website URL</label>
             <input
@@ -146,7 +147,6 @@ function ClientManagement() {
               required
             />
           </div>
-
           <div className={styles.formGroup}>
             <label>Contact Email</label>
             <input
@@ -157,7 +157,6 @@ function ClientManagement() {
               required
             />
           </div>
-
           <button type="submit" className={styles.addButton}>
             Add Client
           </button>
@@ -178,7 +177,7 @@ function ClientManagement() {
             </tr>
           </thead>
           <tbody>
-            {filteredClients.map(client => (
+            {filteredClients.map((client) => (
               <tr key={client.id}>
                 <td>{client.name}</td>
                 <td>
@@ -189,26 +188,26 @@ function ClientManagement() {
                 <td>{client.contact_email}</td>
                 <td>{client.client_key}</td>
                 <td>
-                  <span className={`${styles.status} ${client.status === 'active' ? styles.statusActive : styles.statusInactive}`}>
+                  <span
+                    className={`${styles.status} ${
+                      client.status === 'active' ? styles.statusActive : styles.statusInactive
+                    }`}
+                  >
                     {client.status}
                   </span>
                 </td>
                 <td>
                   <div className={styles.actionButtons}>
-                    <button
-                      className={styles.editButton}
-                      onClick={() => handleEditClient(client.id)}
-                    >
+                    <button className={styles.editButton} onClick={() => handleEditClient(client.id)}>
                       Edit
                     </button>
-                    <button
-                      className={styles.codeButton}
-                      onClick={() => showClientCode(client)}
-                    >
+                    <button className={styles.codeButton} onClick={() => showClientCode(client)}>
                       Get Code
                     </button>
                     <button
-                      className={`${styles.statusButton} ${client.status === 'active' ? styles.statusButtonActive : styles.statusButtonInactive}`}
+                      className={`${styles.statusButton} ${
+                        client.status === 'active' ? styles.statusButtonActive : styles.statusButtonInactive
+                      }`}
                       onClick={() => toggleClientStatus(client.id, client.status)}
                     >
                       {client.status === 'active' ? 'Deactivate' : 'Activate'}
