@@ -1,3 +1,4 @@
+/* AdminDashboard Container */
 .adminDashboard {
   max-width: 1200px;
   margin: 0 auto;
@@ -20,7 +21,6 @@
   border-bottom: 2px solid transparent;
   cursor: pointer;
   font-size: 1rem;
-  /* Default text color; active state uses primary */
   color: #1e293b;
   transition: all 0.2s ease;
 }
@@ -44,7 +44,7 @@
 
 /* Form Container */
 .formContainer {
-  max-width: 800px;
+  max-width: 100%;
   margin: 0 auto;
   padding: 2rem;
   background-color: #ffffff;
