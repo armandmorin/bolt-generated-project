@@ -22,7 +22,7 @@ function ClientManagement() {
 
   const loadClients = async () => {
     try {
-      // Query returns an array of client records.
+      // Expect multiple rows so we don't use single() or maybeSingle()
       const { data, error } = await supabase
         .from('clients')
         .select('*')
@@ -57,6 +57,7 @@ function ClientManagement() {
       return;
     }
     const clientKey = generateClientKey();
+    // Use camelCase "contactEmail" matching your DB column exactly
     const newClientData = {
       name: newClient.name,
       website: newClient.website,
@@ -67,9 +68,14 @@ function ClientManagement() {
     };
 
     try {
+      // Explicitly specify the columns to insert
       const { error } = await supabase
         .from('clients')
-        .insert([newClientData], { returning: 'minimal' });
+        .insert([newClientData], {
+          returning: 'minimal',
+          // Specify exact columns for the POST request
+          columns: ['name', 'website', 'contactEmail', 'client_key', 'status', 'admin_id']
+        });
       if (error) {
         console.error('Error adding client:', error);
         alert('Failed to add client. Please try again.');
@@ -206,7 +212,10 @@ function ClientManagement() {
                     <button className={styles.codeButton} onClick={() => showClientCode(client)}>
                       Get Code
                     </button>
-                    <button className={`${styles.statusButton} ${client.status === 'active' ? styles.statusButtonActive : styles.statusButtonInactive}`} onClick={() => toggleClientStatus(client.id, client.status)}>
+                    <button
+                      className={`${styles.statusButton} ${client.status === 'active' ? styles.statusButtonActive : styles.statusButtonInactive}`}
+                      onClick={() => toggleClientStatus(client.id, client.status)}
+                    >
                       {client.status === 'active' ? 'Deactivate' : 'Activate'}
                     </button>
                   </div>
