@@ -59,15 +59,57 @@ const Login = () => {
   return (
     <div className={styles.loginPage}>
       <div className={styles.loginContainer}>
-        {/* Existing login form code */}
+        <div className={styles.logoContainer}>
+          <img 
+            src="/logo.png" 
+            alt="Company Logo" 
+            className={styles.logo} 
+            onError={(e) => e.target.style.display = 'none'}
+          />
+        </div>
+
+        <h1>Login to Your Account</h1>
+
         {error && <div className={styles.errorMessage}>{error}</div>}
         
         <form onSubmit={handleLogin}>
-          {/* Existing form fields */}
+          <div className={styles.formGroup}>
+            <label htmlFor="email">Email Address</label>
+            <input 
+              type="email" 
+              id="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="Enter your email"
+              required 
+            />
+          </div>
+
+          <div className={styles.formGroup}>
+            <label htmlFor="password">Password</label>
+            <input 
+              type="password" 
+              id="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="Enter your password"
+              required 
+            />
+          </div>
+
           <button type="submit" className={styles.loginButton}>
             Login
           </button>
         </form>
+
+        <div className={styles.links}>
+          <Link to="/register" className={styles.registerLink}>
+            Create New Account
+          </Link>
+          <Link to="/super-admin-login" className={styles.superAdminLink}>
+            Super Admin Login
+          </Link>
+        </div>
       </div>
     </div>
   );
