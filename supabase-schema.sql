@@ -10,7 +10,8 @@ BEGIN
     ADD COLUMN IF NOT EXISTS contact_person TEXT,
     ADD COLUMN IF NOT EXISTS phone_number TEXT,
     ADD COLUMN IF NOT EXISTS primary_color TEXT DEFAULT '#2563eb',
-    ADD COLUMN IF NOT EXISTS secondary_color TEXT DEFAULT '#60a5fa';
+    ADD COLUMN IF NOT EXISTS secondary_color TEXT DEFAULT '#60a5fa',
+    ADD COLUMN IF NOT EXISTS contact_email TEXT;  -- Explicitly add contact_email column
   EXCEPTION 
     WHEN OTHERS THEN 
       RAISE NOTICE 'Error adding columns: %', SQLERRM;
