@@ -1,13 +1,19 @@
 import { createClient } from '@supabase/supabase-js';
 
-const supabaseUrl = 'https://hkurtvvrgwlgpbyfbmup.supabase.co';
-const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhrdXJ0dnZyZ3dsZ3BieWZibXVwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Mzc1NTkyOTksImV4cCI6MjA1MzEzNTI5OX0.T8kS-k8XIcTzAHiX7NWQQtJ6Nkf7OFOsUYsUYsIFAiL37o';
+// Use environment variables for Supabase configuration
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+
+// Validate environment variables
+if (!supabaseUrl || !supabaseKey) {
+  console.error('Missing Supabase environment variables!');
+  throw new Error('Supabase URL and Anon Key must be provided');
+}
 
 export const supabase = createClient(supabaseUrl, supabaseKey, {
   auth: {
     persistSession: true,
     storage: {
-      // Custom storage implementation to ensure session persistence
       getItem: (key) => {
         try {
           const item = localStorage.getItem(key);
@@ -40,41 +46,11 @@ export const supabase = createClient(supabaseUrl, supabaseKey, {
 // Enhanced session restoration function
 export const checkAndRestoreSession = async () => {
   try {
-    // First, attempt to get the current session
     const { data, error } = await supabase.auth.getSession();
 
     if (error) {
       console.error('Session retrieval error:', error);
-      
-      // Try to restore from localStorage
-      const storedSession = localStorage.getItem('supabase.auth.token');
-      
-      if (storedSession) {
-        try {
-          const parsedSession = JSON.parse(storedSession);
-          
-          // Manually set the session if it exists
-          if (parsedSession) {
-            await supabase.auth.setSession({
-              access_token: parsedSession.access_token,
-              refresh_token: parsedSession.refresh_token
-            });
-          }
-        } catch (parseError) {
-          console.error('Error parsing stored session:', parseError);
-        }
-      }
-      
       return null;
-    }
-
-    // If session exists, update localStorage
-    if (data.session) {
-      localStorage.setItem('supabase.auth.token', JSON.stringify(data.session));
-      localStorage.setItem('user', JSON.stringify({
-        email: data.session.user.email,
-        id: data.session.user.id
-      }));
     }
 
     return data.session;
@@ -85,7 +61,7 @@ export const checkAndRestoreSession = async () => {
 };
 
 // Global auth state change listener
-supabase.auth.onAuthStateChange(async (event, session) => {
+supabase.auth.onAuthStateChange((event, session) => {
   console.log('Auth state changed:', event, session);
   
   switch (event) {
