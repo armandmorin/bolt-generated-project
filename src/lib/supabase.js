@@ -5,7 +5,10 @@ const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS
 
 export const supabase = createClient(supabaseUrl, supabaseKey, {
   auth: {
-    persistSession: false
+    persistSession: true,  // Explicitly set to true
+    storage: window.localStorage,  // Use localStorage for session storage
+    autoRefreshToken: true,  // Automatically refresh the token
+    detectSessionInUrl: true  // Detect session from URL (useful for OAuth)
   },
   realtime: {
     params: {
@@ -15,7 +18,52 @@ export const supabase = createClient(supabaseUrl, supabaseKey, {
   global: {
     headers: {
       'Content-Type': 'application/json',
-      'Accept': 'application/json'  // Changed from 'application/vnd.pgrst.object+json'
+      'Accept': 'application/json'
     }
+  }
+});
+
+// Add a function to check and restore session
+export const checkAndRestoreSession = async () => {
+  try {
+    // Check if there's a session in localStorage
+    const localStorageSession = localStorage.getItem('supabase.auth.token');
+    
+    if (localStorageSession) {
+      // Attempt to restore the session
+      const { data, error } = await supabase.auth.getSession();
+      
+      if (error) {
+        console.error('Session restoration error:', error);
+        // Clear the invalid session
+        await supabase.auth.signOut();
+        return null;
+      }
+      
+      return data.session;
+    }
+    
+    return null;
+  } catch (error) {
+    console.error('Session check error:', error);
+    return null;
+  }
+};
+
+// Add a global error handler for auth
+supabase.auth.onAuthStateChange((event, session) => {
+  console.log('Auth state changed:', event, session);
+  
+  if (event === 'SIGNED_IN') {
+    // Persist the session in localStorage
+    localStorage.setItem('supabase.auth.token', JSON.stringify(session));
+    localStorage.setItem('user', JSON.stringify({
+      email: session.user.email,
+      id: session.user.id
+    }));
+  } else if (event === 'SIGNED_OUT') {
+    // Clear the session from localStorage
+    localStorage.removeItem('supabase.auth.token');
+    localStorage.removeItem('user');
   }
 });
