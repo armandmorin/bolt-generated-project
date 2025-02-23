@@ -1,164 +1,237 @@
-import React, { useState, useEffect } from 'react';
+import * as React from 'react';
 import { supabase } from '../lib/supabase';
 import AccessibilityWidget from '../components/AccessibilityWidget';
 import styles from '../styles/widgetCustomization.module.css';
 
-const defaultSettings = {
-  header_color: '#60a5fa',
-  header_text_color: '#1e293b',
-  button_color: '#2563eb',
-  powered_by_text: 'Powered by Accessibility Widget',
-  powered_by_color: '#64748b',
-  button_size: '64px',
-  button_position: 'bottom-right'
-};
-
 function WidgetCustomization() {
-  const [widgetSettings, setWidgetSettings] = useState(defaultSettings);
-  const [saving, setSaving] = useState(false);
-  const [message, setMessage] = useState('');
+  const [widgetSettings, setWidgetSettings] = React.useState({
+    header_color: '',
+    header_text_color: '',
+    button_color: '',
+    powered_by_text: '',
+    powered_by_color: '',
+    button_size: '64px',
+    button_position: 'bottom-right'
+  });
+  
+  const [activeTab, setActiveTab] = React.useState('header');
+  const [saving, setSaving] = React.useState(false);
 
-  useEffect(() => {
-    loadSettings();
-  }, []);
-
-  const loadSettings = async () => {
-    try {
+  React.useEffect(() => {
+    async function loadSettings() {
       const { data, error } = await supabase
         .from('global_widget_settings')
         .select('*')
-        .limit(1)
-        .maybeSingle();
+        .limit(1);
+
       if (error) {
-        console.error('Error loading widget settings:', error);
+        console.error('Load error:', error);
         return;
       }
-      if (data) {
-        setWidgetSettings({ ...defaultSettings, ...data });
-      } else {
-        setWidgetSettings(defaultSettings);
+
+      if (data && data.length > 0) {
+        console.log('Loaded settings:', data[0]);
+        setWidgetSettings(prev => ({
+          ...prev,
+          ...data[0]
+        }));
       }
-    } catch (err) {
-      console.error('Error loading widget settings:', err);
     }
+
+    loadSettings();
+  }, []);
+
+  const handleSettingChange = (setting, value) => {
+    setWidgetSettings(prev => ({
+      ...prev,
+      [setting]: value
+    }));
   };
 
-  const handleSettingChange = (key, value) => {
-    setWidgetSettings(prev => ({ ...prev, [key]: value }));
-  };
-
-  const handleSave = async (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setSaving(true);
+
     try {
-      // Upsert global widget settings record
-      const { error } = await supabase
+      const { data: existingSettings } = await supabase
         .from('global_widget_settings')
-        .upsert(widgetSettings, { onConflict: 'id' });
-      if (error) throw error;
-      setMessage('Settings saved successfully!');
+        .select('*')
+        .limit(1);
+
+      const settingsToSave = {
+        header_color: widgetSettings.header_color,
+        header_text_color: widgetSettings.header_text_color,
+        button_color: widgetSettings.button_color,
+        powered_by_text: widgetSettings.powered_by_text,
+        powered_by_color: widgetSettings.powered_by_color,
+        button_size: widgetSettings.button_size,
+        button_position: widgetSettings.button_position
+      };
+
+      if (existingSettings && existingSettings.length > 0) {
+        const { error } = await supabase
+          .from('global_widget_settings')
+          .update(settingsToSave)
+          .eq('id', existingSettings[0].id);
+
+        if (error) throw error;
+      } else {
+        const { error } = await supabase
+          .from('global_widget_settings')
+          .insert([settingsToSave]);
+
+        if (error) throw error;
+      }
+
+      alert('Settings saved successfully!');
+      window.location.reload();
     } catch (error) {
-      console.error('Error saving widget settings:', error);
-      setMessage('Error saving widget settings');
+      console.error('Save error:', error);
+      alert(`Failed to save settings: ${error.message}`);
     } finally {
       setSaving(false);
-      setTimeout(() => setMessage(''), 3000);
     }
   };
 
   return (
     <div className={styles.widgetCustomization}>
       <div className={styles.settingsPanel}>
-        <h2>Widget Settings</h2>
-        <form onSubmit={handleSave}>
-          <div className={styles.formGroup}>
-            <label>Header Background Color</label>
-            <input
-              type="color"
-              value={widgetSettings.header_color}
-              onChange={(e) => handleSettingChange('header_color', e.target.value)}
-            />
-          </div>
-          <div className={styles.formGroup}>
-            <label>Header Text Color</label>
-            <input
-              type="color"
-              value={widgetSettings.header_text_color}
-              onChange={(e) => handleSettingChange('header_text_color', e.target.value)}
-            />
-          </div>
-          <div className={styles.formGroup}>
-            <label>Button Color</label>
-            <input
-              type="color"
-              value={widgetSettings.button_color}
-              onChange={(e) => handleSettingChange('button_color', e.target.value)}
-            />
-          </div>
-          <div className={styles.formGroup}>
-            <label>Powered By Text</label>
-            <input
-              type="text"
-              value={widgetSettings.powered_by_text}
-              onChange={(e) => handleSettingChange('powered_by_text', e.target.value)}
-              placeholder="Enter powered by text"
-            />
-          </div>
-          <div className={styles.formGroup}>
-            <label>Powered By Color</label>
-            <input
-              type="color"
-              value={widgetSettings.powered_by_color}
-              onChange={(e) => handleSettingChange('powered_by_color', e.target.value)}
-            />
-          </div>
-          <div className={styles.formGroup}>
-            <label>Button Size</label>
-            <select
-              value={widgetSettings.button_size}
-              onChange={(e) => handleSettingChange('button_size', e.target.value)}
+        <form onSubmit={handleSubmit}>
+          <div className={styles.settingsHeader}>
+            <h2>Widget Settings</h2>
+            <button 
+              type="submit"
+              className={`${styles.saveButton} ${saving ? styles.saving : ''}`}
+              disabled={saving}
             >
-              <option value="48px">Small</option>
-              <option value="64px">Medium</option>
-              <option value="80px">Large</option>
-            </select>
-          </div>
-          <div className={styles.formGroup}>
-            <label>Button Position</label>
-            <select
-              value={widgetSettings.button_position}
-              onChange={(e) => handleSettingChange('button_position', e.target.value)}
-            >
-              <option value="bottom-right">Bottom Right</option>
-              <option value="bottom-left">Bottom Left</option>
-              <option value="top-right">Top Right</option>
-              <option value="top-left">Top Left</option>
-            </select>
-          </div>
-          <div className={styles.formActions}>
-            <button type="submit" className={styles.saveButton} disabled={saving}>
               {saving ? 'Saving...' : 'Save Changes'}
             </button>
           </div>
-          {message && <div className={styles.message}>{message}</div>}
+
+          <div className={styles.tabs}>
+            <button
+              type="button"
+              className={`${styles.tab} ${activeTab === 'header' ? styles.active : ''}`}
+              onClick={() => setActiveTab('header')}
+            >
+              Header
+            </button>
+            <button
+              type="button"
+              className={`${styles.tab} ${activeTab === 'button' ? styles.active : ''}`}
+              onClick={() => setActiveTab('button')}
+            >
+              Button
+            </button>
+            <button
+              type="button"
+              className={`${styles.tab} ${activeTab === 'footer' ? styles.active : ''}`}
+              onClick={() => setActiveTab('footer')}
+            >
+              Footer
+            </button>
+          </div>
+
+          <div className={styles.tabContent}>
+            {activeTab === 'header' && (
+              <>
+                <div className={styles.formGroup}>
+                  <label>Header Background Color</label>
+                  <input
+                    type="color"
+                    value={widgetSettings.header_color || '#ffffff'}
+                    onChange={(e) => handleSettingChange('header_color', e.target.value)}
+                  />
+                </div>
+                <div className={styles.formGroup}>
+                  <label>Header Text Color</label>
+                  <input
+                    type="color"
+                    value={widgetSettings.header_text_color || '#000000'}
+                    onChange={(e) => handleSettingChange('header_text_color', e.target.value)}
+                  />
+                </div>
+              </>
+            )}
+
+            {activeTab === 'button' && (
+              <>
+                <div className={styles.formGroup}>
+                  <label>Button Color</label>
+                  <input
+                    type="color"
+                    value={widgetSettings.button_color || '#2563eb'}
+                    onChange={(e) => handleSettingChange('button_color', e.target.value)}
+                  />
+                </div>
+                <div className={styles.formGroup}>
+                  <label>Button Size</label>
+                  <select
+                    value={widgetSettings.button_size || '64px'}
+                    onChange={(e) => handleSettingChange('button_size', e.target.value)}
+                  >
+                    <option value="48px">Small</option>
+                    <option value="64px">Medium</option>
+                    <option value="80px">Large</option>
+                  </select>
+                </div>
+                <div className={styles.formGroup}>
+                  <label>Button Position</label>
+                  <select
+                    value={widgetSettings.button_position || 'bottom-right'}
+                    onChange={(e) => handleSettingChange('button_position', e.target.value)}
+                  >
+                    <option value="bottom-right">Bottom Right</option>
+                    <option value="bottom-left">Bottom Left</option>
+                    <option value="top-right">Top Right</option>
+                    <option value="top-left">Top Left</option>
+                  </select>
+                </div>
+              </>
+            )}
+
+            {activeTab === 'footer' && (
+              <>
+                <div className={styles.formGroup}>
+                  <label>Powered By Text</label>
+                  <input
+                    type="text"
+                    value={widgetSettings.powered_by_text || ''}
+                    onChange={(e) => handleSettingChange('powered_by_text', e.target.value)}
+                    placeholder="Enter powered by text..."
+                  />
+                </div>
+                <div className={styles.formGroup}>
+                  <label>Powered By Text Color</label>
+                  <input
+                    type="color"
+                    value={widgetSettings.powered_by_color || '#64748b'}
+                    onChange={(e) => handleSettingChange('powered_by_color', e.target.value)}
+                  />
+                </div>
+              </>
+            )}
+          </div>
         </form>
       </div>
 
       <div className={styles.previewPanel}>
         <h2>Widget Preview</h2>
         <div className={styles.previewContainer}>
-          <AccessibilityWidget
-            settings={{
-              headerColor: widgetSettings.header_color,
-              headerTextColor: widgetSettings.header_text_color,
-              buttonColor: widgetSettings.button_color,
-              poweredByText: widgetSettings.powered_by_text,
-              poweredByColor: widgetSettings.powered_by_color,
-              buttonSize: widgetSettings.button_size,
-              buttonPosition: widgetSettings.button_position
-            }}
-            isPreview={true}
-          />
+          <div className={styles.widgetPreviewWrapper}>
+            <AccessibilityWidget
+              settings={{
+                headerColor: widgetSettings.header_color,
+                headerTextColor: widgetSettings.header_text_color,
+                buttonColor: widgetSettings.button_color,
+                poweredByText: widgetSettings.powered_by_text,
+                poweredByColor: widgetSettings.powered_by_color,
+                buttonSize: widgetSettings.button_size,
+                buttonPosition: widgetSettings.button_position
+              }}
+              isPreview={true}
+            />
+          </div>
         </div>
       </div>
     </div>
