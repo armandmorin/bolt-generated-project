@@ -40,6 +40,11 @@ export const supabase = createClient(supabaseUrl, supabaseKey, {
     },
     autoRefreshToken: true,
     detectSessionInUrl: true
+  },
+  // Add explicit headers to resolve 406 error
+  headers: {
+    'Content-Type': 'application/json',
+    'Accept': 'application/json'
   }
 });
 
@@ -89,8 +94,44 @@ supabase.auth.onAuthStateChange((event, session) => {
   }
 });
 
-// Utility function to get current user role
-export const getCurrentUserRole = () => {
-  const storedUser = localStorage.getItem('user');
-  return storedUser ? JSON.parse(storedUser).role : null;
+// Utility function to get current user role with more robust error handling
+export const getCurrentUserRole = async () => {
+  try {
+    const { data: { session } } = await supabase.auth.getSession();
+    
+    if (!session) {
+      console.error('No active session');
+      return null;
+    }
+
+    const userId = session.user.id;
+
+    // Use more explicit query with proper headers
+    const { data, error } = await supabase
+      .from('users')
+      .select('role')
+      .eq('id', userId)
+      .single();
+
+    if (error) {
+      console.error('Error fetching user role:', error);
+      return null;
+    }
+
+    return data?.role || null;
+  } catch (error) {
+    console.error('Unexpected error in getCurrentUserRole:', error);
+    return null;
+  }
 };
+
+// Add a global error interceptor
+supabase.on('error', (error) => {
+  console.error('Supabase global error:', error);
+  
+  // Optionally handle specific error scenarios
+  if (error.message.includes('406')) {
+    console.error('Not Acceptable Error - Check API configuration');
+    // Potentially trigger a re-authentication or logout
+  }
+});
