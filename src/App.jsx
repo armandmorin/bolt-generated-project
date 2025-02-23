@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Routes, Route, useLocation, Navigate } from 'react-router-dom';
-import { supabase, checkAndRestoreSession } from './lib/supabase';
+import { supabase, checkAndRestoreSession, getCurrentUserRole } from './lib/supabase';
 import Header from './components/Header';
 import Login from './pages/Login';
 import AdminRegistration from './pages/AdminRegistration';
@@ -15,42 +15,23 @@ import './styles/global.css';
 // Protected Route component
 const ProtectedRoute = ({ children, requiredRoles = [] }) => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [userRole, setUserRole] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    const checkAuth = async () => {
+    const checkAuthentication = async () => {
       try {
-        // First, check localStorage for user info
-        const storedUser = localStorage.getItem('user');
-        const parsedUser = storedUser ? JSON.parse(storedUser) : null;
+        // First, check stored user role
+        const storedUserRole = getCurrentUserRole();
         
-        // Then, verify with Supabase
+        // Then, verify session
         const session = await checkAndRestoreSession();
         
-        // If session exists, fetch user role
-        if (session || parsedUser) {
-          const { data: userData, error } = await supabase
-            .from('users')
-            .select('role')
-            .eq('email', session?.user?.email || parsedUser?.email)
-            .single();
-
-          if (error) {
-            console.error('Error fetching user role:', error);
-            setIsAuthenticated(false);
-          } else {
-            setUserRole(userData?.role);
-            // Check if user's role matches required roles
-            setIsAuthenticated(
-              requiredRoles.length === 0 || 
-              requiredRoles.includes(userData?.role)
-            );
-          }
-        } else {
-          setIsAuthenticated(false);
-        }
+        // Determine authentication status
+        const authenticated = session !== null && 
+          (requiredRoles.length === 0 || 
+           (storedUserRole && requiredRoles.includes(storedUserRole)));
         
+        setIsAuthenticated(authenticated);
         setIsLoading(false);
       } catch (error) {
         console.error('Authentication check failed:', error);
@@ -59,11 +40,11 @@ const ProtectedRoute = ({ children, requiredRoles = [] }) => {
       }
     };
 
-    checkAuth();
+    checkAuthentication();
   }, [requiredRoles]);
 
   if (isLoading) {
-    return <div>Loading...</div>; // Or a loading spinner
+    return <div>Loading...</div>;
   }
 
   return isAuthenticated 
