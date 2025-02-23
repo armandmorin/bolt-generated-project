@@ -30,7 +30,7 @@ const Login = () => {
         throw error;
       }
 
-      // If login successful, navigate to appropriate dashboard
+      // If login successful, fetch user details
       if (data.user) {
         // Fetch user role from users table
         const { data: userData, error: userError } = await supabase
@@ -40,13 +40,27 @@ const Login = () => {
           .single();
 
         if (userError) {
-          throw userError;
+          // If no user found, default to client role
+          localStorage.setItem('userRole', 'client');
+          localStorage.setItem('user', JSON.stringify({ 
+            email: data.user.email, 
+            role: 'client' 
+          }));
+          navigate('/client');
+          return;
         }
 
         // Determine route based on user role
         const route = userData.role === 'super_admin' ? '/super-admin' : 
                       userData.role === 'admin' ? '/admin' : 
                       '/client';
+
+        // Store user information in localStorage
+        localStorage.setItem('userRole', userData.role);
+        localStorage.setItem('user', JSON.stringify({ 
+          email: data.user.email, 
+          role: userData.role 
+        }));
 
         navigate(route);
       }
