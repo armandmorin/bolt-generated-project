@@ -17,70 +17,75 @@ function ClientManagement() {
   const [showCodeModal, setShowCodeModal] = useState(false);
   const [selectedClientCode, setSelectedClientCode] = useState('');
   const [authError, setAuthError] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    const checkAuthentication = async () => {
+    const checkUserAndLoadClients = async () => {
       try {
-        // First, check local storage for user info
-        const storedUser = localStorage.getItem('user');
-        if (storedUser) {
-          const parsedUser = JSON.parse(storedUser);
-          
-          // Try to fetch user from Supabase
-          const { data: { user }, error: authError } = await supabase.auth.getUser();
-          
-          if (authError) {
-            console.error('Supabase auth error:', authError);
-            setAuthError('Authentication failed. Please log in again.');
-            return;
-          }
-
-          if (user) {
-            // Fetch additional user details from users table
-            const { data: userData, error } = await supabase
-              .from('users')
-              .select('id, email, role')
-              .eq('email', user.email)
-              .single();
-
-            if (userData) {
-              setCurrentUser(userData);
-              setAuthError(null);
-            } else {
-              console.error('No user data found:', error);
-              setAuthError('User data not found. Please log in again.');
-            }
-          } else {
-            setAuthError('No active user session. Please log in.');
-          }
-        } else {
-          setAuthError('No user logged in. Please log in.');
+        setIsLoading(true);
+        
+        // Get current authenticated user from Supabase
+        const { data: { user }, error: authError } = await supabase.auth.getUser();
+        
+        if (authError || !user) {
+          console.error('Authentication error:', authError);
+          setAuthError('Please log in to access this page');
+          navigate('/login');
+          return;
         }
 
-        // Load clients regardless of authentication status
-        await loadClients();
+        // Fetch user details from users table
+        const { data: userData, error: userError } = await supabase
+          .from('users')
+          .select('id, email, role')
+          .eq('email', user.email)
+          .single();
+
+        if (userError || !userData) {
+          console.error('User data fetch error:', userError);
+          setAuthError('User profile not found');
+          navigate('/login');
+          return;
+        }
+
+        // Set current user
+        setCurrentUser(userData);
+
+        // Load clients based on user role
+        await loadClients(userData);
+
       } catch (error) {
-        console.error('Authentication check error:', error);
-        setAuthError('An unexpected error occurred. Please try again.');
+        console.error('Comprehensive error:', error);
+        setAuthError('An unexpected error occurred');
+      } finally {
+        setIsLoading(false);
       }
     };
 
-    checkAuthentication();
-  }, []);
+    checkUserAndLoadClients();
+  }, [navigate]);
 
-  async function loadClients() {
-    const { data, error } = await supabase
-      .from('clients')
-      .select('*')
-      .order('created_at', { ascending: false });
+  async function loadClients(user) {
+    try {
+      let query = supabase.from('clients').select('*');
 
-    if (error) {
-      console.error('Error loading clients:', error);
-      return;
-    }
+      // Role-based client filtering
+      if (user.role === 'admin') {
+        query = query.eq('admin_id', user.id);
+      }
 
-    if (data) {
-      setClients(data);
+      const { data, error } = await query.order('created_at', { ascending: false });
+
+      if (error) {
+        console.error('Error loading clients:', error);
+        setAuthError('Could not load clients');
+        return;
+      }
+
+      setClients(data || []);
+    } catch (error) {
+      console.error('Client loading error:', error);
+      setAuthError('Failed to retrieve clients');
     }
   }
 
@@ -99,18 +104,8 @@ function ClientManagement() {
   const addClient = async (e) => {
     e.preventDefault();
     
-    // Enhanced authentication check
-    const storedUser = localStorage.getItem('user');
-    if (!storedUser) {
-      alert('You must be logged in to add a client.');
-      navigate('/login');
-      return;
-    }
-
-    const parsedUser = JSON.parse(storedUser);
-    
     if (!currentUser) {
-      alert('Authentication failed. Please log in again.');
+      alert('Authentication required');
       navigate('/login');
       return;
     }
@@ -136,7 +131,7 @@ function ClientManagement() {
       return;
     }
 
-    await loadClients();
+    await loadClients(currentUser);
     
     setNewClient({
       name: '',
@@ -145,24 +140,105 @@ function ClientManagement() {
     });
   };
 
-  // ... rest of the component remains the same as in the previous version
+  const filteredClients = clients.filter(client => 
+    client.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    client.website.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  if (isLoading) {
+    return (
+      <div className={styles.loadingContainer}>
+        <div className={styles.spinner}></div>
+        <p>Loading clients...</p>
+      </div>
+    );
+  }
+
+  if (authError) {
+    return (
+      <div className={styles.errorContainer}>
+        <p>{authError}</p>
+        <button onClick={() => navigate('/login')}>
+          Go to Login
+        </button>
+      </div>
+    );
+  }
 
   return (
     <div className={styles.clientManagement}>
-      {authError && (
-        <div className={styles.authErrorBanner}>
-          {authError}
-          <button 
-            onClick={() => navigate('/login')} 
-            className={styles.loginRedirectButton}
-          >
-            Go to Login
-          </button>
-        </div>
-      )}
+      <h1>Client Management</h1>
 
-      {/* Rest of the existing JSX */}
-      {/* ... */}
+      {/* Search Input */}
+      <div className={styles.searchContainer}>
+        <input
+          type="text"
+          placeholder="Search clients..."
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          className={styles.searchInput}
+        />
+      </div>
+
+      {/* Add Client Form */}
+      <form onSubmit={addClient} className={styles.addClientForm}>
+        <input
+          type="text"
+          name="name"
+          placeholder="Client Name"
+          value={newClient.name}
+          onChange={handleInputChange}
+          required
+        />
+        <input
+          type="text"
+          name="website"
+          placeholder="Website"
+          value={newClient.website}
+          onChange={handleInputChange}
+          required
+        />
+        <input
+          type="email"
+          name="contactEmail"
+          placeholder="Contact Email"
+          value={newClient.contactEmail}
+          onChange={handleInputChange}
+          required
+        />
+        <button type="submit">Add Client</button>
+      </form>
+
+      {/* Clients List */}
+      <div className={styles.clientsList}>
+        {filteredClients.length === 0 ? (
+          <p>No clients found.</p>
+        ) : (
+          filteredClients.map(client => (
+            <div key={client.id} className={styles.clientCard}>
+              <h3>{client.name}</h3>
+              <p>Website: {client.website}</p>
+              <p>Contact: {client.contact_email}</p>
+              <button 
+                onClick={() => {
+                  setSelectedClientCode(client.client_key);
+                  setShowCodeModal(true);
+                }}
+              >
+                Get Widget Code
+              </button>
+            </div>
+          ))
+        )}
+      </div>
+
+      {/* Widget Code Modal */}
+      {showCodeModal && (
+        <WidgetCodeSnippet 
+          clientKey={selectedClientCode}
+          onClose={() => setShowCodeModal(false)}
+        />
+      )}
     </div>
   );
 }
