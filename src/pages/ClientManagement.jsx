@@ -18,20 +18,24 @@ function ClientManagement() {
   const [selectedClientCode, setSelectedClientCode] = useState('');
 
   useEffect(() => {
-    // Fetch current user's information
     const fetchCurrentUser = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (user) {
-        // Fetch additional user details from your users table if needed
-        const { data: userData, error } = await supabase
-          .from('users')
-          .select('id, role')
-          .eq('email', user.email)
-          .single();
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+          const { data: userData, error } = await supabase
+            .from('users')
+            .select('id, role')
+            .eq('email', user.email)
+            .single();
 
-        if (userData) {
-          setCurrentUser(userData);
+          if (userData) {
+            setCurrentUser(userData);
+          } else {
+            console.error('No user data found:', error);
+          }
         }
+      } catch (error) {
+        console.error('Error fetching current user:', error);
       }
     };
 
@@ -70,7 +74,6 @@ function ClientManagement() {
   const addClient = async (e) => {
     e.preventDefault();
     
-    // Check if user is authenticated and has an ID
     if (!currentUser) {
       alert('You must be logged in to add a client.');
       return;
@@ -83,7 +86,7 @@ function ClientManagement() {
       contact_email: newClient.contactEmail,
       client_key: clientKey,
       status: 'active',
-      admin_id: currentUser.id  // Add the admin_id from the current user
+      admin_id: currentUser.id
     };
 
     const { data, error } = await supabase
@@ -106,11 +109,153 @@ function ClientManagement() {
     });
   };
 
-  // ... rest of the component remains the same (previous implementation)
+  const toggleClientStatus = async (clientId, currentStatus) => {
+    const newStatus = currentStatus === 'active' ? 'inactive' : 'active';
+    
+    const { error } = await supabase
+      .from('clients')
+      .update({ status: newStatus })
+      .eq('id', clientId);
+
+    if (error) {
+      console.error('Error updating client status:', error);
+      return;
+    }
+
+    await loadClients();
+  };
+
+  const handleCodeModal = (clientKey) => {
+    setSelectedClientCode(clientKey);
+    setShowCodeModal(true);
+  };
+
+  const filteredClients = clients.filter(client => 
+    client.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    client.website.toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
   return (
     <div className={styles.clientManagement}>
-      {/* Existing JSX remains the same */}
+      <div className={styles.searchContainer}>
+        <input
+          type="text"
+          placeholder="Search clients..."
+          className={styles.searchInput}
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+        />
+      </div>
+
+      <form onSubmit={addClient} className={styles.addClientForm}>
+        <h3>Add New Client</h3>
+        <div className={styles.formGroup}>
+          <label>Client Name</label>
+          <input
+            type="text"
+            name="name"
+            value={newClient.name}
+            onChange={handleInputChange}
+            placeholder="Enter client name"
+            required
+          />
+        </div>
+        <div className={styles.formGroup}>
+          <label>Website</label>
+          <input
+            type="text"
+            name="website"
+            value={newClient.website}
+            onChange={handleInputChange}
+            placeholder="Enter client website"
+            required
+          />
+        </div>
+        <div className={styles.formGroup}>
+          <label>Contact Email</label>
+          <input
+            type="email"
+            name="contactEmail"
+            value={newClient.contactEmail}
+            onChange={handleInputChange}
+            placeholder="Enter contact email"
+            required
+          />
+        </div>
+        <button type="submit" className={styles.addButton}>
+          Add Client
+        </button>
+      </form>
+
+      <div className={styles.clientsList}>
+        <h3>Clients List</h3>
+        <table className={styles.clientTable}>
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Website</th>
+              <th>Contact Email</th>
+              <th>Status</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {filteredClients.map((client) => (
+              <tr key={client.id}>
+                <td>{client.name}</td>
+                <td>{client.website}</td>
+                <td>{client.contact_email}</td>
+                <td>
+                  <span 
+                    className={`${styles.status} ${
+                      client.status === 'active' 
+                        ? styles.statusActive 
+                        : styles.statusInactive
+                    }`}
+                  >
+                    {client.status}
+                  </span>
+                </td>
+                <td className={styles.actionButtons}>
+                  <button 
+                    className={styles.codeButton}
+                    onClick={() => handleCodeModal(client.client_key)}
+                  >
+                    Get Code
+                  </button>
+                  <button 
+                    className={`${styles.statusButton} ${
+                      client.status === 'active' 
+                        ? styles.statusButtonActive 
+                        : styles.statusButtonInactive
+                    }`}
+                    onClick={() => toggleClientStatus(client.id, client.status)}
+                  >
+                    {client.status === 'active' ? 'Deactivate' : 'Activate'}
+                  </button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      {showCodeModal && (
+        <div className={styles.modal}>
+          <div className={styles.modalContent}>
+            <h3>Widget Code Snippet</h3>
+            <WidgetCodeSnippet clientKey={selectedClientCode} />
+            <div className={styles.modalButtons}>
+              <button 
+                className={styles.closeButton}
+                onClick={() => setShowCodeModal(false)}
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
