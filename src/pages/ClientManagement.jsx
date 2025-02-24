@@ -21,14 +21,28 @@ function ClientManagement() {
   useEffect(() => {
     const checkAuth = async () => {
       try {
+        // First try to get existing session
         const { data: { session }, error } = await supabase.auth.getSession();
         
         if (error || !session) {
-          console.error('No active session found:', error);
-          navigate('/login');
+          // If no session, try to recover session from URL
+          const { data: { session: urlSession }, error: urlError } = 
+            await supabase.auth.getSessionFromUrl();
+          
+          if (urlError || !urlSession) {
+            console.error('No active session found:', error || urlError);
+            navigate('/login');
+            return;
+          }
+          
+          // Set session from URL
+          await supabase.auth.setSession(urlSession);
+          setAdminId(urlSession.user.id);
+          loadClients();
           return;
         }
 
+        // Set session from existing session
         setAdminId(session.user.id);
         loadClients();
       } catch (error) {
