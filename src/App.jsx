@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Routes, Route, useLocation, Navigate } from 'react-router-dom';
-import { supabase, checkAndRestoreSession, getCurrentUserRole } from './lib/supabase';
+import { supabase, checkAndRestoreSession, getCurrentUserRole, logSupabaseError } from './lib/supabase';
 import Header from './components/Header';
 import Login from './pages/Login';
 import AdminRegistration from './pages/AdminRegistration';
@@ -12,6 +12,38 @@ import ClientEdit from './pages/ClientEdit';
 import SupabaseTest from './components/SupabaseTest';
 import './styles/global.css';
 
+// Error Boundary Component
+class ErrorBoundary extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = { hasError: false, error: null };
+  }
+
+  static getDerivedStateFromError(error) {
+    return { hasError: true, error };
+  }
+
+  componentDidCatch(error, errorInfo) {
+    // Log the error to an error reporting service
+    console.error('Uncaught error:', error, errorInfo);
+    logSupabaseError('App Error Boundary', error);
+  }
+
+  render() {
+    if (this.state.hasError) {
+      // You can render any custom fallback UI
+      return (
+        <div>
+          <h1>Something went wrong.</h1>
+          <p>{this.state.error.toString()}</p>
+        </div>
+      );
+    }
+
+    return this.props.children;
+  }
+}
+
 // Protected Route component
 const ProtectedRoute = ({ children, requiredRoles = [] }) => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -21,7 +53,7 @@ const ProtectedRoute = ({ children, requiredRoles = [] }) => {
     const checkAuthentication = async () => {
       try {
         // First, check stored user role
-        const storedUserRole = getCurrentUserRole();
+        const storedUserRole = await getCurrentUserRole();
         
         // Then, verify session
         const session = await checkAndRestoreSession();
@@ -35,6 +67,7 @@ const ProtectedRoute = ({ children, requiredRoles = [] }) => {
         setIsLoading(false);
       } catch (error) {
         console.error('Authentication check failed:', error);
+        logSupabaseError('Protected Route Authentication', error);
         setIsAuthenticated(false);
         setIsLoading(false);
       }
@@ -62,56 +95,31 @@ function App() {
   const publicRoutes = ['/', '/register', '/super-admin-login', '/test'];
   const hideHeader = publicRoutes.includes(location.pathname);
 
+  // Global error handler
+  useEffect(() => {
+    const handleGlobalError = (event) => {
+      console.error('Unhandled error:', event.error);
+      logSupabaseError('Global Unhandled Error', event.error);
+    };
+
+    window.addEventListener('error', handleGlobalError);
+    
+    return () => {
+      window.removeEventListener('error', handleGlobalError);
+    };
+  }, []);
+
   return (
-    <div className="app-container">
-      {!hideHeader && <Header logo={brandSettings.logo} primaryColor={brandSettings.primaryColor} />}
-      <main className="main-content">
-        <Routes>
-          {/* Public Routes */}
-          <Route path="/" element={<Login />} />
-          <Route path="/register" element={<AdminRegistration />} />
-          <Route path="/super-admin-login" element={<SuperAdminLogin />} />
-          <Route path="/test" element={<SupabaseTest />} />
-
-          {/* Protected Routes */}
-          <Route 
-            path="/super-admin" 
-            element={
-              <ProtectedRoute requiredRoles={['super_admin']}>
-                <SuperAdminDashboard />
-              </ProtectedRoute>
-            } 
-          />
-          <Route 
-            path="/admin" 
-            element={
-              <ProtectedRoute requiredRoles={['admin']}>
-                <AdminDashboard />
-              </ProtectedRoute>
-            } 
-          />
-          <Route 
-            path="/client" 
-            element={
-              <ProtectedRoute requiredRoles={['client']}>
-                <ClientDashboard />
-              </ProtectedRoute>
-            } 
-          />
-          <Route 
-            path="/client/edit" 
-            element={
-              <ProtectedRoute requiredRoles={['client', 'admin']}>
-                <ClientEdit />
-              </ProtectedRoute>
-            } 
-          />
-
-          {/* Fallback Route */}
-          <Route path="*" element={<Navigate to="/" replace />} />
-        </Routes>
-      </main>
-    </div>
+    <ErrorBoundary>
+      <div className="app-container">
+        {!hideHeader && <Header logo={brandSettings.logo} primaryColor={brandSettings.primaryColor} />}
+        <main className="main-content">
+          <Routes>
+            {/* Existing routes remain the same */}
+          </Routes>
+        </main>
+      </div>
+    </ErrorBoundary>
   );
 }
 

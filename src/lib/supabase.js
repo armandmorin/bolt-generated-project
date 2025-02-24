@@ -48,6 +48,21 @@ export const supabase = createClient(supabaseUrl, supabaseKey, {
   }
 });
 
+// Remove the problematic .on() method
+// Instead, use a more robust error handling approach
+export const handleSupabaseError = (error) => {
+  console.error('Supabase Error:', error);
+  
+  if (error.message.includes('406')) {
+    console.error('Not Acceptable Error - Check API configuration');
+    // Potentially trigger a re-authentication or logout
+    return false;
+  }
+  
+  // Add more specific error handling as needed
+  return true;
+};
+
 // Enhanced session restoration function
 export const checkAndRestoreSession = async () => {
   try {
@@ -106,7 +121,7 @@ export const getCurrentUserRole = async () => {
 
     const userId = session.user.id;
 
-    // Use more explicit query with proper headers
+    // Use more explicit query with proper error handling
     const { data, error } = await supabase
       .from('users')
       .select('role')
@@ -125,13 +140,10 @@ export const getCurrentUserRole = async () => {
   }
 };
 
-// Add a global error interceptor
-supabase.on('error', (error) => {
-  console.error('Supabase global error:', error);
-  
-  // Optionally handle specific error scenarios
-  if (error.message.includes('406')) {
-    console.error('Not Acceptable Error - Check API configuration');
-    // Potentially trigger a re-authentication or logout
-  }
-});
+// Add global error logging
+export const logSupabaseError = (context, error) => {
+  console.group('Supabase Error');
+  console.error(`Context: ${context}`);
+  console.error('Error Details:', error);
+  console.groupEnd();
+};
