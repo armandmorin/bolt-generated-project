@@ -1,18 +1,37 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, Link, useLocation } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
-import styles from '../styles/modules/login.module.css';
+import styles from '../styles/login.module.css';
 
 const Login = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const [isLoading, setIsLoading] = useState(true);
   const navigate = useNavigate();
   const location = useLocation();
 
-  // Check if we're trying to access the test page
+  // Debug logging for component lifecycle and routing
+  useEffect(() => {
+    console.group('Login Component Debug');
+    console.log('Current Location:', location.pathname);
+    console.log('Styles Loaded:', !!styles);
+    console.log('Supabase Client:', !!supabase);
+    setIsLoading(false);
+    
+    // Additional environment checks
+    console.log('Supabase URL:', import.meta.env.VITE_SUPABASE_URL);
+    console.log('Environment Mode:', import.meta.env.MODE);
+    
+    return () => {
+      console.groupEnd();
+    };
+  }, [location]);
+
+  // Prevent rendering on test route
   if (location.pathname === '/test') {
-    return null; // Don't render login for test route
+    console.warn('Login component suppressed for test route');
+    return null;
   }
 
   const handleLogin = async (e) => {
@@ -20,19 +39,23 @@ const Login = () => {
     setError('');
 
     try {
-      // Attempt Supabase login
+      console.log('Attempting login with:', email);
+      
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password
       });
 
       if (error) {
-        throw error;
+        console.error('Login Error:', error);
+        setError(error.message || 'Login failed. Please try again.');
+        return;
       }
 
-      // If login successful, fetch user details
       if (data.user) {
-        // Fetch user role from users table
+        console.log('User logged in:', data.user.email);
+        
+        // Fetch user role with more detailed logging
         const { data: userData, error: userError } = await supabase
           .from('users')
           .select('role')
@@ -40,35 +63,35 @@ const Login = () => {
           .single();
 
         if (userError) {
-          // If no user found, default to client role
+          console.warn('User role fetch error:', userError);
           localStorage.setItem('userRole', 'client');
-          localStorage.setItem('user', JSON.stringify({ 
-            email: data.user.email, 
-            role: 'client' 
-          }));
           navigate('/client');
           return;
         }
 
-        // Determine route based on user role
         const route = userData.role === 'super_admin' ? '/super-admin' : 
                       userData.role === 'admin' ? '/admin' : 
                       '/client';
 
-        // Store user information in localStorage
         localStorage.setItem('userRole', userData.role);
-        localStorage.setItem('user', JSON.stringify({ 
-          email: data.user.email, 
-          role: userData.role 
-        }));
-
         navigate(route);
       }
     } catch (err) {
-      console.error('Login error:', err);
-      setError(err.message || 'Login failed. Please try again.');
+      console.error('Unexpected login error:', err);
+      setError('An unexpected error occurred. Please try again.');
     }
   };
+
+  // Render loading state if still loading
+  if (isLoading) {
+    return (
+      <div className={styles.loginPage}>
+        <div className={styles.loginContainer}>
+          <p>Loading...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className={styles.loginPage}>
@@ -78,13 +101,29 @@ const Login = () => {
             src="/logo.png" 
             alt="Company Logo" 
             className={styles.logo} 
-            onError={(e) => e.target.style.display = 'none'}
+            onError={(e) => {
+              console.warn('Logo failed to load');
+              e.target.style.display = 'none';
+            }}
           />
         </div>
 
         <h1>Login to Your Account</h1>
 
-        {error && <div className={styles.errorMessage}>{error}</div>}
+        {error && (
+          <div 
+            className={styles.errorMessage} 
+            style={{
+              backgroundColor: 'rgba(255, 0, 0, 0.1)', 
+              color: 'red', 
+              padding: '10px', 
+              marginBottom: '15px',
+              borderRadius: '5px'
+            }}
+          >
+            {error}
+          </div>
+        )}
         
         <form onSubmit={handleLogin}>
           <div className={styles.formGroup}>

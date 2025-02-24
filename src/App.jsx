@@ -24,14 +24,12 @@ class ErrorBoundary extends React.Component {
   }
 
   componentDidCatch(error, errorInfo) {
-    // Log the error to an error reporting service
     console.error('Uncaught error:', error, errorInfo);
     logSupabaseError('App Error Boundary', error);
   }
 
   render() {
     if (this.state.hasError) {
-      // You can render any custom fallback UI
       return (
         <div>
           <h1>Something went wrong.</h1>
@@ -52,13 +50,9 @@ const ProtectedRoute = ({ children, requiredRoles = [] }) => {
   useEffect(() => {
     const checkAuthentication = async () => {
       try {
-        // First, check stored user role
         const storedUserRole = await getCurrentUserRole();
-        
-        // Then, verify session
         const session = await checkAndRestoreSession();
         
-        // Determine authentication status
         const authenticated = session !== null && 
           (requiredRoles.length === 0 || 
            (storedUserRole && requiredRoles.includes(storedUserRole)));
@@ -95,6 +89,15 @@ function App() {
   const publicRoutes = ['/', '/register', '/super-admin-login', '/test'];
   const hideHeader = publicRoutes.includes(location.pathname);
 
+  // Debug logging for routes and navigation
+  useEffect(() => {
+    console.group('App Component Navigation');
+    console.log('Current Path:', location.pathname);
+    console.log('Public Routes:', publicRoutes);
+    console.log('Hide Header:', hideHeader);
+    console.groupEnd();
+  }, [location]);
+
   // Global error handler
   useEffect(() => {
     const handleGlobalError = (event) => {
@@ -115,7 +118,49 @@ function App() {
         {!hideHeader && <Header logo={brandSettings.logo} primaryColor={brandSettings.primaryColor} />}
         <main className="main-content">
           <Routes>
-            {/* Existing routes remain the same */}
+            <Route path="/" element={<Login />} />
+            <Route path="/register" element={<AdminRegistration />} />
+            <Route path="/super-admin-login" element={<SuperAdminLogin />} />
+            <Route path="/test" element={<SupabaseTest />} />
+            
+            <Route 
+              path="/super-admin" 
+              element={
+                <ProtectedRoute requiredRoles={['super_admin']}>
+                  <SuperAdminDashboard />
+                </ProtectedRoute>
+              } 
+            />
+            
+            <Route 
+              path="/admin" 
+              element={
+                <ProtectedRoute requiredRoles={['admin']}>
+                  <AdminDashboard />
+                </ProtectedRoute>
+              } 
+            />
+            
+            <Route 
+              path="/client" 
+              element={
+                <ProtectedRoute requiredRoles={['client']}>
+                  <ClientDashboard />
+                </ProtectedRoute>
+              } 
+            />
+            
+            <Route 
+              path="/client-edit" 
+              element={
+                <ProtectedRoute requiredRoles={['client', 'admin']}>
+                  <ClientEdit />
+                </ProtectedRoute>
+              } 
+            />
+            
+            {/* Catch-all route */}
+            <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </main>
       </div>
