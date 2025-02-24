@@ -21,18 +21,22 @@ function ClientManagement() {
   }, []);
 
   async function loadClients() {
-    const { data, error } = await supabase
-      .from('clients')
-      .select('*')
-      .order('created_at', { ascending: false });
+    try {
+      const { data, error } = await supabase
+        .from('clients')
+        .select('*')
+        .order('created_at', { ascending: false });
 
-    if (error) {
-      console.error('Error loading clients:', error);
-      return;
-    }
+      if (error) {
+        console.error('Error loading clients:', error);
+        return;
+      }
 
-    if (data) {
-      setClients(data);
+      if (data) {
+        setClients(data);
+      }
+    } catch (error) {
+      console.error('Error:', error);
     }
   }
 
