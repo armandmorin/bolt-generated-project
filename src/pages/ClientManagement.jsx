@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
-import WidgetCodeSnippet from '../components/WidgetCodeSnippet';
 import styles from '../styles/client.module.css';
 
 function ClientManagement() {
@@ -12,9 +11,6 @@ function ClientManagement() {
     website: '',
     contactEmail: ''
   });
-  const [searchQuery, setSearchQuery] = useState('');
-  const [showCodeModal, setShowCodeModal] = useState(false);
-  const [selectedClientCode, setSelectedClientCode] = useState('');
   const [adminId, setAdminId] = useState(null);
   const [loading, setLoading] = useState(true);
 
@@ -29,6 +25,25 @@ function ClientManagement() {
       setClients(data);
     } catch (error) {
       console.error('Error loading clients:', error);
+    }
+  };
+
+  const handleAddClient = async (e) => {
+    e.preventDefault();
+    if (!adminId) return;
+    try {
+      const { data, error } = await supabase
+        .from('clients')
+        .insert([{ ...newClient, admin_id: adminId }]);
+      if (error) throw error;
+      await loadClients();
+      setNewClient({
+        name: '',
+        website: '',
+        contactEmail: ''
+      });
+    } catch (error) {
+      console.error('Error adding client:', error);
     }
   };
 
@@ -62,24 +77,67 @@ function ClientManagement() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [navigate]);
 
-  // Render your client management UI here
   return (
     <div className={styles.container}>
       <h1>Client Management</h1>
+      <form onSubmit={handleAddClient} className={styles.clientForm}>
+        <div>
+          <label>Name:</label>
+          <input
+            type="text"
+            value={newClient.name}
+            onChange={(e) => setNewClient({ ...newClient, name: e.target.value })}
+            placeholder="Client Name"
+            required
+          />
+        </div>
+        <div>
+          <label>Website:</label>
+          <input
+            type="text"
+            value={newClient.website}
+            onChange={(e) => setNewClient({ ...newClient, website: e.target.value })}
+            placeholder="Client Website"
+          />
+        </div>
+        <div>
+          <label>Contact Email:</label>
+          <input
+            type="email"
+            value={newClient.contactEmail}
+            onChange={(e) => setNewClient({ ...newClient, contactEmail: e.target.value })}
+            placeholder="Contact Email"
+          />
+        </div>
+        <button type="submit">Add Client</button>
+      </form>
       {loading ? (
         <p>Loading...</p>
       ) : (
-        <div>
+        <>
           {clients.length > 0 ? (
-            <ul>
-              {clients.map((client) => (
-                <li key={client.id}>{client.name}</li>
-              ))}
-            </ul>
+            <table className={styles.clientTable}>
+              <thead>
+                <tr>
+                  <th>Name</th>
+                  <th>Website</th>
+                  <th>Contact Email</th>
+                </tr>
+              </thead>
+              <tbody>
+                {clients.map((client) => (
+                  <tr key={client.id}>
+                    <td>{client.name}</td>
+                    <td>{client.website}</td>
+                    <td>{client.contactEmail}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           ) : (
             <p>No clients found</p>
           )}
-        </div>
+        </>
       )}
     </div>
   );
