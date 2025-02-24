@@ -32,12 +32,14 @@ function ClientManagement() {
     e.preventDefault();
     if (!adminId) return;
     try {
-      // Map "contactEmail" to the "email" field expected by the database
+      // Generate a unique client_key using crypto.randomUUID if available, else fallback.
+      const clientKey = (typeof crypto !== 'undefined' && crypto.randomUUID) ? crypto.randomUUID() : Date.now().toString();
       const clientData = {
         name: newClient.name,
         website: newClient.website,
         email: newClient.contactEmail,
-        admin_id: adminId
+        admin_id: adminId,
+        client_key: clientKey
       };
       const { data, error } = await supabase
         .from('clients')
