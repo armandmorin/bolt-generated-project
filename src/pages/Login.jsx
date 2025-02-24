@@ -1,36 +1,24 @@
 import React, { useState } from 'react';
 import { useNavigate, Link, useLocation } from 'react-router-dom';
-import { supabase } from '../lib/supabase';
 import styles from '../styles/modules/login.module.css';
 
 const Login = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
   const brandSettings = JSON.parse(localStorage.getItem('brandSettings') || '{}');
 
+  // Check if we're trying to access the test page
+  if (location.pathname === '/test') {
+    return null; // Don't render login for test route
+  }
+
   const handleLogin = async (e) => {
     e.preventDefault();
-    setLoading(true);
-    
-    try {
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email,
-        password
-      });
-
-      if (error) throw error;
-
-      localStorage.setItem('userRole', 'admin');
-      localStorage.setItem('user', JSON.stringify({ email, role: 'admin' }));
-      navigate('/admin');
-    } catch (error) {
-      alert(error.message);
-    } finally {
-      setLoading(false);
-    }
+    localStorage.setItem('userRole', 'admin');
+    localStorage.setItem('user', JSON.stringify({ email, role: 'admin' }));
+    navigate('/admin');
   };
 
   return (
@@ -67,8 +55,8 @@ const Login = () => {
             />
           </div>
 
-          <button type="submit" className={styles.loginButton} disabled={loading}>
-            {loading ? 'Logging in...' : 'Login'}
+          <button type="submit" className={styles.loginButton}>
+            Login
           </button>
         </form>
 
