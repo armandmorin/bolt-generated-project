@@ -3,178 +3,244 @@
   padding: 2rem;
   border-radius: 12px;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-  max-width: 1200px;
-  margin: 0 auto;
 }
 
-.clientManagement h1 {
-  margin-bottom: 2rem;
-  color: var(--primary-color);
-  font-size: 2rem;
-  text-align: center;
-}
-
-/* Search Container */
+/* Search Section */
 .searchContainer {
   margin-bottom: 2rem;
-  display: flex;
-  justify-content: center;
 }
 
 .searchInput {
   width: 100%;
-  max-width: 500px;
+  max-width: 400px;
   padding: 0.75rem;
-  border: 2px solid var(--border-color);
-  border-radius: 8px;
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
   font-size: 1rem;
-  transition: all 0.3s ease;
+  transition: all 0.2s ease;
 }
 
 .searchInput:focus {
-  outline: none;
   border-color: var(--primary-color);
   box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+  outline: none;
 }
 
 /* Add Client Form */
 .addClientForm {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 1rem;
   margin-bottom: 2rem;
   padding-bottom: 2rem;
   border-bottom: 1px solid var(--border-color);
 }
 
-.addClientForm input {
-  width: 100%;
-  padding: 0.75rem;
-  border: 1px solid var(--border-color);
-  border-radius: 6px;
-  font-size: 1rem;
-  transition: all 0.2s ease;
-}
-
-.addClientForm input:focus {
-  border-color: var(--primary-color);
-  outline: none;
-  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
-}
-
-.addClientForm button {
-  padding: 0.75rem 1.5rem;
-  background-color: var(--primary-color);
-  color: white;
-  border: none;
-  border-radius: 6px;
-  font-size: 1rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  grid-column: span 3;
-  margin-top: 1rem;
-}
-
-.addClientForm button:hover {
-  background-color: #1e40af;
-  transform: translateY(-2px);
-}
-
-/* Clients List */
-.clientsList {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-  gap: 1.5rem;
-}
-
-.clientCard {
-  background-color: white;
-  border: 1px solid var(--border-color);
-  border-radius: 8px;
-  padding: 1.5rem;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
-  transition: all 0.3s ease;
-}
-
-.clientCard:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
-}
-
-.clientCard h3 {
-  margin-bottom: 1rem;
-  color: var(--primary-color);
+.addClientForm h3 {
+  margin: 0 0 1.5rem 0;
+  color: var(--text-color);
   font-size: 1.25rem;
 }
 
-.clientCard p {
+.formGroup {
+  margin-bottom: 1.5rem;
+}
+
+.formGroup label {
+  display: block;
   margin-bottom: 0.5rem;
+  font-weight: 500;
   color: var(--text-color);
 }
 
-.clientCard button {
+.formGroup input {
   width: 100%;
   padding: 0.75rem;
-  background-color: var(--primary-color);
-  color: white;
-  border: none;
+  border: 1px solid var(--border-color);
   border-radius: 6px;
   font-size: 1rem;
-  cursor: pointer;
-  margin-top: 1rem;
   transition: all 0.2s ease;
 }
 
-.clientCard button:hover {
-  background-color: #1e40af;
-  transform: translateY(-2px);
+.formGroup input:focus {
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+  outline: none;
 }
 
-/* Loading and Error States */
-.loadingContainer {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  height: 100%;
-  padding: 2rem;
-}
-
-.spinner {
-  border: 4px solid rgba(0, 0, 0, 0.1);
-  border-top: 4px solid var(--primary-color);
-  border-radius: 50%;
-  width: 50px;
-  height: 50px;
-  animation: spin 1s linear infinite;
-  margin-bottom: 1rem;
-}
-
-@keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
-}
-
-.errorContainer {
-  background-color: #fee2e2;
-  border: 1px solid #fecaca;
-  color: #7f1d1d;
-  padding: 1.5rem;
-  border-radius: 8px;
-  text-align: center;
-  max-width: 400px;
-  margin: 2rem auto;
-}
-
-.errorContainer button {
-  margin-top: 1rem;
+.addButton {
   padding: 0.75rem 1.5rem;
   background-color: var(--primary-color);
   color: white;
   border: none;
   border-radius: 6px;
+  font-size: 1rem;
+  font-weight: 500;
   cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.addButton:hover {
+  background-color: #1d4ed8;
+  transform: translateY(-1px);
+}
+
+/* Client List */
+.clientsList {
+  margin-top: 2rem;
+}
+
+.clientsList h3 {
+  margin: 0 0 1.5rem 0;
+  color: var(--text-color);
+  font-size: 1.25rem;
+}
+
+.clientTable {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  margin-top: 1rem;
+}
+
+.clientTable th,
+.clientTable td {
+  padding: 1rem;
+  text-align: left;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.clientTable th {
+  background-color: var(--primary-color);
+  color: white;
+  font-weight: 500;
+}
+
+.clientTable tr:hover {
+  background-color: rgba(0, 0, 0, 0.02);
+}
+
+/* Status Styles */
+.status {
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.875rem;
+}
+
+.statusActive {
+  background-color: #dcfce7;
+  color: #16a34a;
+}
+
+.statusInactive {
+  background-color: #fee2e2;
+  color: #dc2626;
+}
+
+/* Action Buttons */
+.actionButtons {
+  display: flex;
+  gap: 0.5rem;
+  justify-content: flex-end;
+}
+
+.editButton {
+  padding: 0.5rem 1rem;
+  background-color: #3b82f6;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.875rem;
+  transition: all 0.2s ease;
+}
+
+.editButton:hover {
+  background-color: #2563eb;
+  transform: translateY(-1px);
+}
+
+.codeButton {
+  padding: 0.5rem 1rem;
+  background-color: var(--primary-color);
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.875rem;
+  transition: all 0.2s ease;
+}
+
+.codeButton:hover {
+  background-color: #1d4ed8;
+  transform: translateY(-1px);
+}
+
+.statusButton {
+  padding: 0.5rem 1rem;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.875rem;
+  transition: all 0.2s ease;
+}
+
+.statusButtonActive {
+  background-color: #fee2e2;
+  color: #dc2626;
+}
+
+.statusButtonInactive {
+  background-color: #dcfce7;
+  color: #16a34a;
+}
+
+/* Modal Styles */
+.modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.modalContent {
+  background: white;
+  padding: 2rem;
+  border-radius: 12px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  max-width: 600px;
+  width: 90%;
+}
+
+.modalContent h3 {
+  margin: 0 0 1rem 0;
+  color: var(--text-color);
+}
+
+.modalButtons {
+  display: flex;
+  gap: 1rem;
+  justify-content: flex-end;
+  margin-top: 1.5rem;
+}
+
+.closeButton {
+  padding: 0.5rem 1rem;
+  background-color: #e2e8f0;
+  color: var(--text-color);
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.875rem;
+  transition: all 0.2s ease;
+}
+
+.closeButton:hover {
+  background-color: #cbd5e1;
+  transform: translateY(-1px);
 }
 
 /* Responsive Design */
@@ -183,15 +249,26 @@
     padding: 1rem;
   }
 
-  .addClientForm {
-    grid-template-columns: 1fr;
+  .actionButtons {
+    flex-direction: column;
+    gap: 0.5rem;
   }
 
-  .addClientForm button {
-    grid-column: span 1;
+  .clientTable th,
+  .clientTable td {
+    padding: 0.75rem;
   }
 
-  .clientsList {
-    grid-template-columns: 1fr;
+  .modalContent {
+    width: 95%;
+    padding: 1.5rem;
+  }
+}
+
+@media (max-width: 640px) {
+  .clientTable {
+    display: block;
+    overflow-x: auto;
+    white-space: nowrap;
   }
 }
