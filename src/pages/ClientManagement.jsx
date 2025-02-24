@@ -16,16 +16,36 @@ function ClientManagement() {
   const [showCodeModal, setShowCodeModal] = useState(false);
   const [selectedClientCode, setSelectedClientCode] = useState('');
   const [adminId, setAdminId] = useState(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    loadClients();
-    // Get the current user's ID
     const fetchAdminId = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      setAdminId(user.id);
+      try {
+        const { data: { user }, error } = await supabase.auth.getUser();
+        
+        if (error) {
+          console.error('Error fetching user:', error);
+          navigate('/login');
+          return;
+        }
+
+        if (user) {
+          setAdminId(user.id);
+        } else {
+          console.error('No authenticated user found');
+          navigate('/login');
+        }
+      } catch (error) {
+        console.error('Error:', error);
+        navigate('/login');
+      } finally {
+        setLoading(false);
+      }
     };
+
     fetchAdminId();
-  }, []);
+    loadClients();
+  }, [navigate]);
 
   async function loadClients() {
     try {
@@ -64,6 +84,7 @@ function ClientManagement() {
     
     if (!adminId) {
       console.error('Admin ID is not available');
+      alert('Please login to add clients');
       return;
     }
 
@@ -74,27 +95,36 @@ function ClientManagement() {
       contact_email: newClient.contactEmail,
       client_key: clientKey,
       status: 'active',
-      admin_id: adminId // Add the admin_id
+      admin_id: adminId
     };
 
-    const { error } = await supabase
-      .from('clients')
-      .insert([newClientData]);
+    try {
+      const { error } = await supabase
+        .from('clients')
+        .insert([newClientData]);
 
-    if (error) {
-      console.error('Error adding client:', error);
-      alert('Failed to add client. Please try again.');
-      return;
+      if (error) {
+        console.error('Error adding client:', error);
+        alert('Failed to add client. Please try again.');
+        return;
+      }
+
+      await loadClients();
+      
+      setNewClient({
+        name: '',
+        website: '',
+        contactEmail: ''
+      });
+    } catch (error) {
+      console.error('Error:', error);
+      alert('An unexpected error occurred. Please try again.');
     }
-
-    await loadClients();
-    
-    setNewClient({
-      name: '',
-      website: '',
-      contactEmail: ''
-    });
   };
+
+  if (loading) {
+    return <div>Loading...</div>;
+  }
 
   // ... rest of the component remains the same
 }
