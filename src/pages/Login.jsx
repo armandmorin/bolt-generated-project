@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link, useLocation } from 'react-router-dom';
-import { supabase } from '../lib/supabase';
+import { supabase, getCurrentUserRole } from '../lib/supabase';
 import styles from '../styles/login.module.css';
 
 const Login = () => {
@@ -11,17 +11,12 @@ const Login = () => {
   const navigate = useNavigate();
   const location = useLocation();
 
-  // Debug logging for component lifecycle and routing
   useEffect(() => {
     console.group('Login Component Debug');
     console.log('Current Location:', location.pathname);
     console.log('Styles Loaded:', !!styles);
     console.log('Supabase Client:', !!supabase);
     setIsLoading(false);
-    
-    // Additional environment checks
-    console.log('Supabase URL:', import.meta.env.VITE_SUPABASE_URL);
-    console.log('Environment Mode:', import.meta.env.MODE);
     
     return () => {
       console.groupEnd();
@@ -55,25 +50,25 @@ const Login = () => {
       if (data.user) {
         console.log('User logged in:', data.user.email);
         
-        // Fetch user role with more detailed logging
-        const { data: userData, error: userError } = await supabase
-          .from('users')
-          .select('role')
-          .eq('email', email)
-          .single();
+        // Get user role using the new robust method
+        const userRole = await getCurrentUserRole();
 
-        if (userError) {
-          console.warn('User role fetch error:', userError);
+        console.log('Retrieved User Role:', userRole);
+
+        if (!userRole) {
+          console.warn('Unable to determine user role, defaulting to client');
           localStorage.setItem('userRole', 'client');
           navigate('/client');
           return;
         }
 
-        const route = userData.role === 'super_admin' ? '/super-admin' : 
-                      userData.role === 'admin' ? '/admin' : 
+        const route = userRole === 'super_admin' ? '/super-admin' : 
+                      userRole === 'admin' ? '/admin' : 
                       '/client';
 
-        localStorage.setItem('userRole', userData.role);
+        console.log('Navigating to route:', route);
+
+        localStorage.setItem('userRole', userRole);
         navigate(route);
       }
     } catch (err) {
@@ -82,90 +77,41 @@ const Login = () => {
     }
   };
 
-  // Render loading state if still loading
-  if (isLoading) {
+  const renderLoginForm = () => {
     return (
-      <div className={styles.loginPage}>
-        <div className={styles.loginContainer}>
-          <p>Loading...</p>
-        </div>
-      </div>
-    );
-  }
-
-  return (
-    <div className={styles.loginPage}>
       <div className={styles.loginContainer}>
-        <div className={styles.logoContainer}>
-          <img 
-            src="/logo.png" 
-            alt="Company Logo" 
-            className={styles.logo} 
-            onError={(e) => {
-              console.warn('Logo failed to load');
-              e.target.style.display = 'none';
-            }}
-          />
-        </div>
-
-        <h1>Login to Your Account</h1>
-
-        {error && (
-          <div 
-            className={styles.errorMessage} 
-            style={{
-              backgroundColor: 'rgba(255, 0, 0, 0.1)', 
-              color: 'red', 
-              padding: '10px', 
-              marginBottom: '15px',
-              borderRadius: '5px'
-            }}
-          >
-            {error}
-          </div>
-        )}
-        
-        <form onSubmit={handleLogin}>
+        <form onSubmit={handleLogin} className={styles.loginForm}>
+          <h2>Login</h2>
+          {error && <p className={styles.errorMessage}>{error}</p>}
           <div className={styles.formGroup}>
-            <label htmlFor="email">Email Address</label>
-            <input 
-              type="email" 
+            <label htmlFor="email">Email</label>
+            <input
+              type="email"
               id="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              placeholder="Enter your email"
-              required 
+              required
             />
           </div>
-
           <div className={styles.formGroup}>
             <label htmlFor="password">Password</label>
-            <input 
-              type="password" 
+            <input
+              type="password"
               id="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              placeholder="Enter your password"
-              required 
+              required
             />
           </div>
-
           <button type="submit" className={styles.loginButton}>
             Login
           </button>
         </form>
-
-        <div className={styles.links}>
-          <Link to="/register" className={styles.registerLink}>
-            Create New Account
-          </Link>
-          <Link to="/super-admin-login" className={styles.superAdminLink}>
-            Super Admin Login
-          </Link>
-        </div>
       </div>
-    </div>
-  );
+    );
+  };
+
+  return isLoading ? null : renderLoginForm();
 };
 
 export default Login;

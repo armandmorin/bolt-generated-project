@@ -41,29 +41,35 @@ export const supabase = createClient(supabaseUrl, supabaseKey, {
     autoRefreshToken: true,
     detectSessionInUrl: true
   },
-  // Add explicit headers to resolve 406 error
+  // Explicitly set headers to resolve 406 error
   headers: {
     'Content-Type': 'application/json',
-    'Accept': 'application/json'
+    'Accept': 'application/json',
+    'Prefer': 'return=representation'  // Changed from 'return=minimal'
   }
 });
 
-// Remove the problematic .on() method
-// Instead, use a more robust error handling approach
-export const handleSupabaseError = (error) => {
-  console.error('Supabase Error:', error);
+// Enhanced error handling for Supabase queries
+export const handleSupabaseError = (error, context = 'Unknown') => {
+  console.group(`Supabase Error - ${context}`);
+  console.error('Error Details:', error);
+  
+  // Specific error handling
+  if (error.code === 'PGRST116') {
+    console.warn('No rows returned. This might be expected in some cases.');
+    return null;
+  }
   
   if (error.message.includes('406')) {
     console.error('Not Acceptable Error - Check API configuration');
-    // Potentially trigger a re-authentication or logout
-    return false;
+    return null;
   }
   
-  // Add more specific error handling as needed
-  return true;
+  console.groupEnd();
+  return error;
 };
 
-// Enhanced session restoration function
+// Comprehensive session restoration function
 export const checkAndRestoreSession = async () => {
   try {
     const { data, error } = await supabase.auth.getSession();
@@ -80,7 +86,61 @@ export const checkAndRestoreSession = async () => {
   }
 };
 
-// Global auth state change listener
+// Robust user role retrieval
+export const getCurrentUserRole = async () => {
+  try {
+    // First, get the current session
+    const { data: { session } } = await supabase.auth.getSession();
+    
+    if (!session) {
+      console.error('No active session');
+      return null;
+    }
+
+    const userId = session.user.id;
+    const userEmail = session.user.email;
+
+    console.log('Attempting to retrieve role for:', {
+      userId,
+      userEmail
+    });
+
+    // Method 1: Check user metadata first
+    const userMetadataRole = session.user.user_metadata?.role;
+    if (userMetadataRole) {
+      console.log('Role from user metadata:', userMetadataRole);
+      return userMetadataRole;
+    }
+
+    // Method 2: Query users table with more detailed logging
+    const { data, error } = await supabase
+      .from('users')
+      .select('role')
+      .eq('id', userId)
+      .single();  // Use single() instead of maybeSingle()
+
+    console.log('Users table query result:', { data, error });
+
+    if (error) {
+      console.error('Error fetching user role:', error);
+      handleSupabaseError(error, 'User Role Retrieval');
+      return null;
+    }
+
+    if (data) {
+      console.log('Role from users table:', data.role);
+      return data.role;
+    }
+
+    console.warn('No role found for user');
+    return null;
+  } catch (error) {
+    console.error('Unexpected error in getCurrentUserRole:', error);
+    return null;
+  }
+};
+
+// Global auth state change listener with more robust handling
 supabase.auth.onAuthStateChange((event, session) => {
   console.log('Auth state changed:', event, session);
   
@@ -91,7 +151,7 @@ supabase.auth.onAuthStateChange((event, session) => {
         localStorage.setItem('user', JSON.stringify({
           email: session.user.email,
           id: session.user.id,
-          role: session.user.user_metadata.role || null
+          role: session.user.user_metadata?.role || 'client'
         }));
       }
       break;
@@ -109,38 +169,7 @@ supabase.auth.onAuthStateChange((event, session) => {
   }
 });
 
-// Utility function to get current user role with more robust error handling
-export const getCurrentUserRole = async () => {
-  try {
-    const { data: { session } } = await supabase.auth.getSession();
-    
-    if (!session) {
-      console.error('No active session');
-      return null;
-    }
-
-    const userId = session.user.id;
-
-    // Use more explicit query with proper error handling
-    const { data, error } = await supabase
-      .from('users')
-      .select('role')
-      .eq('id', userId)
-      .single();
-
-    if (error) {
-      console.error('Error fetching user role:', error);
-      return null;
-    }
-
-    return data?.role || null;
-  } catch (error) {
-    console.error('Unexpected error in getCurrentUserRole:', error);
-    return null;
-  }
-};
-
-// Add global error logging
+// Utility for logging Supabase-related errors
 export const logSupabaseError = (context, error) => {
   console.group('Supabase Error');
   console.error(`Context: ${context}`);
