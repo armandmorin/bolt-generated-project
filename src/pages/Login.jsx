@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate, Link, useLocation } from 'react-router-dom';
-import { supabase, getCurrentUserRole } from '../lib/supabase';
+import { useNavigate, Link } from 'react-router-dom';
+import { supabase } from '../lib/supabase';
 import styles from '../styles/modules/login.module.css';
 
 const Login = () => {
@@ -10,22 +10,38 @@ const Login = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
   const navigate = useNavigate();
-  const location = useLocation();
 
   // Check for existing session on component mount
   useEffect(() => {
     const checkExistingSession = async () => {
       try {
-        const { data } = await supabase.auth.getSession();
+        const { data: { session } } = await supabase.auth.getSession();
         
-        if (data.session) {
-          const userRole = await getCurrentUserRole();
+        if (session) {
+          // Fetch user details directly from Supabase
+          const { data: userData, error: userError } = await supabase
+            .from('users')
+            .select('role')
+            .eq('id', session.user.id)
+            .single();
+
+          if (userError) {
+            console.error('Error fetching user details:', userError);
+            return;
+          }
+
+          const userRole = userData?.role || 'client';
           
-          if (userRole) {
-            const route = userRole === 'super_admin' ? '/super-admin' : 
-                          userRole === 'admin' ? '/admin' : 
-                          '/client';
-            navigate(route);
+          // Redirect based on user role
+          switch (userRole) {
+            case 'super_admin':
+              navigate('/super-admin');
+              break;
+            case 'admin':
+              navigate('/admin');
+              break;
+            default:
+              navigate('/client');
           }
         }
       } catch (err) {
@@ -38,17 +54,12 @@ const Login = () => {
     checkExistingSession();
   }, [navigate]);
 
-  // Prevent rendering on test route
-  if (location.pathname === '/test') {
-    return null;
-  }
-
   const handleLogin = async (e) => {
     e.preventDefault();
     setError('');
     setIsLoading(true);
 
-    // Basic email validation
+    // Comprehensive validation
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
       setError('Please enter a valid email address');
@@ -56,7 +67,6 @@ const Login = () => {
       return;
     }
 
-    // Password length check
     if (password.length < 6) {
       setError('Password must be at least 6 characters long');
       setIsLoading(false);
@@ -64,41 +74,59 @@ const Login = () => {
     }
 
     try {
-      const { data, error } = await supabase.auth.signInWithPassword({
+      // Attempt sign-in
+      const { data, error: signInError } = await supabase.auth.signInWithPassword({
         email,
         password
       });
 
-      if (error) {
-        throw error;
+      if (signInError) {
+        throw signInError;
       }
 
-      if (data.user) {
-        const userRole = await getCurrentUserRole();
+      // Fetch user details
+      const { data: userData, error: userError } = await supabase
+        .from('users')
+        .select('role')
+        .eq('id', data.user.id)
+        .single();
 
-        if (!userRole) {
-          setError('Unable to determine user role. Please contact support.');
-          setIsLoading(false);
-          return;
-        }
-
-        const route = userRole === 'super_admin' ? '/super-admin' : 
-                      userRole === 'admin' ? '/admin' : 
-                      '/client';
-
-        localStorage.setItem('userRole', userRole);
-        navigate(route);
+      if (userError) {
+        console.error('Error fetching user details:', userError);
+        throw new Error('Unable to retrieve user details');
       }
+
+      // Determine user role with fallback
+      const userRole = userData?.role || 'client';
+      
+      // Store role in local storage for persistence
+      localStorage.setItem('userRole', userRole);
+
+      // Redirect based on role
+      switch (userRole) {
+        case 'super_admin':
+          navigate('/super-admin');
+          break;
+        case 'admin':
+          navigate('/admin');
+          break;
+        default:
+          navigate('/client');
+      }
+
     } catch (err) {
       console.error('Login error:', err);
       
-      // Specific error handling
+      // Detailed error handling
       switch (err.message) {
         case 'Invalid login credentials':
           setError('Incorrect email or password. Please try again.');
           break;
         case 'Email not confirmed':
           setError('Please confirm your email before logging in.');
+          break;
+        case 'Unable to retrieve user details':
+          setError('Unable to fetch user information. Please contact support.');
           break;
         default:
           setError('An unexpected error occurred. Please try again later.');
