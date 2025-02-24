@@ -18,31 +18,36 @@ function ClientManagement() {
   const [adminId, setAdminId] = useState(null);
   const [loading, setLoading] = useState(true);
 
+  const loadClients = async () => {
+    if (!adminId) return;
+    try {
+      const { data, error } = await supabase
+        .from('clients')
+        .select('*')
+        .eq('admin_id', adminId);
+      if (error) throw error;
+      setClients(data);
+    } catch (error) {
+      console.error('Error loading clients:', error);
+    }
+  };
+
   useEffect(() => {
     const checkAuth = async () => {
       try {
-        // First try to get existing session
         const { data: { session }, error } = await supabase.auth.getSession();
-        
         if (error || !session) {
-          // If no session, try to recover session from URL
-          const { data: { session: urlSession }, error: urlError } = 
-            await supabase.auth.getSessionFromUrl();
-          
+          const { data: { session: urlSession }, error: urlError } = await supabase.auth.getSessionFromUrl();
           if (urlError || !urlSession) {
             console.error('No active session found:', error || urlError);
             navigate('/login');
             return;
           }
-          
-          // Set session from URL
           await supabase.auth.setSession(urlSession);
           setAdminId(urlSession.user.id);
           loadClients();
           return;
         }
-
-        // Set session from existing session
         setAdminId(session.user.id);
         loadClients();
       } catch (error) {
@@ -54,9 +59,30 @@ function ClientManagement() {
     };
 
     checkAuth();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [navigate]);
 
-  // ... rest of the component remains the same
+  // Render your client management UI here
+  return (
+    <div className={styles.container}>
+      <h1>Client Management</h1>
+      {loading ? (
+        <p>Loading...</p>
+      ) : (
+        <div>
+          {clients.length > 0 ? (
+            <ul>
+              {clients.map((client) => (
+                <li key={client.id}>{client.name}</li>
+              ))}
+            </ul>
+          ) : (
+            <p>No clients found</p>
+          )}
+        </div>
+      )}
+    </div>
+  );
 }
 
 export default ClientManagement;
