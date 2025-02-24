@@ -32,9 +32,16 @@ function ClientManagement() {
     e.preventDefault();
     if (!adminId) return;
     try {
+      // Map "contactEmail" to the "email" field expected by the database
+      const clientData = {
+        name: newClient.name,
+        website: newClient.website,
+        email: newClient.contactEmail,
+        admin_id: adminId
+      };
       const { data, error } = await supabase
         .from('clients')
-        .insert([{ ...newClient, admin_id: adminId }]);
+        .insert([clientData]);
       if (error) throw error;
       await loadClients();
       setNewClient({
@@ -107,6 +114,7 @@ function ClientManagement() {
             value={newClient.contactEmail}
             onChange={(e) => setNewClient({ ...newClient, contactEmail: e.target.value })}
             placeholder="Contact Email"
+            required
           />
         </div>
         <button type="submit">Add Client</button>
@@ -121,7 +129,7 @@ function ClientManagement() {
                 <tr>
                   <th>Name</th>
                   <th>Website</th>
-                  <th>Contact Email</th>
+                  <th>Email</th>
                 </tr>
               </thead>
               <tbody>
@@ -129,7 +137,7 @@ function ClientManagement() {
                   <tr key={client.id}>
                     <td>{client.name}</td>
                     <td>{client.website}</td>
-                    <td>{client.contactEmail}</td>
+                    <td>{client.email}</td>
                   </tr>
                 ))}
               </tbody>
