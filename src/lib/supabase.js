@@ -45,46 +45,9 @@ export const supabase = createClient(supabaseUrl, supabaseKey, {
   headers: {
     'Content-Type': 'application/json',
     'Accept': 'application/json',
-    'Prefer': 'return=representation'  // Changed from 'return=minimal'
+    'Prefer': 'return=representation'
   }
 });
-
-// Enhanced error handling for Supabase queries
-export const handleSupabaseError = (error, context = 'Unknown') => {
-  console.group(`Supabase Error - ${context}`);
-  console.error('Error Details:', error);
-  
-  // Specific error handling
-  if (error.code === 'PGRST116') {
-    console.warn('No rows returned. This might be expected in some cases.');
-    return null;
-  }
-  
-  if (error.message.includes('406')) {
-    console.error('Not Acceptable Error - Check API configuration');
-    return null;
-  }
-  
-  console.groupEnd();
-  return error;
-};
-
-// Comprehensive session restoration function
-export const checkAndRestoreSession = async () => {
-  try {
-    const { data, error } = await supabase.auth.getSession();
-
-    if (error) {
-      console.error('Session retrieval error:', error);
-      return null;
-    }
-
-    return data.session;
-  } catch (error) {
-    console.error('Comprehensive session check failed:', error);
-    return null;
-  }
-};
 
 // Robust user role retrieval
 export const getCurrentUserRole = async () => {
@@ -98,32 +61,23 @@ export const getCurrentUserRole = async () => {
     }
 
     const userId = session.user.id;
-    const userEmail = session.user.email;
 
-    console.log('Attempting to retrieve role for:', {
-      userId,
-      userEmail
-    });
-
-    // Method 1: Check user metadata first
+    // Check user metadata first (primary method)
     const userMetadataRole = session.user.user_metadata?.role;
     if (userMetadataRole) {
       console.log('Role from user metadata:', userMetadataRole);
       return userMetadataRole;
     }
 
-    // Method 2: Query users table with more detailed logging
+    // Fallback: Query users table with maybeSingle() to handle no rows
     const { data, error } = await supabase
       .from('users')
       .select('role')
       .eq('id', userId)
-      .single();  // Use single() instead of maybeSingle()
-
-    console.log('Users table query result:', { data, error });
+      .maybeSingle();  // Use maybeSingle() to handle cases with no rows
 
     if (error) {
       console.error('Error fetching user role:', error);
-      handleSupabaseError(error, 'User Role Retrieval');
       return null;
     }
 
@@ -132,15 +86,16 @@ export const getCurrentUserRole = async () => {
       return data.role;
     }
 
-    console.warn('No role found for user');
-    return null;
+    // If no role found, default to 'client'
+    console.warn('No role found, defaulting to client');
+    return 'client';
   } catch (error) {
     console.error('Unexpected error in getCurrentUserRole:', error);
     return null;
   }
 };
 
-// Global auth state change listener with more robust handling
+// Global auth state change listener
 supabase.auth.onAuthStateChange((event, session) => {
   console.log('Auth state changed:', event, session);
   
